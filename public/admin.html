@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>管理者パネル | じさくや</title>
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root {
+    --bg: #F4EDE0;
+    --panel: #FFFCF5;
+    --line: #2A2620;
+    --text: #22201C;
+    --muted: #6B5C4B;
+
+    --accent: #1B3A5C;
+    --accent2: #C9A646;
+    --pink: #C1440E;
+    --good: #1B3A5C;
+    --warn: #C9A646;
+    --bad: #A6321B;
+
+    --shadow: none;
+    --shadow-lg: none;
+    --shadow-sm: none;
+    --radius: 0;
+    --radius-md: 0;
+    --stroke: 1.5px solid var(--line);
+
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  /* Neobrutalism ボタン/スタイルの基本 */
+  button, input, select, textarea {
+    font-family: var(--font-body);
+    font-weight: 800;
+  }
+
+  button {
+    cursor: pointer;
+    border: var(--stroke);
+    border-radius:0;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    box-shadow:none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+  }
+  button:hover {
+    box-shadow:none;
+  }
+  button:active {
+    box-shadow:none;
+  }
+  button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow:none;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    border-radius:0;
+    border: var(--stroke);
+    background: var(--panel);
+    color: var(--text);
+    padding: 12px 14px;
+    outline: none;
+    transition: box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    background: #E0F2FE;
+    box-shadow:none;
+  }
+
+  /* Layout */
+  header {
+    background: var(--panel);
+    border-bottom: var(--stroke);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .hd-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-mark {
+    width: 38px;
+    height: 38px;
+    border-radius:0;
+    background: var(--pink);
+    border: var(--stroke);
+    box-shadow:none;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-size: 20px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    padding: 24px;
+    margin-bottom: 30px;
+  }
+  .card h2 {
+    margin: 0 0 16px;
+    font-family: var(--font-display);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* 認証前画面 */
+  .login-box {
+    max-width: 460px;
+    margin: 80px auto;
+    text-align: center;
+  }
+  .login-box h1 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  /* タブ制御 */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    background: #E2E8F0;
+    border: var(--stroke);
+    border-radius:0;
+    padding: 4px;
+    margin-bottom: 24px;
+    width: fit-content;
+    box-shadow:none;
+  }
+  .tab {
+    border: none;
+    box-shadow:none;
+    background: transparent;
+    padding: 8px 20px;
+    font-size: 14px;
+    border-radius:0;
+  }
+  .tab:hover {
+    transform: none;
+    color: var(--pink);
+  }
+  .tab.active {
+    background: var(--accent2);
+    border: var(--stroke);
+    box-shadow:none;
+  }
+
+  .view-panel {
+    display: none;
+  }
+  .view-panel.active {
+    display: block;
+  }
+
+  /* Grid layouts */
+  .crud-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+  }
+  @media (max-width: 900px) {
+    .crud-layout { grid-template-columns: 1fr; }
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  /* 一覧テーブル/カード表示 */
+  .item-list-wrap {
+    max-height: 600px;
+    overflow-y: auto;
+    border: var(--stroke);
+    border-radius:0;
+    background: var(--bg);
+    padding: 16px;
+    box-shadow:none;
+  }
+  .item-row {
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    padding: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow:none;
+  }
+  .item-row:last-child {
+    margin-bottom: 0;
+  }
+  .item-row img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border: var(--stroke);
+    border-radius:0;
+    background: repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50%/10px 10px;
+  }
+  .item-row img[src=""], .item-row img:not([src]) {
+    display: none;
+  }
+  .item-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .item-info .title {
+    font-weight: 800;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-info .meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 700;
+  }
+  .ticket-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .ticket-meta-box {
+    background: var(--bg);
+    border: 2px solid var(--line);
+    border-radius:0;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .ticket-meta-box span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  .ticket-account-list {
+    margin-top: 10px;
+    padding: 10px;
+    background: #F8FAFC;
+    border: 2px dashed var(--line);
+    border-radius:0;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    max-height: 180px;
+    overflow: auto;
+  }
+  .manual-ticket-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .manual-ticket-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .manual-ticket-actions button {
+    width: auto;
+    min-width: 220px;
+  }
+  @media (max-width: 900px) {
+    .ticket-meta-grid { grid-template-columns: 1fr 1fr; }
+    .manual-ticket-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .ticket-meta-grid { grid-template-columns: 1fr; }
+  }
+
+  .btn-delete {
+    background: var(--pink);
+    color: white;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .btn-submit {
+    background: var(--good);
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  /* トースト表示 */
+  .toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    min-width: 280px;
+    max-width: 420px;
+    z-index: 100;
+    padding: 16px 20px;
+    border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;
+    transform: translateY(16px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .toast.err {
+    background: #FFD2D2;
+  }
+  .toast strong {
+    font-size: 14px;
+    font-family: var(--font-display);
+  }
+  .toast .body {
+    display: block;
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-top: 4px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== ヘッダー ===== -->
+<header>
+  <div class="hd-inner">
+    <div class="logo">
+      <span class="logo-mark">🛠️</span>
+      <span>管理者コントロールパネル</span>
+    </div>
+    <div id="authStatus" style="display:none; align-items:center; gap:12px;">
+      <span style="font-size:13px; font-weight:800;" id="adminMail"></span>
+      <a href="user_admin.html" style="display: inline-block; padding: 6px 12px; margin: 0; background: var(--good); border: var(--stroke); border-radius: 8px; box-shadow: var(--shadow-sm); font-family: var(--font-display); font-size: 12px; font-weight: 800; text-decoration: none; color: var(--text); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;">👤 契約・ユーザー管理</a>
+      <button class="btn-delete" style="padding:6px 12px; margin:0;" onclick="handleLogout()">🚪 ログアウト</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- ===== ログイン前パネル ===== -->
+  <div class="card login-box" id="loginBox">
+    <h1>🔑 管理者ログイン</h1>
+    <p style="font-size:13.5px; font-weight:700; line-height:1.7; margin-bottom:24px;">
+      このページは運営スタッフ専用です。<br/>Googleログインをしてアクセスしてください。
+    </p>
+    <button class="btn-submit" style="background:#fff; color:var(--text); box-shadow:var(--shadow);" onclick="handleLogin()">
+      🌐 Googleアカウントでログイン
+    </button>
+    <div id="loginError" style="color:var(--pink); font-size:13px; font-weight:800; margin-top:16px; display:none;"></div>
+  </div>
+
+  <!-- ===== ログイン後コンテンツ ===== -->
+  <div id="adminContent" style="display:none;">
+    <!-- タブ切り替えボタン -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('images')">🖼️ 画像素材管理</button>
+      <button class="tab" onclick="switchTab('quests')">📮 ミッション管理</button>
+      <button class="tab" onclick="switchTab('shop')">🛍️ ショップアイテム管理</button>
+      <button class="tab" onclick="switchTab('settings')">⚙️ システム設定</button>
+      <button class="tab" onclick="switchTab('knowledge')">📖 ナレッジ用語管理</button>
+      <button class="tab" onclick="switchTab('moderation')">🚫 作品モデレーション</button>
+      <button class="tab" onclick="switchTab('tickets')">🏫 教室チケット発行</button>
+    </div>
+
+    <!-- ============ タブ1: 画像素材管理 ============ -->
+    <div class="view-panel active" id="panel-images">
+      <div class="crud-layout">
+        <!-- 登録フォーム -->
+        <div class="card">
+          <h2>🖼️ 画像素材を追加</h2>
+          <form id="imageForm" onsubmit="handleImageUpload(event)">
+            <div class="form-group">
+              <label for="imageFile">画像ファイル (PNG)</label>
+              <input type="file" id="imageFile" accept="image/png" required />
+            </div>
+            <div class="form-group">
+              <label for="imageCategory">カテゴリ</label>
+              <select id="imageCategory">
+                <option value="icon">アイコン (🔋5)</option>
+                <option value="chara">キャラクター (🔋20)</option>
+                <option value="bg">背景 (🔋20)</option>
+                <option value="prem">プレミアム (🔋50)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="imagePrice">ショップ販売価格 (両)</label>
+              <input type="number" id="imagePrice" value="20" min="0" required />
+            </div>
+            <button type="submit" class="btn-submit" id="uploadBtn">🚀 アップロードして保存</button>
+          </form>
+        </div>
+        <!-- 登録画像一覧 -->
+        <div class="card">
+          <h2>🖼️ 登録されている画像</h2>
+          <div class="item-list-wrap" id="imageList">
+            <div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ロード中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ タブ2: ミッション管理 ============ -->
+    <div class="view-panel" id="panel-quests">
+      <div class="crud-layout">
+        <!-- 登録フォーム -->
+        <div class="card">
+          <h2>📮 ミッションを追加</h2>
+          <form id="questForm" onsubmit="handleQuestSubmit(event)">
+            <!-- AI自動生成パネル -->
+            <div class="form-group" style="background: #F1F5F9; border: 2.5px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
+              <label style="margin-bottom: 4px; display: block;">🤖 AIに自動で考えてもらう</label>
+              <p style="font-size: 11px; margin: 0 0 10px; font-weight: 700; color: var(--muted); line-height: 1.4;">
+                下の「ジャンル」「難易度」「報酬所持両」を選択した状態でボタンを押すと、AIがタイトルと説明文を自動生成します。
+              </p>
+              <button type="button" class="btn-submit" style="background: var(--accent2); margin: 0; padding: 8px 16px; font-size: 13px; width: 100%;" onclick="generateQuestByAI(event)">
+                ✨ AIにタイトルと説明を考えてもらう
+              </button>
+            </div>
+            <div class="form-group">
+              <label for="questTitle">ミッションタイトル</label>
+              <input type="text" id="questTitle" placeholder="例: タイマーアプリを作って！" required />
+            </div>
+            <div class="form-group">
+              <label for="questDesc">ミッションの説明文</label>
+              <textarea id="questDesc" placeholder="例: ボタンを押すと時間が計測できるシンプルなタイマーを作ってください。" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="questGenre">ジャンル</label>
+              <select id="questGenre">
+                <option value="Web制作">Web制作</option>
+                <option value="文章">文章</option>
+                <option value="画像素材">画像素材</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="questDiff">難易度</label>
+              <select id="questDiff">
+                <option value="初級">初級</option>
+                <option value="中級">中級</option>
+                <option value="上級">上級</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="questReward">報酬所持両</label>
+              <input type="number" id="questReward" value="30" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="questSrc">ミッションの提供元</label>
+              <select id="questSrc">
+                <option value="ai">🤖 AIのミッション</option>
+                <option value="user">🙋 ユーザーのミッション</option>
+                <option value="biz">🏢 企業のミッション</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-submit">📮 ミッションを登録する</button>
+          </form>
+        </div>
+        <!-- 登録ミッション一覧 -->
+        <div class="card">
+          <h2>📮 登録されているミッション</h2>
+          <div class="item-list-wrap" id="questList">
+            <div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ロード中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ タブ3: ショップアイテム管理 ============ -->
+    <div class="view-panel" id="panel-shop">
+      <div class="crud-layout">
+        <!-- 登録フォーム -->
+        <div class="card">
+          <h2>🛍️ ショップアイテムを追加</h2>
+          <form id="shopForm" onsubmit="handleShopSubmit(event)">
+            <div class="form-group">
+              <label for="shopId">アイテムID (一意のキー)</label>
+              <input type="text" id="shopId" placeholder="例: img_badge, theme_dark" required />
+            </div>
+            <div class="form-group">
+              <label for="shopIcon">表示絵文字</label>
+              <input type="text" id="shopIcon" placeholder="例: 🖼️" required />
+            </div>
+            <div class="form-group">
+              <label for="shopCategory">カテゴリ</label>
+              <select id="shopCategory" onchange="toggleShopBgStyleField()">
+                <option value="画像素材">画像素材 🖼️</option>
+                <option value="背景">背景 🎨</option>
+                <option value="コレクション">コレクション 🏆</option>
+                <option value="その他">その他 🎁</option>
+              </select>
+            </div>
+            <div class="form-group" id="shopBgStyleGroup" style="display:none;">
+              <label for="shopBgStyle">背景CSS (bgStyle)</label>
+              <input type="text" id="shopBgStyle" placeholder="例: linear-gradient(135deg, #0575e6 0%, #00f260 100%)" />
+              <p style="font-size: 11px; margin: 4px 0 0; color: var(--muted); font-weight: 700;">
+                ※カテゴリが「背景」の時のみ有効。CSSの `background` プロパティに設定する値を入力してください。
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="shopName">アイテム名</label>
+              <input type="text" id="shopName" placeholder="例: レトロゲーム背景" required />
+            </div>
+            <div class="form-group">
+              <label for="shopDesc">説明文</label>
+              <textarea id="shopDesc" placeholder="例: 作品画面に使いやすいドット絵風の背景素材です。" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="shopPrice">価格所持両</label>
+              <input type="number" id="shopPrice" value="50" min="0" required />
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="shopRepeatable" style="width:auto;" />
+              <label for="shopRepeatable" style="margin:0; cursor:pointer;">複数回購入可能（AI回数チャージなど）</label>
+            </div>
+            <button type="submit" class="btn-submit">🛍️ ショップアイテムを登録</button>
+          </form>
+        </div>
+        <!-- 登録アイテム一覧 -->
+        <div class="card">
+          <h2>🛍️ 登録されているアイテム</h2>
+          <div class="item-list-wrap" id="shopList">
+            <div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ロード中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ タブ4: システム設定 ============ -->
+    <div class="view-panel" id="panel-settings">
+      <div class="crud-layout">
+        <!-- 設定フォーム -->
+        <div class="card">
+          <h2>⚙️ システム設定</h2>
+          <form id="settingsForm" onsubmit="handleSettingsSubmit(event)">
+            <h3 style="font-size:15px; margin-bottom:10px; font-family: var(--font-display);">🏠 トップページ表示制御</h3>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="showPickup" style="width:auto; margin:0;" />
+              <label for="showPickup" style="margin:0; cursor:pointer;">今週のピックアップを表示する</label>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="showFeature" style="width:auto; margin:0;" />
+              <label for="showFeature" style="margin:0; cursor:pointer;">テーマ特集を表示する</label>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="showQuests" style="width:auto; margin:0;" />
+              <label for="showQuests" style="margin:0; cursor:pointer;">ミッションボードを表示する</label>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <input type="checkbox" id="showShop" style="width:auto; margin:0;" />
+              <label for="showShop" style="margin:0; cursor:pointer;">ショップ(両機能)を有効にする</label>
+            </div>
+
+            <hr style="border:1px solid var(--line); margin:20px 0;" />
+
+            <h3 style="font-size:15px; margin-bottom:10px; font-family: var(--font-display);">🔥 ピックアップ選定モード</h3>
+            <div class="form-group">
+              <label style="display:inline-flex; align-items:center; gap:8px; margin-right:15px; cursor:pointer;">
+                <input type="radio" name="pickupMode" value="auto" checked onchange="togglePickupMode()" style="width:auto; margin:0;" /> 自動選出 (人気＋新着ランダム)
+              </label>
+              <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="radio" name="pickupMode" value="manual" onchange="togglePickupMode()" style="width:auto; margin:0;" /> 手動選出 (作品を指定)
+              </label>
+            </div>
+
+            <button type="submit" class="btn-submit">💾 設定を保存する</button>
+          </form>
+        </div>
+
+        <!-- 手動ピックアップ作品選択 -->
+        <div class="card" id="manualWorkSelectCard" style="display:none;">
+          <h2>🔥 ピックアップ作品を選択 (最大8件)</h2>
+          <div class="form-group">
+            <input type="text" id="workSearch" placeholder="作品名・作者名で検索..." oninput="renderWorkSelector()" />
+          </div>
+          <div class="item-list-wrap" id="workSelectorList" style="max-height:400px;">
+            <div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">作品データを読み込み中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ タブ5: ナレッジ用語管理 ============ -->
+    <div class="view-panel" id="panel-knowledge">
+      <div class="crud-layout">
+        <!-- 登録フォーム -->
+        <div class="card">
+          <h2>📖 ナレッジ用語を追加 / 上書き</h2>
+          <div class="form-group" style="background:#F1F5F9; border:2.5px solid var(--line); border-radius:12px; padding:12px; margin-bottom:16px; box-shadow:var(--shadow-sm); font-size:11.5px; font-weight:700; line-height:1.6; color:var(--muted);">
+            💡 ナレッジブック(knowledge.html)に表示される用語です。<br>
+            ・<b>キー</b>に既定50語と同じ値(例: <code>css</code>)を入れると、その用語の<b>説明文を上書き</b>できます。<br>
+            ・新しいキーを入れると<b>新規の用語</b>が追加されます。<br>
+            ・並び順は数字が小さいほど先に表示されます。
+          </div>
+          <form id="termForm" onsubmit="handleTermSubmit(event)">
+            <div class="form-group">
+              <label for="termKey">キー (半角英数・一意)</label>
+              <input type="text" id="termKey" placeholder="例: webhook, css" required pattern="[A-Za-z0-9_\-]+" title="半角英数・ハイフン・アンダースコアのみ" />
+            </div>
+            <div class="form-group">
+              <label for="termEmoji">絵文字 (1文字)</label>
+              <input type="text" id="termEmoji" placeholder="例: 🪝" maxlength="4" required />
+            </div>
+            <div class="form-group">
+              <label for="termLabel">用語名 (表示名)</label>
+              <input type="text" id="termLabel" placeholder="例: Webフック" required />
+            </div>
+            <div class="form-group">
+              <label for="termCategory">カテゴリ</label>
+              <input type="text" id="termCategory" list="termCategoryList" placeholder="例: 応用" required />
+              <datalist id="termCategoryList">
+                <option value="基礎"></option>
+                <option value="AI制作"></option>
+                <option value="3人チーム"></option>
+                <option value="動きの仕組み"></option>
+                <option value="なおす"></option>
+                <option value="AIモデル"></option>
+                <option value="生成AI"></option>
+                <option value="安全"></option>
+                <option value="応用"></option>
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label for="termText">説明文 (子ども向け・2文程度)</label>
+              <textarea id="termText" placeholder="例: プログラム同士をつなぐ「窓口」のこと。…" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="termOrder">並び順 (数字が小さいほど先)</label>
+              <input type="number" id="termOrder" value="100" min="0" required />
+            </div>
+            <button type="submit" class="btn-submit">📖 用語を登録する</button>
+          </form>
+        </div>
+        <!-- 登録用語一覧 -->
+        <div class="card">
+          <h2>📖 登録されている用語</h2>
+          <div class="item-list-wrap" id="termList">
+            <div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ロード中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ タブ: 作品モデレーション ============ -->
+    <div class="view-panel" id="panel-moderation">
+      <div class="card">
+        <h2>🚫 作品モデレーション（公開停止）</h2>
+        <p style="font-size:12.5px; font-weight:700; color:var(--muted); line-height:1.7; margin:0 0 16px;">
+          公開すべきでない作品を「公開停止」にすると、トップページ等の一覧から非表示になります。内容は「プレビュー」で確認してから停止できます。停止した作品は「再公開」で元に戻せます。
+        </p>
+        <input type="text" id="modSearch" placeholder="作品名・作者名・IDで検索..." oninput="renderModeration()" style="margin-bottom:14px;" />
+        <div class="item-list-wrap" id="moderationList">
+          <div style="text-align:center; padding:20px; font-weight:700; color:var(--muted);">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 作品プレビュー用モーダル -->
+    <div id="modPreviewModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:#fff; border-radius:14px; width:min(900px,96vw); max-height:92vh; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:2px solid #1B1B3A;">
+          <strong id="modPreviewTitle" style="font-size:14px;">プレビュー</strong>
+          <button onclick="closeModPreview()" style="border:none; background:#eee; border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:800;">✕ 閉じる</button>
+        </div>
+        <iframe id="modPreviewFrame" sandbox="allow-scripts" style="flex:1; width:100%; min-height:60vh; border:0; background:#fff;"></iframe>
+      </div>
+    </div>
+
+    <!-- ============ タブ6: 教室チケット発行 ============ -->
+    <div class="view-panel" id="panel-tickets">
+      <div class="card">
+        <h2>🏫 教室チケット手動発行</h2>
+        <form id="manualTicketForm" onsubmit="issueManualTicket(event)" style="margin-bottom:26px;">
+          <div class="manual-ticket-grid">
+            <div class="form-group">
+              <label for="manualOrgName">教室名 / 学校名</label>
+              <input type="text" id="manualOrgName" placeholder="例: 品川第一小学校" required />
+            </div>
+            <div class="form-group">
+              <label for="manualContactEmail">送付先メール</label>
+              <input type="email" id="manualContactEmail" placeholder="例: admin@example.com" required />
+            </div>
+            <div class="form-group">
+              <label for="manualPlanId">プラン</label>
+              <select id="manualPlanId" onchange="toggleManualCustomFields()" required>
+                <option value="trial_10_1m">10人 / 1か月</option>
+                <option value="trial_20_1m">20人 / 1か月</option>
+                <option value="trial_40_1m">40人 / 1か月</option>
+                <option value="custom">カスタム</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="manualStartDate">利用開始日</label>
+              <input type="date" id="manualStartDate" required />
+            </div>
+            <div class="form-group manual-custom-field" style="display:none;">
+              <label for="manualCustomSeats">カスタム人数</label>
+              <input type="number" id="manualCustomSeats" min="1" max="40" value="10" />
+            </div>
+            <div class="form-group manual-custom-field" style="display:none;">
+              <label for="manualEndDate">カスタム終了日</label>
+              <input type="date" id="manualEndDate" />
+            </div>
+            <div class="form-group" style="grid-column:1 / -1;">
+              <label for="manualMemo">管理メモ</label>
+              <textarea id="manualMemo" rows="3" placeholder="例: お試し利用、請求書対応、営業デモ"></textarea>
+            </div>
+          </div>
+          <div class="manual-ticket-actions">
+            <button type="submit" class="btn-submit" id="manualTicketSubmit">🎫 手動発行する</button>
+            <span id="manualTicketStatus" style="font-size:12px; font-weight:800; color:var(--muted);"></span>
+          </div>
+        </form>
+
+        <hr style="border:1px solid var(--line); margin:4px 0 22px;" />
+
+        <h2>🏫 教室チケット発行待ち</h2>
+        <p style="font-size:12.5px; font-weight:700; color:var(--muted); line-height:1.7; margin:0 0 16px;">
+          Stripe決済後または手動発行で作成されたID/PW一覧です。メール送信実装までは、ここからCSVをダウンロードして送付してください。送付後は「送付済みにして平文削除」を押します。
+        </p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+          <label for="ticketIssueFilter" style="font-size:12px; font-weight:800; color:var(--muted);">表示</label>
+          <select id="ticketIssueFilter" onchange="renderTicketIssues()" style="max-width:220px;">
+            <option value="active">無効化以外</option>
+            <option value="all">すべて</option>
+            <option value="pending_email">送付待ち</option>
+            <option value="delivered">送付済み</option>
+            <option value="cancelled">無効化済み</option>
+          </select>
+        </div>
+        <div class="item-list-wrap" id="ticketIssueList">
+          <div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ロード中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== トースト通知 ===== -->
+<div class="toast" id="toast"><strong id="toastTitle">通知</strong><span class="body" id="toastBody"></span></div>
+
+<script src="./firebase-config.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { initializeFirestore, collection, addDoc, getDocs, doc, deleteDoc, setDoc, updateDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+  // 管理者メールアドレス定義
+  // ※本番環境で運用する際は、管理者のGoogleアカウントのメールアドレスをこの配列に追加してください。
+  const ADMIN_EMAILS = [
+    "admin@example.com"
+  ];
+
+  const config = window.VIBECODING_FIREBASE_CONFIG || {};
+  const app = initializeApp(config);
+  const auth = getAuth(app);
+  const firestoreSettings = { experimentalForceLongPolling: true, useFetchStreams: false };
+  const db = config.firestoreDatabaseId
+    ? initializeFirestore(app, firestoreSettings, config.firestoreDatabaseId)
+    : initializeFirestore(app, firestoreSettings);
+  const storage = getStorage(app);
+
+  const $ = id => document.getElementById(id);
+  let toastTimer;
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+  const jsArg = value => JSON.stringify(String(value ?? '')).replace(/</g, '\\u003c').replace(/"/g, '&quot;');
+  const csvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  const ticketStatusLabel = status => ({
+    pending_email: '送付待ち',
+    delivered: '送付済み',
+    cancelled: '無効化済み',
+    email_sent: 'メール送信済み'
+  }[status] || status || '未設定');
+
+  function showToast(title, body, isErr = false) {
+    $('toastTitle').textContent = title;
+    $('toastBody').textContent = body;
+    $('toast').classList.toggle('err', isErr);
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 3200);
+  }
+
+  function todayDateOnly() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function addDaysDateOnly(dateOnly, days) {
+    const base = new Date(`${dateOnly}T00:00:00.000Z`);
+    base.setUTCDate(base.getUTCDate() + days);
+    return base.toISOString().slice(0, 10);
+  }
+
+  window.toggleManualCustomFields = () => {
+    const isCustom = $('manualPlanId')?.value === 'custom';
+    document.querySelectorAll('.manual-custom-field').forEach(el => {
+      el.style.display = isCustom ? '' : 'none';
+    });
+    if (isCustom && $('manualStartDate')?.value && !$('manualEndDate')?.value) {
+      $('manualEndDate').value = addDaysDateOnly($('manualStartDate').value, 30);
+    }
+  };
+
+  if ($('manualStartDate')) {
+    $('manualStartDate').value = todayDateOnly();
+    $('manualStartDate').addEventListener('change', () => {
+      if ($('manualPlanId').value === 'custom') {
+        $('manualEndDate').value = addDaysDateOnly($('manualStartDate').value, 30);
+      }
+    });
+  }
+
+  // Auth Status
+  onAuthStateChanged(auth, (user) => {
+    if (user && ADMIN_EMAILS.includes(user.email)) {
+      $('loginBox').style.display = 'none';
+      $('adminContent').style.display = 'block';
+      $('authStatus').style.display = 'flex';
+      $('adminMail').textContent = user.email;
+      $('loginError').style.display = 'none';
+      initDataListeners();
+    } else {
+      if (user) {
+        // ログインしたが管理者ではない場合
+        $('loginError').textContent = `アクセス権限がありません (${user.email} は未登録です)。`;
+        $('loginError').style.display = 'block';
+        signOut(auth);
+      }
+      $('loginBox').style.display = 'block';
+      $('adminContent').style.display = 'none';
+      $('authStatus').style.display = 'none';
+    }
+  });
+
+  // ログイン / ログアウト
+  window.handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error("Login failed", err);
+      showToast("ログイン失敗", err.message, true);
+    }
+  };
+
+  window.handleLogout = () => {
+    signOut(auth).then(() => {
+      showToast("ログアウトしました", "管理者セッションを終了しました。");
+    });
+  };
+
+  // タブ切り替え
+  window.switchTab = (tabId) => {
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    $('panel-' + tabId).classList.add('active');
+  };
+
+  // Firebase Realtime Listener Setup
+  let unsubscribes = [];
+  function initDataListeners() {
+    // 古いサブスクライブを解除
+    unsubscribes.forEach(unsub => unsub());
+    unsubscribes = [];
+
+    // 1. 画像素材一覧のリアルタイム監視
+    unsubscribes.push(onSnapshot(query(collection(db, "images"), orderBy("createdAt", "desc")), (snapshot) => {
+      const listEl = $('imageList');
+      listEl.innerHTML = '';
+      if (snapshot.empty) {
+        listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">画像が登録されていません。</div>';
+        return;
+      }
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+          <img src="${esc(item.fileUrl || item.path || '')}" alt="${esc(item.fileName || item.name || docSnap.id)}"/>
+          <div class="item-info">
+            <div class="title">${esc(item.fileName || item.name || docSnap.id)}</div>
+            <div class="meta">カテゴリ: ${esc(item.category || '未分類')} | 価格: 🔋${esc(item.price ?? '—')}</div>
+          </div>
+          <button class="btn-delete" data-idle-label="🗑️ 削除" onclick="armTwoTap(this,'もう一度で削除',()=>deleteImage(${jsArg(docSnap.id)},${jsArg(item.fileName || docSnap.id)}))">🗑️ 削除</button>
+        `;
+        listEl.appendChild(row);
+      });
+    }));
+
+    // 2. ミッション一覧の監視
+    unsubscribes.push(onSnapshot(query(collection(db, "quests"), orderBy("createdAt", "desc")), (snapshot) => {
+      const listEl = $('questList');
+      listEl.innerHTML = '';
+      if (snapshot.empty) {
+        listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ミッションが登録されていません。</div>';
+        return;
+      }
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+          <div class="item-info">
+            <div class="title">${esc(item.title)} (${item.src === 'ai' ? '🤖' : item.src === 'user' ? '🙋' : '🏢'})</div>
+            <div class="meta">${esc(item.genre)} | ${esc(item.diff)} | 報酬: 🔋${esc(item.reward)}</div>
+          </div>
+          <button class="btn-delete" data-idle-label="🗑️ 削除" onclick="armTwoTap(this,'もう一度で削除',()=>deleteQuest(${jsArg(docSnap.id)}))">🗑️ 削除</button>
+        `;
+        listEl.appendChild(row);
+      });
+    }));
+
+    // 3. ショップアイテム一覧の監視
+    unsubscribes.push(onSnapshot(collection(db, "shop_items"), (snapshot) => {
+      const listEl = $('shopList');
+      listEl.innerHTML = '';
+      if (snapshot.empty) {
+        listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">ショップアイテムが登録されていません。</div>';
+        return;
+      }
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const bgStyleInfo = item.bgStyle ? `<div style="font-size:10px; margin-top:4px; font-family:monospace; background:#f1f5f9; padding:2px 6px; border-radius:4px; border:1px solid #cbd5e1; word-break:break-all;">CSS: ${esc(item.bgStyle)}</div>` : '';
+        row.innerHTML = `
+          <div style="font-size:32px;">${esc(item.icon || '🎁')}</div>
+          <div class="item-info">
+            <div class="title">${esc(item.name || docSnap.id)} (ID: ${esc(docSnap.id)})</div>
+            <div class="meta">カテゴリ: ${esc(item.category || item.type || 'その他')} | 価格: 🔋${esc(item.price ?? '—')} | 複数購入: ${item.repeatable ? '可' : '不可'}</div>
+            ${bgStyleInfo}
+          </div>
+          <button class="btn-delete" data-idle-label="🗑️ 削除" onclick="armTwoTap(this,'もう一度で削除',()=>deleteShopItem(${jsArg(docSnap.id)}))">🗑️ 削除</button>
+        `;
+        listEl.appendChild(row);
+      });
+    }));
+
+    // 4. システム設定の監視
+    unsubscribes.push(onSnapshot(doc(db, "system_settings", "homepage"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        $('showPickup').checked = data.showPickup !== false;
+        $('showFeature').checked = data.showFeature !== false;
+        $('showQuests').checked = data.showQuests !== false;
+        $('showShop').checked = data.showShop !== false;
+        
+        const mode = data.pickupMode || 'auto';
+        document.querySelectorAll('input[name="pickupMode"]').forEach(el => {
+          el.checked = el.value === mode;
+        });
+        
+        window.selectedPickupIds = Array.isArray(data.manualPickupIds) ? data.manualPickupIds : [];
+        window.togglePickupMode();
+        window.renderWorkSelector();
+      } else {
+        $('showPickup').checked = true;
+        $('showFeature').checked = true;
+        $('showQuests').checked = true;
+        $('showShop').checked = true;
+        document.querySelector('input[name="pickupMode"][value="auto"]').checked = true;
+        window.selectedPickupIds = [];
+        window.togglePickupMode();
+      }
+    }));
+
+    // 5. 作品一覧の取得（手動ピックアップ用）
+    unsubscribes.push(onSnapshot(collection(db, "works"), (snapshot) => {
+      window.allWorks = [];
+      snapshot.forEach(docSnap => {
+        window.allWorks.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      window.renderWorkSelector();
+      window.renderModeration();
+    }, (err) => {
+      console.warn("Failed to listen to works:", err);
+      window.allWorks = [];
+      window.renderWorkSelector();
+      window.renderModeration();
+    }));
+
+    // 6. ナレッジ用語一覧のリアルタイム監視
+    unsubscribes.push(onSnapshot(query(collection(db, "knowledge_terms"), orderBy("order", "asc")), (snapshot) => {
+      const listEl = $('termList');
+      listEl.innerHTML = '';
+      if (snapshot.empty) {
+        listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">追加・上書きした用語はまだありません。<br><span style="font-size:11px;">(ナレッジブックには既定の50語が表示されています)</span></div>';
+        return;
+      }
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+          <div style="font-size:30px; flex:none;">${esc(item.emoji || '🏷️')}</div>
+          <div class="item-info">
+            <div class="title">${esc(item.label)} <span style="font-size:11px; color:var(--muted);">(key: ${esc(docSnap.id)})</span></div>
+            <div class="meta">${esc(item.category || '未分類')} | 並び順: ${esc(item.order ?? '—')}</div>
+          </div>
+          <button class="btn-delete" onclick="editTerm(${jsArg(docSnap.id)})" style="background:var(--accent); color:var(--text); margin-right:6px;">✏️ 編集</button>
+          <button class="btn-delete" data-idle-label="🗑️ 削除" onclick="armTwoTap(this,'もう一度で削除',()=>deleteTerm(${jsArg(docSnap.id)}))">🗑️ 削除</button>
+        `;
+        listEl.appendChild(row);
+      });
+      window.__knowledgeTerms = {};
+      snapshot.forEach(d => { window.__knowledgeTerms[d.id] = d.data(); });
+    }, (err) => {
+      console.warn("Failed to listen to knowledge_terms:", err);
+      const listEl = $('termList');
+      if (listEl) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--bad);">用語の読み込みに失敗しました。</div>';
+    }));
+
+    // 7. 教室チケット発行待ち一覧の監視
+    unsubscribes.push(onSnapshot(query(collection(db, "ticket_issues"), orderBy("issuedAt", "desc")), (snapshot) => {
+      window.__ticketIssueOrder = [];
+      window.__ticketIssues = {};
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        window.__ticketIssueOrder.push(docSnap.id);
+        window.__ticketIssues[docSnap.id] = item;
+      });
+      renderTicketIssues();
+    }, (err) => {
+      console.warn("Failed to listen to ticket_issues:", err);
+      const listEl = $('ticketIssueList');
+      if (listEl) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--bad);">教室チケット発行一覧の読み込みに失敗しました。</div>';
+    }));
+  }
+
+  // ============ 処理: 画像アセットのアップロード ============
+  window.handleImageUpload = async (e) => {
+    e.preventDefault();
+    const file = $('imageFile').files[0];
+    const category = $('imageCategory').value;
+    const price = Number($('imagePrice').value);
+    
+    if (!file) return;
+
+    const btn = $('uploadBtn');
+    btn.disabled = true;
+    btn.textContent = "⚙️ アップロード中...";
+
+    try {
+      const storageRef = ref(storage, 'images/' + file.name);
+      // Storageにアップロード
+      await uploadBytes(storageRef, file);
+      // ダウンロードURLを取得
+      const fileUrl = await getDownloadURL(storageRef);
+
+      // Firestoreにメタデータを保存
+      await setDoc(doc(db, "images", file.name), {
+        fileName: file.name,
+        fileUrl: fileUrl,
+        category: category,
+        price: price,
+        createdAt: new Date().toISOString()
+      });
+
+      showToast("保存完了 🖼️", `画像素材 「${file.name}」をアップロードしました。`);
+      $('imageForm').reset();
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🚀 アップロードして保存";
+    }
+  };
+
+  window.deleteImage = async (docId, fileName) => {
+    try {
+      // 1. Storageから削除
+      const storageRef = ref(storage, 'images/' + fileName);
+      await deleteObject(storageRef).catch(err => console.warn("Storage delete skipped:", err.message));
+      // 2. Firestoreから削除
+      await deleteDoc(doc(db, "images", docId));
+      showToast("削除完了 🗑️", `画像素材 「${fileName}」を削除しました。`);
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  // ============ 処理: ミッション登録 ============
+  window.handleQuestSubmit = async (e) => {
+    e.preventDefault();
+    const title = $('questTitle').value.trim();
+    const desc = $('questDesc').value.trim();
+    const genre = $('questGenre').value;
+    const diff = $('questDiff').value;
+    const reward = Number($('questReward').value);
+    const src = $('questSrc').value;
+
+    try {
+      await addDoc(collection(db, "quests"), {
+        title,
+        desc,
+        genre,
+        diff,
+        reward,
+        src,
+        status: "open",
+        createdAt: new Date().toISOString()
+      });
+      showToast("登録完了 📮", `新しいミッション 「${title}」 を追加しました。`);
+      $('questForm').reset();
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  window.deleteQuest = async (docId) => {
+    try {
+      await deleteDoc(doc(db, "quests", docId));
+      showToast("削除完了 🗑️", "ミッションを削除しました。");
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  // ============ 処理: ショップアイテム登録 ============
+  window.toggleShopBgStyleField = () => {
+    const category = $('shopCategory').value;
+    if (category === '背景') {
+      $('shopBgStyleGroup').style.display = 'block';
+    } else {
+      $('shopBgStyleGroup').style.display = 'none';
+      $('shopBgStyle').value = '';
+    }
+  };
+
+  window.handleShopSubmit = async (e) => {
+    e.preventDefault();
+    const id = $('shopId').value.trim();
+    const icon = $('shopIcon').value.trim();
+    const category = $('shopCategory').value;
+    const name = $('shopName').value.trim();
+    const desc = $('shopDesc').value.trim();
+    const price = Number($('shopPrice').value);
+    const repeatable = $('shopRepeatable').checked;
+    const bgStyle = $('shopBgStyle').value.trim();
+
+    try {
+      const docData = {
+        icon,
+        category,
+        name,
+        desc,
+        price,
+        repeatable,
+        createdAt: new Date().toISOString()
+      };
+      if (category === '背景') {
+        docData.bgStyle = bgStyle;
+      }
+      await setDoc(doc(db, "shop_items", id), docData);
+      showToast("登録完了 🛍️", `アイテム 「${name}」 を追加しました。`);
+      $('shopForm').reset();
+      window.toggleShopBgStyleField();
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  window.deleteShopItem = async (docId) => {
+    try {
+      await deleteDoc(doc(db, "shop_items", docId));
+      showToast("削除完了 🗑️", "アイテムを削除しました。");
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  // ============ 処理: システム設定保存 ＆ ピックアップ管理 ============
+  window.selectedPickupIds = [];
+  window.allWorks = [];
+
+  window.togglePickupMode = () => {
+    const manualRadio = document.querySelector('input[name="pickupMode"][value="manual"]');
+    if (manualRadio && manualRadio.checked) {
+      $('manualWorkSelectCard').style.display = 'block';
+    } else {
+      $('manualWorkSelectCard').style.display = 'none';
+    }
+  };
+
+  window.renderWorkSelector = () => {
+    const listEl = $('workSelectorList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    const queryStr = $('workSearch') ? $('workSearch').value.toLowerCase().trim() : '';
+    const filtered = window.allWorks.filter(w => {
+      if (!queryStr) return true;
+      return (w.title || '').toLowerCase().includes(queryStr) || 
+             (w.author || '').toLowerCase().includes(queryStr) ||
+             (w.authorNickname || '').toLowerCase().includes(queryStr);
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; font-weight:700; color:var(--muted);">作品が見つかりませんでした。</div>';
+      return;
+    }
+
+    filtered.forEach(w => {
+      const isSelected = window.selectedPickupIds.includes(w.id);
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.style.cursor = 'pointer';
+      row.onclick = () => window.toggleManualPickupWork(w.id);
+      row.innerHTML = `
+        <input type="checkbox" style="width:auto; margin:0;" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); window.toggleManualPickupWork(${jsArg(w.id)})" />
+        <div class="item-info">
+          <div class="title">${esc(w.title || '無題')} (ID: ${esc(w.id)})</div>
+          <div class="meta">作者: ${esc(w.authorNickname || w.author || '不明')} | いいね: ♥${esc(w.likeCount || 0)}</div>
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+  };
+
+  // ===== 作品モデレーション（公開停止/再公開） =====
+  window.renderModeration = () => {
+    const listEl = $('moderationList');
+    if (!listEl) return;
+    const works = window.allWorks || [];
+    const queryStr = $('modSearch') ? $('modSearch').value.toLowerCase().trim() : '';
+    const filtered = works.filter(w => {
+      if (w.deleted === true) return false; // 削除済みは対象外
+      if (!queryStr) return true;
+      return (w.title || '').toLowerCase().includes(queryStr) ||
+             (w.author || '').toLowerCase().includes(queryStr) ||
+             (w.authorNickname || '').toLowerCase().includes(queryStr) ||
+             (w.id || '').toLowerCase().includes(queryStr);
+    });
+    // 公開停止中を先頭に、その後は新しい順
+    filtered.sort((a, b) => {
+      if (!!b.blocked !== !!a.blocked) return b.blocked ? 1 : -1;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; font-weight:700; color:var(--muted);">作品が見つかりませんでした。</div>';
+      return;
+    }
+
+    listEl.innerHTML = '';
+    filtered.forEach(w => {
+      const blocked = w.blocked === true;
+      const author = (w.authorNickname || w.author || '不明');
+      const statusLabel = blocked
+        ? '<span style="color:#b91c1c; font-weight:800;">🚫 公開停止中</span>'
+        : (w.visibility === 'private'
+            ? '<span style="color:var(--muted); font-weight:800;">非公開（作者設定）</span>'
+            : '<span style="color:#15803d; font-weight:800;">公開中</span>');
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <div class="item-info">
+          <div class="title">${esc(w.title || '無題')} <span style="font-weight:700; color:var(--muted);">(ID: ${esc(w.id)})</span></div>
+          <div class="meta">作者: ${esc(author)} ｜ ${statusLabel} ｜ ▶${w.playCount || 0} ♥${w.likeCount || 0}</div>
+        </div>
+        <div style="display:flex; gap:8px; flex:none;">
+          <button onclick="previewWork(${jsArg(w.id)})" style="border:none; background:#e0e7ff; border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:800; font-size:12px;">👁️ プレビュー</button>
+          ${blocked
+            ? `<button onclick="unblockWork(${jsArg(w.id)})" style="border:none; background:#bbf7d0; border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:800; font-size:12px;">↩️ 再公開</button>`
+            : `<button onclick="blockWork(${jsArg(w.id)})" style="border:none; background:#fecaca; border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:800; font-size:12px;">🚫 公開停止</button>`}
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+  };
+
+  window.previewWork = (workId) => {
+    const w = (window.allWorks || []).find(x => x.id === workId);
+    if (!w) return;
+    $('modPreviewTitle').textContent = `プレビュー: ${w.title || '無題'}`;
+    $('modPreviewFrame').srcdoc = w.html || '<p style="font-family:sans-serif;padding:20px;">この作品にはHTMLデータがありません。</p>';
+    $('modPreviewModal').style.display = 'flex';
+  };
+  window.closeModPreview = () => {
+    $('modPreviewFrame').srcdoc = '';
+    $('modPreviewModal').style.display = 'none';
+  };
+
+  window.blockWork = async (workId) => {
+    const w = (window.allWorks || []).find(x => x.id === workId);
+    if (!w) return;
+    if (!confirm(`「${w.title || '無題'}」を公開停止にします。\nトップページなどの一覧から非表示になります。よろしいですか?`)) return;
+    try {
+      await updateDoc(doc(db, 'works', workId), {
+        blocked: true,
+        blockedAt: new Date().toISOString(),
+        blockedBy: auth.currentUser ? auth.currentUser.email : 'admin'
+      });
+      showToast('公開停止しました 🚫', `「${w.title || '無題'}」を一覧から非表示にしました。`);
+    } catch (e) {
+      console.error('blockWork failed', e);
+      showToast('失敗しました', e.message || '公開停止できませんでした。', true);
+    }
+  };
+
+  window.unblockWork = async (workId) => {
+    const w = (window.allWorks || []).find(x => x.id === workId);
+    if (!w) return;
+    if (!confirm(`「${w.title || '無題'}」を再公開します。よろしいですか?`)) return;
+    try {
+      await updateDoc(doc(db, 'works', workId), {
+        blocked: false,
+        unblockedAt: new Date().toISOString()
+      });
+      showToast('再公開しました ↩️', `「${w.title || '無題'}」を再び公開状態にしました。`);
+    } catch (e) {
+      console.error('unblockWork failed', e);
+      showToast('失敗しました', e.message || '再公開できませんでした。', true);
+    }
+  };
+
+  window.toggleManualPickupWork = (workId) => {
+    const idx = window.selectedPickupIds.indexOf(workId);
+    if (idx !== -1) {
+      window.selectedPickupIds.splice(idx, 1);
+    } else {
+      if (window.selectedPickupIds.length >= 8) {
+        showToast("選択上限 ⚠️", "ピックアップに選べるのは最大8作品までです。", true);
+        return;
+      }
+      window.selectedPickupIds.push(workId);
+    }
+    window.renderWorkSelector();
+  };
+
+  window.handleSettingsSubmit = async (e) => {
+    e.preventDefault();
+    const showPickup = $('showPickup').checked;
+    const showFeature = $('showFeature').checked;
+    const showQuests = $('showQuests').checked;
+    const showShop = $('showShop').checked;
+    
+    let pickupMode = 'auto';
+    const manualRadio = document.querySelector('input[name="pickupMode"][value="manual"]');
+    if (manualRadio && manualRadio.checked) {
+      pickupMode = 'manual';
+    }
+
+    try {
+      await setDoc(doc(db, "system_settings", "homepage"), {
+        showPickup,
+        showFeature,
+        showQuests,
+        showShop,
+        pickupMode,
+        manualPickupIds: window.selectedPickupIds,
+        updatedAt: new Date().toISOString()
+      });
+      showToast("設定保存完了 ⚙️", "システム設定を保存しました。");
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  window.generateQuestByAI = async (e) => {
+    const genre = $('questGenre').value;
+    const diff = $('questDiff').value;
+    const reward = Number($('questReward').value);
+
+    const btn = e.currentTarget;
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "🤖 AIが考え中...";
+
+    try {
+      const response = await fetch('/api/generateQuest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ genre, diff, reward })
+      });
+      const data = await response.json();
+      if (data.ok) {
+        $('questTitle').value = data.title;
+        $('questDesc').value = data.desc;
+        showToast("AI生成完了 🤖", "タイトルと説明文を設定しました。内容を確認して登録してください。");
+      } else {
+        showToast("エラー", data.message || "AIの呼び出しに失敗しました。", true);
+      }
+    } catch(err) {
+      console.error(err);
+      showToast("エラー", "通信に失敗しました。接続環境を確認してください。", true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
+  };
+
+  // ============ 処理: ナレッジ用語の登録 / 上書き ============
+  window.handleTermSubmit = async (e) => {
+    e.preventDefault();
+    const key = $('termKey').value.trim();
+    const emoji = $('termEmoji').value.trim();
+    const label = $('termLabel').value.trim();
+    const category = $('termCategory').value.trim();
+    const text = $('termText').value.trim();
+    const order = Number($('termOrder').value);
+
+    if (!/^[A-Za-z0-9_\-]+$/.test(key)) {
+      showToast("エラー", "キーは半角英数・ハイフン・アンダースコアのみ使えます。", true);
+      return;
+    }
+
+    try {
+      // ドキュメントID = key。同じkeyなら上書き(既定50語の説明文差し替えにも使える)
+      await setDoc(doc(db, "knowledge_terms", key), {
+        key,
+        emoji,
+        label,
+        category,
+        text,
+        order,
+        updatedAt: new Date().toISOString()
+      });
+      showToast("登録完了 📖", `用語 「${label}」 を保存しました。`);
+      $('termForm').reset();
+      $('termOrder').value = 100;
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  // 既存の用語をフォームに読み込んで編集
+  window.editTerm = (docId) => {
+    const item = (window.__knowledgeTerms || {})[docId];
+    if (!item) return;
+    $('termKey').value = docId;
+    $('termEmoji').value = item.emoji || '';
+    $('termLabel').value = item.label || '';
+    $('termCategory').value = item.category || '';
+    $('termText').value = item.text || '';
+    $('termOrder').value = item.order ?? 100;
+    $('termForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast("編集モード ✏️", `「${item.label}」を読み込みました。直して登録すると上書きされます。`);
+  };
+
+  // 削除: 単純に削除を実行するだけ
+  window.deleteTerm = async (docId) => {
+    try {
+      const item = (window.__knowledgeTerms || {})[docId];
+      const label = item ? item.label : docId;
+      await deleteDoc(doc(db, "knowledge_terms", docId));
+      showToast("削除完了 🗑️", `用語 「${label}」 を削除しました。(既定50語と同じkeyなら、既定の説明文に戻ります)`);
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  window.downloadTicketIssueCsv = (orgId) => {
+    const issue = (window.__ticketIssues || {})[orgId];
+    const accounts = Array.isArray(issue?.accounts) ? issue.accounts : [];
+    if (!issue || accounts.length === 0) {
+      showToast("CSV出力できません", "アカウント情報がありません。", true);
+      return;
+    }
+
+    const rows = [
+      ['組織ID', '教室名', '送付先メール', '契約開始日', '契約終了日', 'ログインID', '初期パスワード', 'ニックネーム']
+    ];
+    accounts.forEach(account => {
+      rows.push([
+        orgId,
+        issue.orgName || '',
+        issue.contactEmail || '',
+        issue.contractStartDate || '',
+        issue.contractEndDate || '',
+        account.loginId || '',
+        account.password || '',
+        account.nickname || ''
+      ]);
+    });
+
+    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `classroom-ticket-${orgId}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("CSVを出力しました 📄", "送付後は平文パスワードを削除してください。");
+  };
+
+  window.issueManualTicket = async (e) => {
+    e.preventDefault();
+    const btn = $('manualTicketSubmit');
+    const status = $('manualTicketStatus');
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) {
+      showToast("ログインが必要です", "管理者としてログインしてください。", true);
+      return;
+    }
+
+    const planId = $('manualPlanId').value;
+    const body = {
+      orgName: $('manualOrgName').value.trim(),
+      contactEmail: $('manualContactEmail').value.trim(),
+      planId,
+      contractStartDate: $('manualStartDate').value,
+      memo: $('manualMemo').value.trim()
+    };
+    if (planId === 'custom') {
+      body.customSeats = Number($('manualCustomSeats').value);
+      body.contractEndDate = $('manualEndDate').value;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "⚙️ 発行中...";
+    status.textContent = "アカウントを作成しています...";
+
+    try {
+      const res = await fetch("/api/admin/issueManualClassroomTicket", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.message || "手動発行に失敗しました。");
+      }
+      status.textContent = `発行完了: ${data.accountCount}人 / orgId: ${data.orgId}`;
+      showToast("手動発行しました 🎫", "発行待ち一覧からCSVを出力してください。");
+      $('manualTicketForm').reset();
+      $('manualStartDate').value = todayDateOnly();
+      window.toggleManualCustomFields();
+    } catch (err) {
+      console.error("Manual ticket issue failed", err);
+      status.textContent = "";
+      showToast("手動発行エラー", err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🎫 手動発行する";
+    }
+  };
+
+  window.renderTicketIssues = () => {
+    const listEl = $('ticketIssueList');
+    if (!listEl) return;
+    const filter = $('ticketIssueFilter')?.value || 'active';
+    const ids = window.__ticketIssueOrder || [];
+    const issues = window.__ticketIssues || {};
+    listEl.innerHTML = '';
+
+    const visibleIds = ids.filter(orgId => {
+      const status = issues[orgId]?.deliveryStatus || '';
+      if (filter === 'all') return true;
+      if (filter === 'active') return status !== 'cancelled';
+      return status === filter;
+    });
+
+    if (visibleIds.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center; padding:40px; font-weight:700; color:var(--muted);">条件に合う教室チケットはありません。</div>';
+      return;
+    }
+
+    visibleIds.forEach(orgId => {
+      const item = issues[orgId] || {};
+      const accounts = Array.isArray(item.accounts) ? item.accounts : [];
+      const isCancelled = item.deliveryStatus === 'cancelled';
+      const accountPreview = accounts.length > 0
+        ? accounts.map(account => `${esc(account.loginId)} / ${esc(account.nickname)} / ${account.password ? 'PWあり' : 'PW削除済み'}`).join('<br>')
+        : '<span style="color:var(--muted);">アカウント情報は削除済みです。</span>';
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.style.alignItems = 'stretch';
+      row.innerHTML = `
+        <div class="item-info">
+          <div class="title">${esc(item.orgName || orgId)} <span style="font-size:11px; color:var(--muted);">(orgId: ${esc(orgId)})</span></div>
+          <div class="meta">送付先: ${esc(item.contactEmail || '未設定')} | 状態: ${esc(ticketStatusLabel(item.deliveryStatus))}</div>
+          <div class="ticket-meta-grid">
+            <div class="ticket-meta-box"><span>プラン</span>${esc(item.planId || '未設定')}</div>
+            <div class="ticket-meta-box"><span>人数</span>${accounts.length || item.planSeats || '不明'}人</div>
+            <div class="ticket-meta-box"><span>契約期間</span>${esc(item.contractStartDate || '未設定')} - ${esc(item.contractEndDate || '未設定')}</div>
+            <div class="ticket-meta-box"><span>発行区分</span>${esc(item.billingType || '未設定')}</div>
+          </div>
+          ${item.manualMemo ? `<div class="meta">管理メモ: ${esc(item.manualMemo)}</div>` : ''}
+          ${item.cancelReason ? `<div class="meta">無効化理由: ${esc(item.cancelReason)}</div>` : ''}
+          <div class="meta">発行日時: ${esc(item.issuedAt || '未設定')}</div>
+          <div class="ticket-account-list">${accountPreview}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; min-width:210px;">
+          <button type="button" onclick="downloadTicketIssueCsv(${jsArg(orgId)})" ${accounts.length ? '' : 'disabled'}>📄 CSV出力</button>
+          <button type="button" class="btn-delete" data-idle-label="✅ 送付済みにして平文削除" onclick="armTwoTap(this,'もう一度で削除',()=>markTicketIssueDelivered(${jsArg(orgId)}))" ${accounts.length ? '' : 'disabled'}>✅ 送付済みにして平文削除</button>
+          <button type="button" onclick="cancelClassroomTicket(${jsArg(orgId)})" ${isCancelled ? 'disabled' : ''}>⛔ このチケットを無効化</button>
+          <button type="button" class="btn-delete" onclick="deleteClassroomTicketBundle(${jsArg(orgId)})">🗑️ 完全削除</button>
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+  };
+
+  window.markTicketIssueDelivered = async (orgId) => {
+    const issue = (window.__ticketIssues || {})[orgId];
+    if (!issue) {
+      showToast("更新できません", "対象の発行データが見つかりません。", true);
+      return;
+    }
+    try {
+      await setDoc(doc(db, "ticket_issues", orgId), {
+        deliveryStatus: "delivered",
+        deliveredAt: new Date().toISOString(),
+        accounts: []
+      }, { merge: true });
+      showToast("送付済みにしました ✅", "平文パスワードを ticket_issues から削除しました。");
+    } catch (err) {
+      console.error(err);
+      showToast("エラー", err.message, true);
+    }
+  };
+
+  window.callAdminTicketApi = async (path, body) => {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error("管理者としてログインしてください。");
+    const res = await fetch(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.ok) throw new Error(data?.message || "処理に失敗しました。");
+    return data;
+  };
+
+  window.cancelClassroomTicket = async (orgId) => {
+    const reason = prompt(`チケット ${orgId} を無効化します。理由を入力してください。`, "未使用または誤発行");
+    if (reason === null) return;
+    try {
+      const data = await window.callAdminTicketApi("/api/admin/cancelClassroomTicket", { orgId, reason });
+      showToast("無効化しました ⛔", `${data.disabledUserCount}件の生徒アカウントを停止しました。`);
+    } catch (err) {
+      console.error("cancelClassroomTicket failed", err);
+      showToast("無効化エラー", err.message, true);
+    }
+  };
+
+  window.deleteClassroomTicketBundle = async (orgId) => {
+    const confirmOrgId = prompt(`完全削除は復旧できません。\n削除するには組織IDを正確に入力してください:\n${orgId}`);
+    if (confirmOrgId === null) return;
+    const reason = prompt("削除理由を入力してください。", "誤発行またはテスト発行");
+    if (reason === null) return;
+    try {
+      const data = await window.callAdminTicketApi("/api/admin/deleteClassroomTicketBundle", { orgId, confirmOrgId, reason });
+      showToast("完全削除しました 🗑️", `${data.deletedUserCount}件の生徒アカウントを削除しました。`);
+    } catch (err) {
+      console.error("deleteClassroomTicketBundle failed", err);
+      showToast("完全削除エラー", err.message, true);
+    }
+  };
+
+  // 汎用2タップ削除: ボタンを1回押すと武装、3秒以内にもう一度で onConfirm 実行
+  let __armTimers = new WeakMap();
+  window.armTwoTap = (btn, armedLabel, onConfirm) => {
+    if (btn.dataset.armed === '1') {
+      btn.dataset.armed = '0';
+      onConfirm();
+      return;
+    }
+    document.querySelectorAll('button[data-armed="1"]').forEach(b => {
+      b.dataset.armed = '0';
+      if (b.dataset.idleLabel) b.textContent = b.dataset.idleLabel;
+      b.style.background = '';
+    });
+    btn.dataset.idleLabel = btn.dataset.idleLabel || btn.textContent;
+    btn.dataset.armed = '1';
+    btn.textContent = armedLabel || 'もう一度で削除';
+    btn.style.background = 'var(--pink)';
+    const t = setTimeout(() => {
+      if (document.body.contains(btn)) {
+        btn.dataset.armed = '0';
+        btn.textContent = btn.dataset.idleLabel;
+        btn.style.background = '';
+      }
+    }, 3000);
+    __armTimers.set(btn, t);
+  };
+</script>
+</body>
+</html>

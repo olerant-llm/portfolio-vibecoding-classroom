@@ -1,0 +1,4019 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>じさくや コード | 制作ページ | じさくや</title>
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root{
+    /* --- ベース配色 (じさくや・江戸の伝統色) --- */
+    --bg: #F4EDE0;         /* 生成り・和紙色 */
+    --panel: #FFFCF5;      /* カード背景 */
+    --line: #2A2620;       /* 墨色 */
+    --text: #22201C;       /* 本文テキスト */
+    --muted: #6B5C4B;      /* サブテキスト */
+
+    --accent: #1B3A5C;     /* 藍色 */
+    --accent2: #C9A646;    /* 金 */
+    --pink: #C1440E;       /* 朱色 */
+    --good: #1B3A5C;       /* 藍色(成功・確定) */
+    --warn: #C9A646;       /* 金(ハイライト) */
+    --bad: #A6321B;        /* 濃い朱 */
+
+    --code-bg:#0d1426;
+    --shadow: none;
+    --shadow-lg: none;
+    --shadow-sm: none;
+    --radius: 0;
+    --radius-md: 0;
+    --stroke: 1.5px solid var(--line);
+
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+
+    /* --- 江戸の淡色（枠の背景用） --- */
+    --pop-blue-soft: #E7ECE3;
+    --pop-mint-soft: #F3EAD3;
+    --pop-pink-soft: #F1DDD2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family: var(--font-body);
+    color: var(--text);
+    min-height:100vh;
+    background:
+      radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+      radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+      var(--bg);
+  }
+
+  .logo{
+    display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:.02em;
+    font-family: var(--font-display);
+  }
+  .logo-mark{
+    width:36px;height:36px;border-radius:0;
+    border: var(--stroke);
+    box-shadow:none;
+    object-fit: cover;
+    display:block;
+  }
+  .hd-spacer{flex:1}
+  .coin-chip{
+    display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:0;font-size:13px;font-weight:800;
+    background: #FFD23D;
+    border: var(--stroke);
+    color: var(--text);
+    box-shadow:none;
+    text-decoration: none;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .coin-chip:hover {
+    box-shadow:none;
+  }
+  .coin-chip:active {
+    box-shadow:none;
+  }
+  .coin-chip .c{font-variant-numeric:tabular-nums}
+  .coin-chip.bump{animation:bump .4s ease}
+  @keyframes bump{30%{transform:scale(1.14)}}
+  .chip{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:7px 14px;border-radius:0;font-size:13px;font-weight:800;
+    background: var(--panel);
+    border: var(--stroke);
+    color: var(--text);
+    box-shadow:none;
+    cursor:default;
+  }
+  .chip.clickable{
+    cursor:pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .chip.clickable:hover{
+    box-shadow:none;
+    background: var(--pop-blue-soft);
+  }
+  .chip b{color: var(--text); font-weight:800}
+  .debug-toggle{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 14px;border-radius:0;font-size:13px;font-weight:800;
+    border: var(--stroke);
+    background: var(--panel);
+    color: var(--text);
+    cursor:pointer;user-select:none;
+    box-shadow:none;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .debug-toggle:hover {
+    box-shadow:none;
+  }
+  .debug-toggle .knob{
+    width:32px;height:18px;border-radius:999px;background:#d7deee;position:relative;transition:.18s;flex:none;
+    border: 1.5px solid var(--line);
+  }
+  .debug-toggle .knob::after{
+    content:"";position:absolute;top:1px;left:2px;width:12px;height:12px;border-radius:999px;background: var(--line);
+    transition:.18s;
+  }
+  .debug-toggle.on{background: var(--warn)}
+  .debug-toggle.on .knob{background: #FFF; border-color: var(--line)}
+  .debug-toggle.on .knob::after{left:14px; background: var(--line)}
+
+  /* ---------- Layout ---------- */
+  .main-area{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .wrap{
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding:16px;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    overflow:hidden;
+  }
+  .builder{
+    flex:1;
+    min-height:0;
+    display:grid;
+    grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr);
+    gap:16px;
+    align-items:stretch;
+    overflow:hidden;
+  }
+  .left-col{
+    display:flex;flex-direction:column;
+    min-height:0;
+    height:auto;
+    overflow:hidden;
+  }
+  .right-col{min-height:0;overflow:hidden}
+  .sidebar-panel{
+    border-top:1.5px dashed var(--line);
+    padding:12px 0 0;
+    margin-top:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .sidebar-panel-title{
+    padding:0 10px;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.04em;
+  }
+  .sidebar-status{
+    margin:0 10px;
+    padding:10px 12px;
+    font-size:12px;
+    line-height:1.45;
+    align-items:flex-start;
+  }
+  .sidebar-status .dot{margin-top:3px}
+  .sidebar-chip{
+    margin:0 10px;
+    width:auto;
+    justify-content:flex-start;
+    font-size:12px;
+    line-height:1.35;
+  }
+  .sidebar-action{
+    margin:0 10px;
+    width:auto;
+    justify-content:center;
+  }
+  .assistant-toggle{
+    margin:0 10px;
+    width:auto;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+    padding:10px 12px;
+    background:var(--panel);
+    border:var(--stroke);
+    color:var(--text);
+    font-size:12px;
+    font-weight:900;
+  }
+  .assistant-toggle .fam-body{
+    width:34px;
+    height:34px;
+    border:none;
+    background:transparent;
+    box-shadow:none;
+    animation:none;
+    pointer-events:none;
+  }
+  .assistant-toggle .fam-body img{width:34px!important;height:34px!important}
+
+  /* ===== プロンプト入力フッター ===== */
+  .pf-hint-text{display:none}
+  .prompt-footer{
+    position:relative;bottom:auto;z-index:20;margin-top:0;
+    background: transparent;
+    border: none;
+    flex:none;
+    margin-bottom: 12px;
+  }
+  .pf-inner{
+    display:flex;gap:8px;align-items:stretch;
+    padding:0 0 12px;
+    border-bottom:1.5px solid var(--line);
+  }
+  .pf-inner textarea{
+    min-height:38px;
+    max-height:38px;
+    height:38px;
+    resize:none;
+    padding:9px 12px;
+    line-height:1.4;
+  }
+  .pf-actions{
+    display:flex;flex-direction:row;gap:6px;flex:none;align-items:stretch;
+  }
+  .pf-spinner{
+    width:38px;height:38px;flex:none;display:grid;place-items:center;
+    opacity:0;transition:opacity .15s ease;
+  }
+  .pf-spinner.show{opacity:1}
+  .pf-spinner::before{
+    content:"";
+    width:18px;height:18px;border-radius:50%;
+    border:2px solid rgba(15,23,42,.18);
+    border-top-color: var(--accent);
+    border-right-color: var(--accent2);
+    animation: pfspin .75s linear infinite;
+  }
+  @keyframes pfspin{to{transform:rotate(360deg)}}
+  
+  /* AI生成中の大スピナー用オーバーレイ */
+  .code-loading-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    backdrop-filter: blur(2px);
+  }
+  .code-loading-overlay.show {
+    display: flex;
+  }
+  .big-spinner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 4px solid rgba(15, 23, 42, 0.1);
+    border-top-color: var(--accent);
+    border-right-color: var(--accent2);
+    animation: pfspin .75s linear infinite;
+  }
+  .loading-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: .05em;
+  }
+
+  .pf-actions button{
+    padding:9px 18px;
+    min-width:88px;
+    min-height:42px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+
+  .pf-icon-btns{display:flex;gap:6px;flex:none;align-items:stretch}
+  .pf-icon-btn{
+    width:38px;height:38px;flex:none;border-radius:0;font-size:17px;padding:0;
+    background: transparent;border:none;color:var(--text);
+    display:grid;place-items:center;position:relative;cursor:pointer;
+  }
+
+  .preview-overlay-group{position:absolute;top:14px;right:14px;z-index:5;display:flex;gap:8px}
+  .preview-overlay-btn{
+    width:38px;height:38px;border-radius:999px;padding:0;font-size:17px;
+    background: rgba(255,252,245,.88);border:1.5px solid var(--line);
+    color:var(--text);display:grid;place-items:center;
+  }
+  .panel{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    overflow:hidden;
+  }
+  .panel-hd{
+    padding:15px 20px;
+    border-bottom: var(--stroke);
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+  }
+  .panel-hd h2{margin:0;font-size:16px;display:flex;align-items:center;gap:8px; font-family: var(--font-display)}
+  .panel-hd h2 .ico{font-size:18px}
+  .panel-hd small{color:var(--muted); font-weight:700}
+  .panel-bd{padding:20px}
+
+  /* ---------- Left pane ---------- */
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  label{font-size:13px;color:var(--text);font-weight:800;letter-spacing:.02em}
+  textarea,input,select{
+    width:100%;
+    border-radius:0;
+    border: var(--stroke);
+    background: var(--panel);
+    color: var(--text);padding:13px 16px;font:inherit;outline:none;
+    font-weight:700;
+    transition: box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+  textarea{min-height:130px;resize:vertical;line-height:1.7}
+  textarea:focus,input:focus,select:focus{
+    background: var(--pop-blue-soft);
+    box-shadow:none;
+  }
+  .hintbox{
+    display:flex;gap:10px;align-items:center;
+    background: var(--pop-blue-soft);
+    border: var(--stroke);
+    border-radius:0;padding:12px 14px;margin-bottom:16px;
+    box-shadow:none;
+  }
+  .hintbox .ht{flex:1;min-width:0}
+  .hintbox label{display:block;margin-bottom:4px; font-size:11.5px; color: var(--good)}
+  .hintbox p{margin:0;color: var(--text);line-height:1.55;font-size:13.5px; font-weight:700}
+  .status{
+    display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:0;
+    background: var(--bg);
+    border: var(--stroke);
+    color: var(--text);
+    font-size:14.5px;
+    font-weight:800;
+    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .status.busy {
+    animation: status-glow 1.2s ease-in-out infinite alternate;
+    background: var(--pop-blue-soft);
+  }
+  @keyframes status-glow {
+    from {
+      border-color: var(--line);
+      box-shadow:none;
+    }
+    to {
+      border-color: var(--pink);
+      box-shadow:none;
+    }
+  }
+  .dot{width:11px;height:11px;border-radius:999px;background:var(--accent);flex:none;
+    border: 1.5px solid var(--line);
+    box-shadow:none;transition:.2s}
+  .dot.pulse{animation:pulse 0.6s ease-in-out infinite}
+  @keyframes pulse{
+    0%,100%{transform:scale(1);opacity:1;box-shadow:0 0 8px var(--accent)}
+    50%{transform:scale(1.7);opacity:.4;box-shadow:0 0 18px var(--accent)}
+  }
+
+  /* ---------- 画像素材ボックス(フッターのコンパクトアイコンボタン+ポップアップ) ---------- */
+  .imgbox{position:relative}
+  .imgbox-hd .sel-count{
+    position:absolute;top:-4px;right:-4px;font-size:10px;font-weight:800;color:#fff;
+    background: var(--pink);border-radius:999px;min-width:16px;height:16px;padding:0 3px;
+    display:none;place-items:center;line-height:16px;
+  }
+  .imgbox-hd .sel-count.show{display:grid}
+  .imgbox-bd{
+    display:none;position:absolute;top:calc(100% + 8px);bottom:auto;left:0;z-index:30;
+    width:280px;padding:14px 16px;
+    background: var(--pop-mint-soft);
+    border: var(--stroke);
+  }
+  .imgbox-bd label{display:block;margin:0 0 10px;color: var(--text);font-weight:800}
+  .imgbox.open .imgbox-bd{display:block}
+  .img-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px;
+    max-height:220px;overflow-y:auto;padding:2px;
+  }
+  .img-thumb{
+    position:relative;aspect-ratio:1;border-radius:0;overflow:hidden;cursor:pointer;
+    border: var(--stroke);
+    background:#fff;
+    box-shadow:none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .img-thumb:hover{
+    transform: translateY(-2px);
+    box-shadow:none;
+  }
+  .img-thumb img{width:100%;height:100%;object-fit:contain;display:block;background:
+    repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50%/14px 14px;}
+  .img-thumb.selected{
+    border-color: var(--line);
+    box-shadow:none;
+  }
+  .img-thumb.selected::after{
+    content:"✓";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:999px;
+    border: 1.5px solid var(--line);
+    background: var(--good);
+    color: var(--text);
+    font-size:11px;font-weight:800;display:grid;place-items:center;
+  }
+  .img-note{font-size:11.5px;color: var(--text);line-height:1.6;margin-top:10px; font-weight:700}
+  .img-actions{display:flex;gap:8px;margin-top:10px}
+  .img-actions button{
+    font-size:12px;padding:8px 14px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    color: var(--text);
+    box-shadow:none;
+  }
+  .img-actions button:hover{
+    box-shadow:none;
+  }
+  .img-empty{
+    font-size:12.5px;color: var(--text);line-height:1.8;
+    background: var(--panel);
+    border: var(--stroke);
+    border-style: dashed;
+    border-radius:0;padding:12px 14px;
+    font-weight: 700;
+  }
+  .img-empty code{background: var(--bg);border-radius:0;padding:2px 6px;font-size:11px; border: 1px solid var(--line)}
+
+  /* ---------- Buttons ---------- */
+  .buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+  button{
+    font-family: var(--font-body);
+    border: var(--stroke);
+    border-radius:0;
+    padding:12px 22px;
+    font-weight:800;
+    font-size:14.5px;
+    cursor:pointer;
+    color: var(--text);
+    box-shadow:none;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  button:hover{
+    box-shadow:none;
+  }
+  button:active{
+    box-shadow:none;
+  }
+  button:disabled{
+    background: #E2E8F0;
+    color: var(--muted);
+    box-shadow:none;
+    transform: translate(2px, 2px);
+    cursor: not-allowed;
+    pointer-events: none;
+    border-color: #cbd5e1;
+  }
+  .primary{
+    background: var(--accent);
+    color: #fff;
+  }
+  .ghost{
+    background: var(--panel);
+  }
+  .accent2{
+    background: var(--pink);
+    color: var(--text);
+  }
+  .small-btn{
+    padding:8px 14px;font-size:12px;border-radius:0;
+    box-shadow:none;
+  }
+  .small-btn:hover {
+    box-shadow:none;
+  }
+
+  /* ---------- ？チップ(用語解説) ---------- */
+  .qchip{
+    width:22px;height:22px;min-width:22px;border-radius:999px;padding:0;flex:none;
+    border:2px solid var(--line);
+    background: var(--warn);
+    color: var(--text);
+    font-size:12px;font-weight:800;line-height:1;
+    box-shadow:none;
+    display:inline-grid;place-items:center;vertical-align:middle;cursor:pointer;
+    position:relative;
+    font-family: var(--font-body);
+  }
+  /* タップ領域を44pxに拡大(見た目はそのまま) */
+  .qchip::after{content:"";position:absolute;inset:-11px;border-radius:0;}
+  .qchip:hover{box-shadow:1px 1px 0 var(--line)}
+  .qchip:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--line)}
+  .qchip.learned{background: var(--good)}
+  body.no-qmode .qchip{display:none}
+  .codebar .qchip{box-shadow:none;border-color:#34495e}
+
+  /* ---------- Right pane / Preview ---------- */
+  .preview{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    height:100%;
+  }
+  .tabs{
+    display:flex;gap:6px;
+    background: var(--bg);
+    border: var(--stroke);
+    border-radius:0;padding:4px;
+    box-shadow:none;
+  }
+  .tab{
+    padding:7px 16px;border-radius:0;background:transparent;border:none;
+    color: var(--text);font-size:13px;font-weight:800;box-shadow:none;
+  }
+  .tab:hover{transform:none;color: var(--pink)}
+  .tab.active{
+    background: var(--accent2);
+    color: var(--text);
+    border: var(--stroke);
+  }
+  .preview-body{flex:1;display:flex;flex-direction:column;padding:18px;gap:14px;min-height:0}
+  .right-col .preview-body{padding:0;gap:0}
+  .preview-frame{
+    flex:1;
+    border-radius:0;
+    overflow:auto;
+    border:none;
+    background: var(--panel);
+    min-height:0;
+    height:100%;
+    position:relative;
+    box-shadow:none;
+  }
+  iframe{width:100%;height:100%;min-height:100%;border:0;background:#fff;display:block}
+  .placeholder{
+    position:absolute;inset:0;
+    display:grid;
+    place-items:center;
+    background:#F7F9FC;
+    color:var(--text);
+    text-align:center;
+    padding:24px;
+  }
+  .placeholder .empty-guide{
+    max-width:360px;
+    font-size:15px;
+    line-height:1.8;
+    font-weight:900;
+  }
+  .placeholder .empty-guide img{
+    display:block;
+    width:72px;
+    height:72px;
+    object-fit:contain;
+    margin:0 auto 10px;
+  }
+  .placeholder .empty-guide small{
+    display:block;
+    margin-top:6px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.6;
+    font-weight:800;
+  }
+
+  /* ---------- Code viewer ---------- */
+  .codewrap{
+    display:none;flex-direction:column;flex:1;min-height:0;
+    border: var(--stroke);
+    border-radius:0;overflow:hidden;background:#fff;
+    box-shadow:none;
+  }
+  .codebar{
+    padding:8px 10px;
+    border-bottom: var(--stroke);
+    display:flex;justify-content:flex-start;align-items:center;
+    color:var(--text);font-size:13px;background:#fff;
+    font-weight:700;
+  }
+  .codebar .sel-info{color:var(--accent);font-weight:800}
+  .codeview{
+    flex:1;overflow:auto;min-height:0;max-height:none;
+    background:#fff;color:#111827;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:var(--code-font-size,12.5px);line-height:1.75;
+  }
+  .codeview.empty{
+    display:grid;
+    place-items:center;
+    padding:24px;
+  }
+  .code-empty-guide{
+    max-width:360px;
+    text-align:center;
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.8;
+    font-weight:900;
+  }
+  .code-empty-guide .mark{
+    width:58px;
+    height:58px;
+    margin:0 auto 12px;
+    display:grid;
+    place-items:center;
+    border:var(--stroke);
+    background:var(--pop-blue-soft);
+  }
+  .code-empty-guide small{
+    display:block;
+    margin-top:6px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.6;
+    font-weight:800;
+  }
+  /* コピーガード: 無料ユーザーはコード本文を選択・コピー不可 */
+  .codeview.code-locked .lc{
+    user-select:none; -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none;
+    -webkit-touch-callout:none;
+  }
+  .cl{display:flex;cursor:default}
+  .cl .ln{
+    flex:none;width:56px;text-align:right;padding:0 12px 0 6px;color:#64748b;user-select:none;cursor:pointer;
+    border-right:1px solid #e5e7eb;transition:.12s;display:flex;align-items:center;justify-content:flex-end;
+  }
+  .cl .ln:hover{color:var(--accent);background:#eef2f7}
+  .cl .lc{padding:0 14px;white-space:pre-wrap;word-break:break-all;color:#111827;flex:1}
+  .cl.kept{background:#fff8dc}
+  .cl.kept .lc{color:#111827}
+  .cl.kept .ln{color:var(--accent);background:#f3ead3}
+  .keep-ic{width:15px;height:15px;color:var(--accent)}
+  .font-size-tools{display:flex;align-items:center;gap:4px}
+  .font-size-label{font-size:10.5px;font-weight:900;color:var(--muted);padding-left:2px}
+  .font-size-toggle{
+    padding:4px 8px!important;
+    min-width:0;
+    font-size:11px!important;
+    margin:0!important;
+    background:#fff;
+  }
+  .font-size-toggle:hover,
+  .font-size-toggle.active{background:var(--accent2);color:var(--text)}
+  .edit-mode-head .font-size-label{color:#cbd5e1}
+  .edit-mode-head .font-size-toggle{
+    background:#111827;
+    color:#f8fafc;
+    border:1.5px solid #64748b;
+  }
+  .edit-mode-head .font-size-toggle:hover,
+  .edit-mode-head .font-size-toggle.active{
+    background:var(--accent2);
+    color:var(--text);
+    border-color:#f8fafc;
+  }
+  .edit-mode-panel{
+    flex:1;
+    min-height:0;
+    display:none;
+    flex-direction:column;
+    background:#05070d;
+    color:#f8fafc;
+  }
+  .edit-mode-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    background:#05070d;
+    border-bottom:1.5px solid #334155;
+    flex-wrap:wrap;
+    font-family:var(--font-body);
+  }
+  .edit-mode-title{
+    color:#f8fafc;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.04em;
+  }
+  .edit-mode-help{
+    color:#cbd5e1;
+    font-size:11px;
+    font-weight:800;
+  }
+  .edit-mode-actions{margin-left:auto;display:flex;gap:6px}
+  .edit-save-btn{
+    padding:6px 12px!important;
+    font-size:11px!important;
+    margin:0!important;
+    background:var(--accent2)!important;
+    color:var(--text)!important;
+    border:1.5px solid #f8fafc!important;
+  }
+  .edit-cancel-btn{
+    padding:6px 10px!important;
+    font-size:11px!important;
+    margin:0!important;
+    background:#111827!important;
+    color:#f8fafc!important;
+    border:1.5px solid #64748b!important;
+  }
+  .code-editor-dark{
+    flex:1;
+    width:100%;
+    box-sizing:border-box;
+    resize:none;
+    border:0!important;
+    padding:14px 16px;
+    background:#05070d!important;
+    color:#f8fafc!important;
+    caret-color:var(--accent2);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:var(--code-font-size,12.5px);
+    line-height:1.7;
+    outline:none!important;
+    box-shadow:none!important;
+  }
+  .code-editor-dark:hover,
+  .code-editor-dark:focus,
+  .code-editor-dark:active{
+    background:#05070d!important;
+    color:#f8fafc!important;
+    border:0!important;
+    outline:none!important;
+    box-shadow:none!important;
+  }
+  .code-editor-dark::selection{
+    background:#334155;
+    color:#fff;
+  }
+  .code-editor-dark::-moz-selection{
+    background:#334155;
+    color:#fff;
+  }
+  .sub-tab { transition: all 0.2s ease; cursor: pointer; }
+  .sub-tab:hover { color: #38bdf8 !important; }
+  .sub-tab.active { background: #38bdf8 !important; color: #0f172a !important; font-weight:800; }
+
+  /* ---------- Instruction box (refine) ---------- */
+  .refinebox{
+    display:none;gap:10px;align-items:flex-start;
+    background:#0f1830;
+    border-top: var(--stroke);
+    padding:14px 18px;
+  }
+  .refinebox.show{display:flex}
+  .refinebox .selchips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  .selchip{
+    font-size:11px;font-weight:800;color: var(--text);
+    background: var(--accent2);
+    border: 1.5px solid var(--line);
+    border-radius:0;padding:3px 10px;
+    box-shadow:none;
+  }
+  .refinebox .ri{flex:1;min-width:0}
+  .refinebox input{
+    background:#0a1124;border: var(--stroke);color:#e2ecff;font-size:13px;padding:10px 13px;border-radius:0;
+  }
+  .refinebox input::placeholder{color:#54678f}
+  .refinebox input:focus{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;right:24px;bottom:24px;min-width:280px;max-width:420px;z-index:50;
+    padding:16px 20px;border-radius:0;background: var(--panel);border: var(--stroke);
+    box-shadow:none;transform:translateY(16px);opacity:0;pointer-events:none;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+  }
+  .toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
+  .toast strong{font-size:14px; font-family: var(--font-display)}
+  .toast .sub{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.55; font-weight:700}
+  .toast.err{background:#FFD2D2}
+  .toast.err strong{color: var(--text)}
+
+  /* ---------- Modal ---------- */
+  .modal{position:fixed;inset:0;background:rgba(13,20,38,.46);display:none;place-items:center;padding:20px;z-index:40;backdrop-filter:blur(3px)}
+  .modal.open{display:grid}
+  .modal-card{
+    width:min(540px,100%);background: var(--panel);border: var(--stroke);
+    border-radius:0;box-shadow:none;padding:26px;
+    animation:rise .22s ease;
+  }
+  @keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+  .modal-card h3{margin:0 0 8px;font-size:19px; font-family: var(--font-display)}
+  .modal-card p{margin:0 0 18px;color:var(--muted);line-height:1.7;font-size:13.5px; font-weight:700}
+  .vis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .vis-opt{position:relative}
+  .vis-opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+  .vis-opt .vo{
+    border: var(--stroke);border-radius:0;padding:11px 8px;text-align:center;transition:.15s;
+    background: var(--panel);
+  }
+  .vis-opt .vo .vi{font-size:18px}
+  .vis-opt .vo .vt{font-size:12.5px;font-weight:800;margin-top:3px}
+  .vis-opt .vo .vd{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4; font-weight:700}
+  .vis-opt input:checked + .vo{
+    border-color: var(--line);
+    background: var(--pop-blue-soft);
+    box-shadow:none;
+    transform: translate(-2px, -2px);
+  }
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+  .counter{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px; font-weight:700}
+
+  .debug-banner{
+    display:none;margin:0 auto 14px;max-width:1480px;
+    padding:10px 18px;border-radius:0;font-size:13px;font-weight:800;
+    background: var(--warn);border: var(--stroke);color: var(--text);
+    align-items:center;gap:8px;
+    box-shadow:none;
+  }
+  .debug-banner.show{display:flex}
+
+  /* ---------- 使い魔(ガイド) ---------- */
+  .familiar{position:relative;left:auto;bottom:auto;z-index:5;display:block;pointer-events:auto}
+  .fam-body{
+    pointer-events:auto;width:62px;height:62px;border-radius:16px;display:grid;place-items:center;
+    font-size:34px;cursor:pointer;padding:0;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;
+    animation:famfloat 3.2s ease-in-out infinite;
+  }
+  .fam-body:hover{transform:none;box-shadow:0 6px 0 var(--line)}
+  .fam-body:active{transform:translateY(3px);box-shadow:0 3px 0 var(--line)}
+  @keyframes famfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .fam-bubble{
+    pointer-events:auto;max-width:none;position:absolute;
+    left:10px;right:10px;bottom:calc(100% + 8px);
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    padding:14px 38px 14px 18px;font-size:12.5px;line-height:1.7;color: var(--text);
+    opacity:0;transform:translateY(8px);transition:.25s;margin-bottom:0;
+    font-weight:700;display:none;
+  }
+  .fam-bubble.show{opacity:1;transform:none;display:block}
+  .fam-bubble .fb-name{font-size:11px;font-weight:800;color: var(--good);margin-bottom:4px}
+  .fam-bubble .fb-close{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:999px;padding:0;
+    font-size:12px;display:grid;place-items:center;background: var(--bg);
+    border:1.5px solid var(--line);box-shadow:none;
+  }
+  .fam-bubble .fb-act{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .fam-bubble .fb-act button{
+    font-size:11.5px;padding:6px 14px;border-radius:0;
+    background: var(--pop-blue-soft);
+    border: 1.5px solid var(--line);
+    color: var(--text);
+    box-shadow:none;
+  }
+  /* キーボード表示中(スマホ)は退避 */
+  body.kb-open .familiar{display:none}
+  body.sidebar-collapsed .sidebar-panel{display:none!important}
+
+  @media (max-width:980px){
+    .builder{grid-template-columns:1fr}
+    .main-area{height:auto;min-height:100vh;overflow:visible}
+    .wrap{overflow:visible}
+    .builder{overflow:visible}
+    .left-col,.right-col{min-height:60vh;overflow:visible}
+    .preview{min-height:60vh}
+    .preview-frame{min-height:60vh}
+    .topbar{flex-wrap:wrap;gap:8px}
+    .vis-grid{grid-template-columns:1fr}
+
+    /* スマホ表示時のプロンプト入力エリア3段構成 */
+    .pf-inner {
+      flex-direction: column !important;
+      gap: 8px !important;
+      align-items: stretch !important;
+      padding: 0 0 12px !important;
+    }
+    .pf-icon-btns {
+      display: flex !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+    .pf-icon-btn {
+      flex: 1 !important;
+      width: 100% !important;
+      max-width: none !important;
+      height: 38px !important;
+      border: var(--stroke) !important;
+      background: var(--panel) !important;
+    }
+    .imgbox {
+      flex: 1 !important;
+      max-width: none !important;
+    }
+    .imgbox-hd {
+      width: 100% !important;
+      height: 38px !important;
+      border: var(--stroke) !important;
+      background: var(--panel) !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    .imgbox-bd {
+      bottom: auto !important;
+      top: calc(100% + 8px) !important;
+      width: 100% !important;
+      box-shadow: 0 4px 0 var(--line) !important;
+    }
+    .pf-inner textarea#prompt {
+      min-height: 80px !important;
+      max-height: 80px !important;
+      height: 80px !important;
+      width: 100% !important;
+      padding: 8px 12px !important;
+    }
+    .pf-actions {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+    .pf-actions button {
+      flex: 1 !important;
+      min-width: 0 !important;
+      min-height: 42px !important;
+    }
+  }
+  @media (max-width:700px){
+    .familiar{left:auto;bottom:auto}
+    .fam-body{width:52px;height:52px;font-size:27px}
+    /* 吹き出しは画面下フルワイドのボトムシート風に */
+    .fam-bubble{
+      position:fixed;left:10px;right:10px;bottom:72px;max-width:none;margin-bottom:0;
+      border-radius:0;
+    }
+  }
+  .sso-btn {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px 18px;
+    border-radius:0;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .sso-btn:hover {
+    box-shadow:none;
+  }
+  .sso-btn:active {
+    box-shadow:none;
+  }
+  .sso-btn.google { background: #fff; color: var(--text); }
+  .sso-btn.school { background: var(--warn); color: var(--text); }
+  .sso-btn.guest { background: var(--accent); color: var(--text); }
+
+  /* --- 紙吹雪エフェクト用 --- */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    z-index: 9999;
+    pointer-events: none;
+    border-radius:0;
+  }
+  @keyframes fall {
+    0% {
+      transform: translateY(-50px) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0.2;
+    }
+  }
+
+  /* --- 使い魔バウンス --- */
+  .bounce-fam {
+    animation: bounce 0.6s ease infinite !important;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-24px) scale(0.9, 1.1); }
+  }
+
+  /* クラス・用語チップの非表示 */
+  #classChip, #knowChip {
+    display: none !important;
+  }
+
+  /* トグルスイッチスタイル */
+  .toggle-switch {
+    display: inline-block;
+    position: relative;
+    width: 34px;
+    height: 20px;
+    background: #e2e8f0;
+    border: 2px solid var(--line);
+    border-radius:0;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .toggle-knob {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    transition: transform 0.2s;
+  }
+  /* 「つかう」ドロップダウンのメニュー項目 */
+  .use-menu-item{
+    display:block; width:100%; text-align:left; padding:9px 11px; margin:2px 0;
+    border:none; background:transparent; border-radius:0; font-size:12.5px; font-weight:700;
+    cursor:pointer; color:var(--text); white-space:nowrap; box-shadow:none;
+  }
+  .use-menu-item:hover{ background:#EEF2FF; }
+  /* 保存モーダルのタグチップ */
+  .tag-chip{
+    border:2px solid var(--line); background:#fff; color:var(--text);
+    border-radius:0; padding:5px 11px; font-size:12px; font-weight:800; cursor:pointer;
+    box-shadow:none; transition:.12s; line-height:1.2;
+  }
+  .tag-chip.on{ background:var(--accent); color:#0f172a; border-color:var(--line); box-shadow:none; }
+  .tag-chip.suggested:not(.on){ border-color:var(--accent); }
+  .tag-chip:disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* ==== アイコン(currentColorで伝統色に染まる) ==== */
+  .ic{display:inline-block;width:1.1em;height:1.1em;fill:currentColor;flex:none;vertical-align:-.16em}
+  .sidebar-coin .ic{width:17px;height:17px;color:var(--text)}
+  .modal h3 .ic, h3 .ic{width:1em;height:1em;color:var(--accent);vertical-align:-.12em}
+  #completionGoBtn .ic{width:18px;height:18px;color:#fff;vertical-align:-.2em}
+
+  /* ==== チュートリアルUI ==== */
+  .tutorial-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 92%;
+    max-width: 480px;
+    background: #FFFCF5;
+    border: 2px solid #2A2620;
+    box-shadow: 0 4px 0 #2A2620;
+    padding: 16px;
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tutorial-chara {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 900;
+    letter-spacing: .05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tutorial-bubble {
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.6;
+    color: #22201C;
+    margin: 0;
+  }
+  .tutorial-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .tutorial-btn {
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-size: 11.5px;
+    padding: 6px 14px;
+    border: 1.5px solid #2A2620;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #2A2620;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .tutorial-btn:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+  .tutorial-btn-primary {
+    background: var(--accent2);
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<!-- じさくや icon sprite (currentColorで染まる/デジタル庁アイコン由来) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-house" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_562)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L23 10.7L22.1 11.9L20.5 10.6V21.5H19V9.4L12 4L5 9.4V21.5H3.5V10.6L1.9 11.9L1 10.7L12 2ZM16.5 10.5V19.5H7.5V10.5H16.5ZM11.2 15.8H9V18H11.2V15.8ZM12.8 15.8V18H15V15.8H12.8ZM12.8 14.3H15V12H12.8V14.3ZM11.3 14.2V12H9V14.2H11.3Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_562">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_177)">
+<path d="M21 20.5L15 14.5C16.2 13.2 16.9 11.4 16.9 9.5C17 5.4 13.6 2 9.5 2C5.4 2 2 5.4 2 9.5C2 13.6 5.3 17 9.5 17C11.2 17 12.7 16.4 14 15.5L20 21.5L21 20.5ZM3.5 9.5C3.5 6.2 6.2 3.5 9.5 3.5C12.8 3.5 15.5 6.2 15.5 9.5C15.5 12.8 12.8 15.5 9.5 15.5C6.2 15.5 3.5 12.8 3.5 9.5Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_177">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-mailing" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_367)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M15.5 2.5C19.1 2.6 22 5.6 22 9.2V17H13V22H11V17H8.6H2V8.9C2 5.4 4.9 2.5 8.5 2.5H15.5ZM3.5 8.9V15.5H8.6V9.2C8.6 7.1 9.5 5.2 11 4H8.4C5.7 4 3.5 6.2 3.5 8.9ZM11.1 15.5H20.4V9.2C20.4 6.3 18.1 4 15.2 4C12.3 4 10 6.3 10 9.2V15.5H11.1ZM12.3008 9.3999H18.6008V10.8999H12.3008V9.3999Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_367">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-documents" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_411)">
+<path d="M11.6 6L9.6 4H2V21H22V6H11.6ZM9 5.5L11 7.5H20.5V10.5H3.5V5.5H9ZM3.5 19.5V12H20.5V19.5H3.5Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_411">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-money" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_490)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12ZM3.5 12C3.5 7.3 7.3 3.5 12 3.5C16.7 3.5 20.5 7.3 20.5 12C20.5 16.7 16.7 20.5 12 20.5C7.3 20.5 3.5 16.7 3.5 12ZM12.0016 11.7L14.7016 7H16.4016L13.6016 12H16.0016V13H12.7016V14.5H16.0016V15.5H12.7016V18H11.2016V15.5H8.00156V14.5H11.2016V13H8.00156V12H10.4016L7.60156 7H9.30156L12.0016 11.7Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_490">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-add" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_184)">
+<path d="M21 11.2H12.7V3H11.2V11.2H3V12.7H11.2V21H12.7V12.7H21V11.2Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_184">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-me" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_675)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M15 6.5C15 4.8 13.7 3.5 12 3.5C10.3 3.5 9 4.8 9 6.5C9 8.2 10.3 9.5 12 9.5C13.7 9.5 15 8.2 15 6.5ZM7.5 6.5C7.5 4 9.5 2 12 2C14.5 2 16.5 4 16.5 6.5C16.5 9 14.5 11 12 11C9.5 11 7.5 9 7.5 6.5ZM19.5 22.0001H21H21.1V20.8001C21.1 16.6001 17.6 13.1001 13.3 13.1001H10.8C6.5 13.1001 3 16.5001 3 20.8001V22.0001H4.6V20.8001C4.6 17.4001 7.4 14.6001 10.8 14.6001H13.3C16.7 14.6001 19.5 17.4001 19.5 20.8001V22.0001Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_675">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-information" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_111)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22ZM12 3.5C7.3 3.5 3.5 7.3 3.5 12C3.5 16.7 7.3 20.5 12 20.5C16.7 20.5 20.5 16.7 20.5 12C20.5 7.3 16.7 3.5 12 3.5ZM11 7C11 6.7 11.1 6.5 11.3 6.3C11.5 6.1 11.7 6 12 6C12.3 6 12.5 6.1 12.7 6.3C12.9 6.5 13 6.7 13 7C13 7.3 12.9 7.5 12.7 7.7C12.5 7.9 12.3 8 12 8C11.7 8 11.5 7.9 11.3 7.7C11.1 7.5 11 7.3 11 7ZM11.1992 9.5H12.6992V18H11.1992V9.5Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_111">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-arrow_left" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_198)">
+<path d="M14.4984 21L5.39844 12L14.4984 3L15.4984 4L7.59844 12L15.4984 20L14.4984 21Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_198">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-arrow_right" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_191)">
+<path d="M9 21L8 20L16 12L8 4L9 3L18.1 12L9 21Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_191">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-new_window" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_155)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 19.5H19.5V13H21V21H3V3H11V4.5H4.5V19.5ZM14 4.5V3H21V10H19.5V5.6L10.5 14.5L9.5 13.5L18.4 4.5H14Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_155">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-code_reader" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_618)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 7.5H4V4H7.5V2.5H2.5V7.5ZM2.5 21.5H7.5V20H4V16.5H2.5V21.5ZM21.5 21.5H16.5V20H20V16.5H21.5V21.5ZM20 7.5H21.5V2.5H16.5V4H20V7.5ZM9.5 7.5V9.5H7.5V7.5H9.5ZM11 6H6V11H11V6ZM16.5 9.5V7.5H14.5V9.5H16.5ZM13 6H18V11H13V6ZM9.5 14.5V16.5H7.5V14.5H9.5ZM11 13H6V18H11V13ZM13 13H18V18H13V13Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_618">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-complete" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_81)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12ZM3.5 12C3.5 7.3 7.3 3.5 12 3.5C16.7 3.5 20.5 7.3 20.5 12C20.5 16.7 16.7 20.5 12 20.5C7.3 20.5 3.5 16.7 3.5 12ZM7.19922 12L11.1992 16L17.1992 10L16.0992 9L11.1992 13.9L8.29922 10.9L7.19922 12Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_81">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-attention" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_101)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22ZM12 3.5C7.3 3.5 3.5 7.3 3.5 12C3.5 16.7 7.3 20.5 12 20.5C16.7 20.5 20.5 16.7 20.5 12C20.5 7.3 16.7 3.5 12 3.5ZM12 17.5C12.5523 17.5 13 17.0523 13 16.5C13 15.9477 12.5523 15.5 12 15.5C11.4477 15.5 11 15.9477 11 16.5C11 17.0523 11.4477 17.5 12 17.5ZM11.3008 6.5H12.8008V14H11.3008V6.5Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_101">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-update" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_166)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M20.5 13.7L22.5 11.7L23.5 12.7L19.7 16.5L15.9 12.7L17 11.6L19 13.6V11.7C19 7.7 15.9 4.4 12.1 4.4C11.3 4.4 10.5 4.6 9.7 4.9L9.2 3.5C10.2 3.2 11.1 3 12.1 3C16.8 3 20.5 6.9 20.5 11.8V13.7ZM5.1 11.7C5.1 15.7 8.2 19 12 19C12.5333 19 13.0667 18.9111 13.6 18.8222C13.8667 18.7778 14.1333 18.7333 14.4 18.7L14.9 20.1C13.9 20.4 13 20.6 12 20.6C7.4 20.6 3.6 16.6 3.6 11.8V10.4L1.6 12.4L0.5 11.3L4.3 7.5L8.2 11.2L7.1 12.3L5.1 10.3V11.7Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_166">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-notification" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_90)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M18 9.5C18 12.6 19.9 16.1 19.9 16.1L20 16.3V18H4V16.3L4.1 16.1C4.1 16.1 6 12.6 6 9.5C6 7.7 6.8 6.1 8 5C8.5 4.6 9 4.3 9.6 4C9.65 3.95 9.725 3.925 9.8 3.9C9.875 3.875 9.95 3.85 10 3.8C10.1 2.8 10.9 2 12 2C13.1 2 13.9 2.8 14 3.8C14.05 3.85 14.125 3.875 14.2 3.9C14.275 3.925 14.35 3.95 14.4 4C15 4.2 15.5 4.6 16 5C17.2 6.1 18 7.7 18 9.5ZM7.5 9.5C7.5 12.4 6.1 15.5 5.6 16.5H18.4C17.9 15.5 16.5 12.4 16.5 9.5C16.5 8.8 16.3 8.1 16 7.5C15.6 6.6 14.9 5.9 14 5.5C13.4 5.2 12.7 5 12 5C11.3 5 10.6 5.2 10 5.5C9.1 5.9 8.4 6.6 8 7.5C7.7 8.1 7.5 8.8 7.5 9.5ZM14.5 19.5C14.5 20.9 13.4 22 12 22C10.6 22 9.5 20.9 9.5 19.5H14.5Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_90">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-application" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_637)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4 2H16.7L20 5.2V22H4V2ZM5.5 3.5V20.5H18.5V6.5H15.5V3.5H5.5ZM7 11H17V12.5H7V11ZM17 8H7V9.5H17V8ZM9.39844 15.1999L11.2984 16.8999L14.5984 13.8999L15.5984 15.0999L11.2984 18.9999L8.39844 16.2999L9.39844 15.1999Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_320_637">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M18 9L19 10L12 17.1L5 10L6 9L11.2 14.2V3H12.7V14.2L18 9ZM3 21V19.5H21V21H3Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-template" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M5 3H19V21H5V3ZM6.6 4.6V19.4H17.4V4.6H6.6ZM8.5 7H15.5V8.5H8.5V7ZM8.5 10.2H15.5V11.7H8.5V10.2ZM8.5 13.4H13.5V14.9H8.5V13.4Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-image" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M4 5H20V19H4V5ZM5.5 6.5V17.5H18.5V6.5H5.5ZM8.5 10.5C9.32843 10.5 10 9.82843 10 9C10 8.17157 9.32843 7.5 8.5 7.5C7.67157 7.5 7 8.17157 7 9C7 9.82843 7.67157 10.5 8.5 10.5ZM7 16L10.4 12.2L12.8 14.8L14.8 12.6L18 16H7Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-tools" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M19.4 5.2L16.8 7.8L15.2 6.2L17.8 3.6C16.5 3.2 15 3.5 14 4.5C12.8 5.7 12.6 7.5 13.2 8.9L5 17.1C4.2 17.9 4.2 19.2 5 20C5.8 20.8 7.1 20.8 7.9 20L16.1 11.8C17.5 12.4 19.3 12.2 20.5 11C21.5 10 21.8 8.5 21.4 7.2L18.8 9.8L17.2 8.2L19.8 5.6L19.4 5.2ZM6.9 18.9C6.7 19.1 6.3 19.1 6.1 18.9C5.9 18.7 5.9 18.3 6.1 18.1C6.3 17.9 6.7 17.9 6.9 18.1C7.1 18.3 7.1 18.7 6.9 18.9Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-keep" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M7 3H17V21L12 17.8L7 21V3ZM8.6 4.6V18.1L12 15.9L15.4 18.1V4.6H8.6Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M9 3H15L16 5H21V6.5H3V5H8L9 3ZM6 8H18L17.2 21H6.8L6 8ZM7.6 9.5L8.2 19.5H15.8L16.4 9.5H7.6ZM10 11H11.5V18H10V11ZM12.5 11H14V18H12.5V11Z" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<div class="app-shell">  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" onclick="if(!state.hasApp || confirm('ホームへ戻ると作成中のコードが消えます。移動しますか？')) location.href='index.html'">
+        <img class="logo-mark" src="img/logo_shikiai.svg" alt="じさくや" />
+        <span>じさくや</span>
+      </div>
+      <button class="sidebar-menu-btn" id="sidebarMenuBtn" type="button" aria-label="メニュー開閉">☰</button>
+    </div>
+
+    <div class="sidebar-body" id="sidebarBody">
+
+    <a class="sidebar-coin" id="coinChip" href="market.html" title="コイン: 作品の閲覧やミッション達成で獲得できます"><svg class="ic"><use href="#i-money"></use></svg> <span id="coinVal">0</span> コイン</a>
+      
+      <nav class="sidebar-nav">
+        <a class="side-link" href="index.html" onclick="return !state.hasApp || confirm('ホームへ戻ると作成中のコードが消えます。移動しますか？')"><svg class="ic"><use href="#i-house"></use></svg>ホーム</a>
+        <a class="side-link" href="index.html#quest" onclick="return !state.hasApp || confirm('ホームへ戻ると作成中のコードが消えます。移動しますか？')"><svg class="ic"><use href="#i-mailing"></use></svg>ミッション</a>
+        <a class="side-link active" href="corder.html"><svg class="ic"><use href="#i-application"></use></svg>じさくや コーダー</a>
+        <a class="side-link" href="knowledge.html" onclick="if(!DB.getCurrentUid()){ toast('ログインが必要です','ナレッジベースを見るにはログインしてください。', true); return false; }"><svg class="ic"><use href="#i-documents"></use></svg>ナレッジベース</a>
+        <a class="side-link" href="knowledge_history.html"><svg class="ic"><use href="#i-documents"></use></svg>学習履歴</a>
+        <a class="side-link" href="market.html"><svg class="ic"><use href="#i-money"></use></svg>マーケット</a>
+        <a class="side-link side-link-classroom" href="user_admin.html"><svg class="ic"><use href="#i-information"></use></svg>教室での利用はこちら</a>
+        <a class="side-link" href="userpage.html"><svg class="ic"><use href="#i-me"></use></svg>マイページ</a>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <nav class="sidebar-legal" aria-label="サイト情報">
+        <a href="about.html">このサイトについて</a>
+        <a href="terms.html">利用規約</a>
+      </nav>
+      
+      <div class="sidebar-account" style="border-top:1.5px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px;width:100%;">
+        <div style="padding:0 10px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.04em;">ACCOUNT</div>
+
+        <!-- 未ログイン時 -->
+        <button class="btn-login" id="sideLoginBtn" type="button" onclick="$('loginModal').classList.add('open')" style="width:calc(100% - 20px);margin:0 10px;">ログイン</button>
+        <button class="btn-signup" id="sideSignupBtn" type="button" onclick="$('loginModal').classList.add('open')" style="width:calc(100% - 20px);margin:0 10px;">サインアップ</button>
+
+        <!-- ログイン時 -->
+        <div class="user-menu" id="userMenu" style="display:none;margin:0 10px;width:calc(100% - 20px);position:relative;">
+          <button class="user-btn" id="userBtn" type="button" style="width:100%;">
+            <span class="uavatar" id="userAvatar">👤</span>
+            <span id="userNickname" style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">名前をきめる</span>
+            <span class="caret">▾</span>
+          </button>
+          <div class="user-drop" id="userDrop" style="position:absolute; left:0; bottom:calc(100% + 8px); min-width:210px; z-index:45; background:var(--panel); border:var(--stroke); border-radius:0; padding:10px;">
+            <div class="ud-head" style="font-size:12px;font-weight:800;color:var(--muted);padding:6px 12px 10px;border-bottom:1.5px dashed var(--line);margin-bottom:8px;">所持コイン: <span id="userCoinVal">0</span> コイン</div>
+            <button class="ud-item" type="button" onclick="location.href='userpage.html'" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;border:none;background:transparent;text-align:left;">👤 マイページ</button>
+            <button class="ud-item" type="button" onclick="location.href='market.html'" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;border:none;background:transparent;text-align:left;">🪙 マーケット</button>
+            <button class="ud-item" id="sideLogoutBtn" type="button" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;border:none;background:transparent;text-align:left;border-top:1.5px dashed var(--line);margin-top:6px;padding-top:12px;">🚪 ログアウト</button>
+          </div>
+        </div>
+      </div>
+  </aside>
+
+  <div class="main-area">
+<div class="wrap">
+
+  <!-- ===== プロンプト入力: テンプレート + 画像素材 + プロンプト入力 + 生成 ===== -->
+  <section class="prompt-footer">
+    <div class="pf-inner">
+      <div class="pf-icon-btns">
+        <button class="pf-icon-btn" id="applyHintBtn" type="button" title="テンプレートを入れる" aria-label="テンプレートを入れる"><svg class="ic" style="width:20px;height:20px;"><use href="#i-template"></use></svg></button>
+        <p id="hintText" class="pf-hint-text">英単語と日本語訳をランダムに出題する小テストアプリを作って</p>
+
+        <div class="imgbox" id="imgBox">
+          <div class="pf-icon-btn imgbox-hd" id="imgBoxHd" title="画像を入れる" aria-label="画像を入れる">
+            <svg class="ic" style="width:20px;height:20px;"><use href="#i-image"></use></svg><span class="sel-count" id="imgSelCount"></span>
+          </div>
+          <div class="imgbox-bd">
+            <button type="button" id="imgBoxCloseBtn" class="fb-close" style="position:absolute; top:8px; right:8px;">✕</button>
+            <label>画像素材 <button class="qchip" type="button" data-term="images">?</button></label>
+            <div class="img-grid" id="imgGrid"></div>
+            <div class="img-actions">
+              <button type="button" id="imgClearBtn">えらびなおす</button>
+              <button type="button" id="imgInsertBtn">指示文に入れる</button>
+            </div>
+            <div class="img-note">画像をクリックしてえらぶと、AIがその画像を使ってアプリを作ってくれるよ(外部の画像は使えません)。</div>
+          </div>
+        </div>
+      </div>
+      <textarea id="prompt" maxlength="500" placeholder="例: 英単語と日本語訳をランダムに出題する小テストアプリを作って"></textarea>
+      <div class="pf-actions">
+        <button class="primary" id="generateBtn" type="button">生成</button>
+        <button class="accent2" id="saveBtn" type="button" disabled>デプロイ</button>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="builder">
+
+    <!-- ===== 左カラム: プレビュー(枠なし・全面アプリ領域) ===== -->
+    <section class="left-col">
+      <div class="preview-frame" id="previewFrameWrap">
+        <div class="placeholder" id="placeholder">
+          <div class="empty-guide">
+            <img src="img/karakuri_1.svg" alt="灯" />
+            下のボックスに入力して、生成を押してください。
+            <small>迷ったらテンプレートアイコンから試せます。</small>
+          </div>
+        </div>
+        <div class="preview-overlay-group">
+          <button id="reloadBtn" class="preview-overlay-btn" type="button" title="アプリを最初からやりなおす" aria-label="アプリを最初からやりなおす" style="display:none;"><svg class="ic" style="width:18px;height:18px;"><use href="#i-update"></use></svg></button>
+        </div>
+      </div>
+      <!-- previewTab/codeTabは内部状態管理のため非表示で残す -->
+      <div class="tabs" role="tablist" style="display:none;">
+        <button class="tab active" id="previewTab" type="button" role="tab" aria-selected="true">プレビュー</button>
+        <button class="tab" id="codeTab" type="button" role="tab" aria-selected="false">コードを見る</button>
+      </div>
+    </section>
+
+    <!-- ===== 右カラム: ソースコード ===== -->
+    <section class="panel preview right-col" style="position: relative;">
+      <!-- AI生成中の大スピナー用オーバーレイ -->
+      <div class="code-loading-overlay" id="codeLoadingOverlay">
+        <div class="big-spinner"></div>
+        <div class="loading-label" id="loadingLabel">AIがコードを生成しています...</div>
+      </div>
+      <div class="preview-body">
+        <div class="codewrap" id="codeWrap" style="display:flex;">
+          <div class="codebar" id="codeBar" style="flex-wrap: wrap; gap: 8px;">
+            <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:3px 6px; border-radius:8px; border:1px solid #d1d5db;">
+              <select id="sourceViewSelect" style="padding:4px 8px; font-size:11px; border-radius:6px; box-shadow:none; border:1px solid #d1d5db; background:#fff; color:#111827; font-weight:800;">
+                <option value="html">全体</option>
+                <option value="css">CSS</option>
+                <option value="js">JS</option>
+              </select>
+            </div>
+            <button id="bulkLockBtn" class="ghost small-btn" type="button" style="padding:4px 8px; font-size:11px; margin:0;" title="このタブのコードをまとめてキープします">一括キープ</button>
+            <button id="undoBtn" class="ghost small-btn" type="button" title="1つ前に戻す" style="display:none; padding:4px 8px; font-size:11px; margin:0;">↩ もどす</button>
+            <button id="redoBtn" class="ghost small-btn" type="button" title="やり直す" style="display:none; padding:4px 8px; font-size:11px; margin:0;">↪ すすむ</button>
+            <div class="font-size-tools" aria-label="コード表示サイズ">
+              <span class="font-size-label">文字</span>
+              <button class="ghost small-btn font-size-toggle" type="button" data-code-font-toggle>小</button>
+            </div>
+            <div id="useMenuWrap" style="display:none; position:relative;">
+              <button id="useMenuBtn" class="ghost small-btn" type="button" title="作ったアプリを使う・手を加える" aria-haspopup="true" aria-expanded="false" style="padding:4px 8px; font-size:11px; margin:0;"><svg class="ic" style="width:15px;height:15px;vertical-align:-.25em"><use href="#i-tools"></use></svg> ツール ▾</button>
+              <div id="useMenu" role="menu" style="display:none; position:absolute; right:0; top:calc(100% + 6px); z-index:50; background:#fff; border:2px solid var(--line); border-radius:0; padding:6px; min-width:184px;">
+                <div style="font-size:10px; font-weight:800; color:var(--muted); padding:4px 8px 6px;">教室チケットの機能</div>
+                <button id="editBtn" class="use-menu-item" type="button" title="コードを自分で書き直す（教室チケットが必要）">✏️ 手動で編集</button>
+                <button id="commentBtn" class="use-menu-item" type="button" title="ソースコードに学習用コメントを追加する">💬 コメント追加</button>
+                <button id="downloadBtn" class="use-menu-item" type="button" title="アプリをHTMLファイルとしてダウンロードする"><svg class="ic" style="width:16px;height:16px;vertical-align:-.2em"><use href="#i-download"></use></svg> ダウンロード</button>
+              </div>
+            </div>
+            <button id="resetBtn" class="preview-overlay-btn" type="button" title="リセット" aria-label="リセット" style="position:static; width:38px; height:38px; margin-left:auto; border:1.5px solid var(--line); background:#fff; color:var(--text);"><svg class="ic" style="width:18px;height:18px;"><use href="#i-trash"></use></svg></button>
+            <span id="codeMeta" style="display:none;">0 行</span>
+          </div>
+          <div class="codeview code-locked" id="codeViewer" style="flex:1;min-height:0;"></div>
+          <!-- 手動編集エディタ（課金者のみ・初期は非表示） -->
+          <div id="codeEditWrap" class="edit-mode-panel">
+            <div class="edit-mode-head">
+              <span class="edit-mode-title">編集モード</span>
+              <div class="edit-mode-actions">
+                <div class="font-size-tools" aria-label="コード編集サイズ">
+                  <span class="font-size-label">文字</span>
+                  <button class="ghost small-btn font-size-toggle" type="button" data-code-font-toggle>小</button>
+                </div>
+                <button id="editApplyBtn" class="ghost small-btn edit-save-btn" type="button">ソース保存</button>
+                <button id="editCancelBtn" class="ghost small-btn edit-cancel-btn" type="button">キャンセル</button>
+              </div>
+            </div>
+            <textarea id="codeEditor" class="code-editor-dark" spellcheck="false"></textarea>
+            <div id="editFeedback" style="display:none; padding:10px 14px; background:#1c2845; border-top:1px solid #34495e; color:#ffd; font-size:12px; font-weight:700; line-height:1.6;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+  </div><!-- /.wrap -->
+</div><!-- /.main-area -->
+</div><!-- /.app-shell -->
+
+<!-- ===== 保存モーダル ===== -->
+<div class="modal" id="saveModal">
+  <div class="modal-card">
+    <h3><svg class="ic"><use href="#i-complete"></use></svg> 作品を完成させますか?</h3>
+    <p>ユーザー名と作品名を入れて保存すると、ギャラリー「じさくや」に並びます。</p>
+    <div class="field">
+      <label for="authorInput">ユーザー名(ニックネーム)<span style="color:#b91c1c; font-weight:800;">※本名はつかわないでね</span></label>
+      <input id="authorInput" placeholder="例: たろう" maxlength="15" />
+    </div>
+    <div class="field">
+      <label for="titleInput">作品名</label>
+      <input id="titleInput" placeholder="例: 色がかわるボタン" maxlength="40" />
+    </div>
+    <div class="field">
+      <label>タグ <span id="tagHint" style="font-weight:700;color:var(--muted);font-size:11px;">（AIのおすすめ・3つまで選べるよ）</span></label>
+      <div id="tagChips" style="display:flex;flex-wrap:wrap;gap:6px;max-height:140px;overflow:auto;padding:4px 2px;"></div>
+    </div>
+    <div class="field">
+      <label>公開範囲</label>
+      <div class="vis-grid">
+        <label class="vis-opt"><input type="radio" name="vis" value="public" checked />
+          <div class="vo"><div class="vi">🌏</div><div class="vt">全体公開</div><div class="vd">誰でも閲覧できます</div></div>
+        </label>
+        <label class="vis-opt"><input type="radio" name="vis" value="school" />
+          <div class="vo"><div class="vi">🏫</div><div class="vt">学校だけ</div><div class="vd">同じ学校の人だけ</div></div>
+        </label>
+        <label class="vis-opt"><input type="radio" name="vis" value="private" />
+          <div class="vo"><div class="vi">👤</div><div class="vt">じぶんだけ</div><div class="vd">あとで公開できる</div></div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost" id="cancelSaveBtn" type="button">キャンセル</button>
+      <button class="primary" id="confirmSaveBtn" type="button">完成！</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 完成お祝いモーダル ===== -->
+<div class="modal" id="completionModal">
+  <div class="modal-card" style="text-align: center; width: min(480px, 100%);">
+    <h3 style="font-family: var(--font-display); font-size: 22px; color: var(--pink);">完成しました</h3>
+    <p style="font-weight: 700; margin-bottom: 15px;">作品がギャラリー「じさくや」に公開されたよ！</p>
+    
+    <!-- 
+      =====================================================================
+      ※警告：使い魔機能は廃止されたため、以下の使い魔お祝いエリアは非表示（コメントアウト）にしています。
+      不具合や表示エラーではありませんので、絶対に再表示（コメントアウト解除）しないでください。
+      =====================================================================
+    -->
+    <!--
+    <div style="background: var(--pop-blue-soft); border: var(--stroke); border-radius: var(--radius-md); padding: 18px; margin: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      <span id="compFamFace" style="font-size: 58px; display: inline-block; filter: drop-shadow(4px 4px 0 var(--line));">😼</span>
+      <div id="compFamName" style="font-family: var(--font-display); font-size: 15px; font-weight: 800;">灯</div>
+      <div id="compFamMsg" style="font-size: 13.5px; font-weight: 700; line-height: 1.6; color: var(--text); background: #fff; border: var(--stroke); border-radius: 12px; padding: 10px 14px; width: 100%; box-shadow: var(--shadow-sm);">完成しました。プレビューで動作を確認しましょう。</div>
+    </div>
+    -->
+    
+    <div class="modal-foot" style="justify-content: center;">
+      <button class="primary" id="completionGoBtn" type="button" style="width: 100%; font-size: 15px;">ひろばへ見に行く！ <svg class="ic"><use href="#i-arrow_right"></use></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== チュートリアル案内オーバーレイ ===== -->
+<div class="tutorial-overlay" id="tutorialOverlay">
+  <div class="tutorial-chara">
+    <img src="img/karakuri_1.svg" alt="AIガイド" style="width: 28px; height: 28px; vertical-align: middle; filter: drop-shadow(1px 1px 0 var(--line));" />
+    <span style="font-size: 13px; font-weight: 900; color: var(--text);">AIガイド</span>
+  </div>
+  <p class="tutorial-bubble" id="tutorialText">入力欄に作りたいものをかくのじゃ。思いつかないときはテンプレボタンを押すべし</p>
+  <div class="tutorial-actions">
+    <button class="tutorial-btn" id="tutorialSkipBtn" type="button">スキップ</button>
+    <button class="tutorial-btn tutorial-btn-primary" id="tutorialNextBtn" type="button" style="display:none;">次へ</button>
+  </div>
+</div>
+
+<!-- ===== ニックネームモーダル ===== -->
+<div class="modal" id="nameModal">
+  <div class="modal-card">
+    <h3><svg class="ic"><use href="#i-me"></use></svg> ニックネームを決めよう</h3>
+    <p>作品といっしょに表示される名前です。本名は使わないでね。</p>
+    <div class="field">
+      <input id="nameInput" placeholder="例: たろう" maxlength="15" />
+    </div>
+    <div class="modal-foot">
+      <button class="primary" id="confirmNameBtn" type="button">これにする</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ログインモーダル ===== -->
+<div class="modal" id="loginModal">
+  <div class="modal-card" style="text-align: center; position: relative; max-width: 440px; width: 90%;">
+    <button type="button" onclick="closeLoginModal()" style="position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text); font-weight: bold; line-height: 1;">✕</button>
+    <h3 style="font-family: var(--font-display); font-size: 20px; margin-bottom: 8px;"><svg class="ic"><use href="#i-authentication"></use></svg> ログインしましょう</h3>
+    <p style="font-size: 13px; font-weight: 700; color: #5B5B7A; margin-bottom: 16px;">ログインするとさまざまな機能がつかえるようになります</p>
+    
+    <!-- Googleログイン -->
+    <div style="margin-bottom: 20px;">
+      <button class="sso-btn google" type="button" onclick="dummyLogin('google')" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: var(--stroke); border-radius: 12px; padding: 10px; font-weight: 800; box-shadow: var(--shadow-sm); cursor: pointer; background: #fff;">
+        <span style="font-size:18px;">🌐</span> Google(グーグル)でログイン
+      </button>
+    </div>
+    
+    <!-- または (区切り線) -->
+    <div style="display: flex; align-items: center; margin: 16px 0; font-weight: 800; color: var(--text); font-size: 12px;">
+      <hr style="flex: 1; border: none; border-top: var(--stroke); margin: 0;">
+      <span style="padding: 0 12px; background: var(--bg); position: relative; z-index: 1;">または</span>
+      <hr style="flex: 1; border: none; border-top: var(--stroke); margin: 0;">
+    </div>
+    
+    <!-- 生徒向けログインフォーム (ログインコードのみ) -->
+    <div id="studentLoginForm" style="border: var(--stroke); border-radius: 16px; padding: 16px; background: #FFF; box-shadow: var(--shadow-md); text-align: left; margin-bottom: 20px;">
+      <h4 style="font-family: var(--font-display); font-size: 14px; margin: 0 0 12px; color: var(--text); display: flex; align-items: center; gap: 4px;">
+        🧒 ログインコードでログイン
+      </h4>
+      <div style="margin-bottom: 16px;">
+        <label for="loginCodeInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">ログインコード</label>
+        <input id="loginCodeInput" type="text" placeholder="例: AAAA-BBBB-01" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius: 8px; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <button id="codeLoginBtn" type="button" onclick="handleCodeLogin()" style="width: 100%; font-family: var(--font-display); font-size: 14px; font-weight: 800; border: var(--stroke); border-radius: 12px; padding: 10px; background: var(--warn); color: var(--text); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; margin-bottom: 12px;">
+        ログインする
+      </button>
+      <div style="font-size: 11px; font-weight: 800; display: flex; justify-content: space-between; gap: 8px;">
+        <a href="#" onclick="switchLoginPanel('admin'); return false;" style="color: var(--accent);">🏫 教室の先生はこちら</a>
+        <a href="#" onclick="switchLoginPanel('resend'); return false;" style="color: var(--muted);">🔑 コードの再送はこちら</a>
+      </div>
+    </div>
+
+    <!-- 教室管理者ログインフォーム -->
+    <div id="adminLoginForm" style="display: none; border: var(--stroke); border-radius: 16px; padding: 16px; background: #FFF; box-shadow: var(--shadow-md); text-align: left; margin-bottom: 20px;">
+      <h4 style="font-family: var(--font-display); font-size: 14px; margin: 0 0 12px; color: var(--text); display: flex; align-items: center; gap: 4px;">
+        🏫 教室管理者ログイン
+      </h4>
+      <div style="margin-bottom: 10px;">
+        <label for="adminOrgIdInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">学校ID / 塾ID</label>
+        <input id="adminOrgIdInput" type="text" placeholder="例: ABCDEFGH" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius: 8px; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label for="adminPasswordInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">管理者パスワード</label>
+        <input id="adminPasswordInput" type="password" placeholder="••••••••" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius: 8px; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <button id="adminLoginBtn" type="button" onclick="handleAdminLogin()" style="width: 100%; font-family: var(--font-display); font-size: 14px; font-weight: 800; border: var(--stroke); border-radius: 12px; padding: 10px; background: var(--accent2); color: var(--text); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; margin-bottom: 12px;">
+        管理者としてログイン
+      </button>
+      <div style="font-size: 11px; font-weight: 800;">
+        <a href="#" onclick="switchLoginPanel('student'); return false;" style="color: var(--accent);">🧒 生徒のログインはこちら</a>
+      </div>
+    </div>
+
+    <!-- ログインコード再送フォーム -->
+    <div id="resendLoginForm" style="display: none; border: var(--stroke); border-radius: 16px; padding: 16px; background: #FFF; box-shadow: var(--shadow-md); text-align: left; margin-bottom: 20px;">
+      <h4 style="font-family: var(--font-display); font-size: 14px; margin: 0 0 12px; color: var(--text); display: flex; align-items: center; gap: 4px;">
+        🔑 ログインコードの再送
+      </h4>
+      <div style="margin-bottom: 10px;">
+        <label for="resendOrgIdInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">学校ID / 塾ID</label>
+        <input id="resendOrgIdInput" type="text" placeholder="例: ABCDEFGH" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius: 8px; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label for="resendPasswordInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">管理者パスワード</label>
+        <input id="resendPasswordInput" type="password" placeholder="••••••••" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius: 8px; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <button id="resendBtn" type="button" onclick="handleResendCodes()" style="width: 100%; font-family: var(--font-display); font-size: 14px; font-weight: 800; border: var(--stroke); border-radius: 12px; padding: 10px; background: var(--muted); color: var(--text); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; margin-bottom: 12px;">
+        メールでコード一覧を再送する
+      </button>
+      <div style="font-size: 11px; font-weight: 800;">
+        <a href="#" onclick="switchLoginPanel('student'); return false;" style="color: var(--accent);">🧒 生徒のログインはこちら</a>
+      </div>
+    </div>
+    
+    <div style="margin-top: 12px;">
+      <button class="ghost" type="button" onclick="closeLoginModal()" style="padding: 8px 16px; font-size: 13px; font-weight: bold;">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><strong id="toastTitle">通知</strong><span class="sub" id="toastBody"></span></div>
+
+<!-- ステータスバー（非表示）: JSから参照されるダミー要素 -->
+<div class="status" id="statusBar" style="display:none;" aria-hidden="true">
+  <span class="status-dot" id="statusDot"></span>
+  <span id="statusText"></span>
+</div>
+
+<script src="./firebase-config.js"></script>
+<script type="module" src="./firebase-auth.js?v=1.0.5"></script>
+<script>
+/* ===== デバッグ: JSエラー早期検出 ===== */
+window.onerror = function(msg, url, line, col, err) {
+  console.error('[GLOBAL ERROR]', msg, 'at', url, 'line', line);
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:#fff;padding:8px;font-size:12px;z-index:99999;word-break:break-all';
+  d.textContent = 'JS ERROR: ' + msg + ' (line ' + line + ')';
+  document.body?.appendChild(d);
+};
+const $ = id => document.getElementById(id);
+
+/* ---------- LocalStorage データベース連携 ---------- */
+const DB_PREFIX = 'otq:';
+const DB = {
+  getCurrentUid() {
+    return localStorage.getItem(DB_PREFIX + 'current_uid') || null;
+  },
+  setCurrentUid(uid) {
+    if (uid) {
+      localStorage.setItem(DB_PREFIX + 'current_uid', uid);
+    } else {
+      localStorage.removeItem(DB_PREFIX + 'current_uid');
+    }
+  },
+  resolveKey(key) {
+    const isIsolated = ['user', 'favorites', 'owned_misc', 'liked_works', 'reacted_works', 'played_works', 'knowledge', 'hints_seen'].includes(key);
+    if (isIsolated) {
+      const uid = this.getCurrentUid();
+      return uid ? `${key}:${uid}` : `${key}:guest`;
+    }
+    return key;
+  },
+  get(key, def) {
+    try {
+      const resolved = this.resolveKey(key);
+      const v = localStorage.getItem(DB_PREFIX + resolved);
+      return v ? JSON.parse(v) : def;
+    } catch(e) { return def; }
+  },
+  set(key, val) {
+    try {
+      const resolved = this.resolveKey(key);
+      localStorage.setItem(DB_PREFIX + resolved, JSON.stringify(val));
+    } catch(e) {}
+  }
+};
+
+/* ================= 設定 ================= */
+const API = {
+  generate: '/api/generate',
+  refine:   '/api/refine',
+  commentSource: '/api/commentSource',
+  reviewCode: '/api/reviewCode',
+  classifyTags: '/api/classifyTags',
+  save:     '/api/save',
+};
+const hints = [
+  {
+    text: '英単語と日本語訳をランダムに出題する小テストアプリを作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">英単語と日本語訳をランダムに出題する</span>小テストアプリを作って'
+  },
+  {
+    text: '日本史の重要語句をカードで覚える暗記アプリを作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">日本史の重要語句をカードで覚える</span>暗記アプリを作って'
+  },
+  {
+    text: '数学の二次関数について、係数を変えるとグラフの形が変わる教材を作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">二次関数の係数を変えるとグラフが変わる</span>教材を作って'
+  },
+  {
+    text: '化学の元素記号をクイズ形式で練習できるアプリを作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">化学の元素記号をクイズ形式で練習できる</span>アプリを作って'
+  },
+  {
+    text: '古文単語の意味を選択肢から選ぶ復習アプリを作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">古文単語の意味を選択肢から選ぶ</span>復習アプリを作って'
+  },
+  {
+    text: '探究学習のテーマ、仮説、調査方法、結果を整理できるメモアプリを作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">探究学習のテーマ・仮説・調査方法・結果を整理できる</span>メモアプリを作って'
+  },
+  {
+    text: '定期テストまでの日数と今日の学習タスクを表示する計画アプリを作って',
+    html: '<span style="color:var(--text); font-weight:800; border-bottom:3.5px solid #AEEA00; padding-bottom:1px;">定期テストまでの日数と今日の学習タスクを表示する</span>計画アプリを作って'
+  }
+];
+
+/* ================= 使い魔(ガイド) =================
+   口調はマイページ(userpage.html)で選んだ famType に連動。
+   - catch : 用語解説のあとに付くひとこと
+   - hello : 初回あいさつ
+   - cheer : 失敗時のはげまし
+   - lines : 完成お祝い(既存の完成モーダルでも使用) */
+const FAM_TYPES = {
+  tora: {
+    emoji:'🏮', img:'karakuri_1.svg', name:'灯',
+    catch:'理解しておくと、制作時に役立ちます。',
+    hello:'ここはじさくや コードです。AIと一緒にアプリを制作できます。わからない言葉の横にある【?】を押すと説明を確認できます。',
+    cheer:'前のアプリは消えていません。指示を少し具体化して、もう一度試してみましょう。',
+    lines:['完成しました。よく整理されたアプリです。','良い仕上がりです。次は使いやすさも確認しましょう。']
+  },
+  robo: {
+    emoji:'🧮', img:'karakuri_2.svg', name:'算',
+    catch:'記録完了。覚えておくと役立つ。',
+    hello:'ここはAIと共同でアプリを開発するページです。不明な単語の横の【?】をタップすれば解説します。',
+    cheer:'問題ありません。前のアプリは保持済みです。指示の表現を変えて再試行を推奨します。',
+    lines:['出力成功。良い仕上がりです。','この調子で開発を続けましょう。']
+  },
+  fairy: {
+    emoji:'🎐', img:'karakuri_3.svg', name:'結',
+    catch:'理解がひとつ進みました。',
+    hello:'ここではAIと一緒にアプリを制作できます。わからない言葉の【?】から説明を確認できます。',
+    cheer:'前のアプリは残っています。指示の表現を変えて、もう一度試してみましょう。',
+    lines:['完成しました。良い仕上がりです。','制作完了です。プレビューで動作を確認しましょう。']
+  },
+  dragon: {
+    emoji:'⚔️', img:'karakuri_4.svg', name:'武',
+    catch:'覚えておくがよい、必ず役に立つ。',
+    hello:'よくぞ来た。ここはAIと共にアプリを生み出す工房だ。わからぬ言葉は【?】を押すがよい、教えてやろう。',
+    cheer:'案ずるな、前のアプリは無事だ。言い回しを変えて再挑戦するのだ。',
+    lines:['見事なアプリです。','称賛に値する出来です。']
+  },
+  rabbit: {
+    emoji:'🔔', img:'karakuri_5.svg', name:'鈴',
+    catch:'理解が進むと、指示の精度も上がります。',
+    hello:'ここではAIと一緒にアプリを制作できます。わからない言葉の【?】から説明を確認できます。',
+    cheer:'前のアプリは消えていません。表現を変えてもう一度試してみましょう。',
+    lines:['完成しました。よく整理された作品です。','制作完了です。動作を確認してみましょう。']
+  },
+};
+function currentFam(){
+  const u = DB.get('user', {});
+  return FAM_TYPES[u.famType] || FAM_TYPES.tora;
+}
+function currentFamKey(){
+  const u = DB.get('user', {});
+  return FAM_TYPES[u.famType] ? u.famType : 'tora';
+}
+/* 使い魔アバター: 画像があれば<img>、無ければ絵文字。読み込み失敗時も絵文字にフォールバック */
+function famImg(key,size){
+  const f=FAM_TYPES[key]||FAM_TYPES.tora;
+  if(f.img){
+    return `<img src="img/${f.img}" alt="${f.name}" class="fam-img" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${f.emoji}',style:'font-size:${Math.round(size*0.85)}px;line-height:1;'}))">`;
+  }
+  return `<span style="font-size:${Math.round(size*0.85)}px;line-height:1;">${f.emoji}</span>`;
+}
+
+/* ================= 用語辞書(？チップ) =================
+   理解済み用語は otq:knowledge に保存 → 後日「ナレッジベース」ページで一覧表示する */
+const GLOSSARY = {
+  prompt:  { label:'指示(プロンプト)', emoji:'💬',
+    text:'AIへの指示文のことです。「何を・どうしたい」を具体的に書くほど、意図に近いアプリへ近づきます。' },
+  images:  { label:'画像素材', emoji:'🖼️',
+    text:'アプリの中で使える画像のことです。ここで選択しておくと、AIがその画像を使ったアプリを作成できます。インターネット上の他の画像は、安全のため使えない設定です。' },
+  tabs:    { label:'プレビューとコード', emoji:'🖥️',
+    text:'「プレビュー」は作ったアプリを実際に動かして試せる画面です。「コードを見る」ではAIが作成したプログラムの中身を確認できます。アプリはコードという命令で構成されています。' },
+  html:    { label:'HTML', emoji:'🦴',
+    text:'HTMLはアプリの骨組みを作る言語です。ボタンや文字をどこに配置するかを決めます。CSS(見た目)とJS(動き)と組み合わせてアプリが動きます。' },
+  css:     { label:'CSS', emoji:'🎨',
+    text:'CSSは見た目を整える言語です。色・大きさ・形・装飾・余白などを指定します。「ボタンをピンクにして」と頼むと、AIは主にCSSを書き換えます。' },
+  js:      { label:'JS(JavaScript)', emoji:'⚡',
+    text:'JS(JavaScript)は動きを担当する言語です。「ボタンを押したら色が変わる」などの反応や、ゲームの点数計算などを処理します。' },
+  lock:    { label:'キープ', emoji:'📌',
+    text:'キープは「この行はなるべく変えないで」とAIに伝える機能です。気に入った部分を残したまま、他の場所を修正できます。行番号を押すとキープできます。' },
+  linenum: { label:'行番号', emoji:'🎯',
+    text:'コードの何行目かを示す番号です。行番号を押すと、その行をキープできます。もう一度押すと通常の行番号に戻ります。' },
+};
+
+let knowledge = DB.get('knowledge', []);
+function renderKnowCount(){ if ($('knowCount')) $('knowCount').textContent = knowledge.length; }
+function learnTerm(key){
+  if(!GLOSSARY[key] || knowledge.some(k=>k.key===key)) return;
+  knowledge.push({ key, label: GLOSSARY[key].label, date: new Date().toISOString() });
+  DB.set('knowledge', knowledge);
+  renderKnowCount();
+  markLearnedChips();
+  if(knowledge.length === 5){
+    const u = DB.get('user', {});
+    u.coins = (u.coins||0) + 10;
+    DB.set('user', u);
+    renderCoins();
+    showToast('📖 用語を5件理解済みにしました','報酬として +10コインを獲得しました。ナレッジベースで確認できます。');
+  }
+}
+function markLearnedChips(){
+  document.querySelectorAll('.qchip').forEach(ch=>{
+    const k = ch.dataset.term;
+    ch.classList.toggle('learned', knowledge.some(x=>x.key===k));
+  });
+}
+
+/* ---- 使い魔のしゃべり（使い魔HTML削除済みのため安全ガード） ---- */
+let famTimer = null;
+function famSay(text, actions, holdMs){
+  if (!$('famBubble') || !$('famBody') || !$('famText') || !$('famAct') || !$('famName')) return;
+  const f = currentFam();
+  $('famBody').innerHTML = famImg(currentFamKey(), 44);
+  $('famName').textContent = '' + f.name;
+  $('famText').innerHTML = text;
+  const act = $('famAct');
+  act.innerHTML = '';
+  (actions||[]).forEach(a=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = a.label;
+    b.onclick = ()=>{ $('famBubble').classList.remove('show'); a.fn(); };
+    act.appendChild(b);
+  });
+  $('famBubble').classList.add('show');
+  clearTimeout(famTimer);
+  famTimer = setTimeout(()=>$('famBubble').classList.remove('show'), holdMs || (actions ? 12000 : 8000));
+}
+if ($('famClose')) {
+  $('famClose').addEventListener('click', ()=>{ clearTimeout(famTimer); $('famBubble').classList.remove('show'); });
+}
+if ($('assistantToggle')) {
+  $('assistantToggle').addEventListener('click', ()=>{
+    const f = currentFam();
+    famSay(
+      `わからない言葉の横にある【?】を押すと説明を確認できます。【?】が見えない場合は、上の「❓説明」をONにしてください。<br>理解済みの用語はナレッジベースに保存されます（現在 ${knowledge.length}件）。`,
+      [{label:'❓を表示する', fn:()=>setQmode(true)}]
+    );
+  });
+}
+
+/* ---- ？チップ ---- */
+document.querySelectorAll('.qchip').forEach(ch=>{
+  ch.addEventListener('click', e=>{
+    e.stopPropagation(); // アコーディオン等の親クリックを防ぐ
+    const key = ch.dataset.term;
+    const g = GLOSSARY[key];
+    if(!g) return;
+    const f = currentFam();
+    const isNew = !knowledge.some(x=>x.key===key);
+    learnTerm(key);
+    famSay(
+      `<b>${g.emoji} ${g.label}</b><br>${g.text}<br><span style="color:var(--good)">${f.catch}</span>` +
+      (isNew ? `<br><span style="font-size:11px;color:var(--muted)">📖 ナレッジブックに「${g.label}」を記録したよ</span>` : '')
+    );
+  });
+});
+
+/* ---- ❓せつめい ON/OFF ---- */
+function setQmode(on){
+  document.body.classList.toggle('no-qmode', !on);
+  if ($('qmodeState')) $('qmodeState').textContent = on ? 'ON' : 'OFF';
+  
+  // トグルスイッチの移動・背景色のアニメーション
+  const knob = document.querySelector('#qmodeChip .toggle-knob');
+  const sw = document.querySelector('#qmodeChip .toggle-switch');
+  if (knob && sw) {
+    if (on) {
+      knob.style.transform = 'translateX(14px)';
+      sw.style.background = '#2FE0A8'; // Neobrutalismポップグリーン
+    } else {
+      knob.style.transform = 'translateX(0)';
+      sw.style.background = '#e2e8f0';
+    }
+  }
+  DB.set('qmode', on);
+}
+if ($('qmodeChip')) {
+  $('qmodeChip').addEventListener('click', ()=>{
+    const next = document.body.classList.contains('no-qmode');
+    setQmode(next);
+  });
+}
+if ($('knowChip')) {
+  $('knowChip').addEventListener('click', ()=>{
+    if (!DB.getCurrentUid()) {
+      showToast('未ログインだと使えません', 'ナレッジブックを見るにはログインしてね。', true);
+    } else {
+      location.href = 'knowledge.html';
+    }
+  });
+}
+if ($('headerKnowLink')) {
+  $('headerKnowLink').addEventListener('click', (e)=>{
+    if (!DB.getCurrentUid()) {
+      e.preventDefault();
+      showToast('未ログインだと使えません', 'ナレッジブックを見るにはログインしてね。', true);
+    }
+  });
+}
+if ($('coinChip')) {
+  $('coinChip').addEventListener('click', (e)=>{
+    if (!DB.getCurrentUid()) {
+      e.preventDefault();
+      showToast('ログインが必要です', 'コインショップを利用するにはログインしてください。', true);
+    }
+  });
+}
+
+/* ---- 文脈ヒント(初回だけ自動でしゃべる) ---- */
+let hintsSeen = DB.get('hints_seen', {});
+function hintOnce(key, text, actions){
+  if(hintsSeen[key]) return;
+  hintsSeen[key] = true;
+  DB.set('hints_seen', hintsSeen);
+  famSay(text, actions, 12000);
+}
+
+// 作品タグの正式リスト（サーバーの WORK_TAG_LIST と一致させる）
+const WORK_TAGS = [
+  {name:'ゲーム・シミュレーター', emoji:'🎮'}, {name:'クイズ・検定', emoji:'❓'}, {name:'適性診断・占い', emoji:'🔮'},
+  {name:'グラフィック・アート', emoji:'🎨'}, {name:'アニメーション・映像', emoji:'✨'}, {name:'サウンド・音楽', emoji:'🎵'},
+  {name:'デジタルノベル・ストーリー', emoji:'📖'}, {name:'図鑑・データベース', emoji:'📚'}, {name:'プレゼンテーション・紹介', emoji:'🙋'},
+  {name:'実用ツール・ユーティリティ', emoji:'🔧'}, {name:'計算・アルゴリズム', emoji:'🧮'}, {name:'クロック・タイマー', emoji:'⏰'},
+  {name:'集計・カウンター', emoji:'🔢'}, {name:'データ分析・可視化', emoji:'📊'}, {name:'デジタルメッセージ・カード', emoji:'💌'},
+  {name:'アンケート・ランキング', emoji:'🗳️'}, {name:'学習ツール・ドリル', emoji:'📝'}, {name:'探究学習・リサーチ', emoji:'🔎'},
+  {name:'スクールライフ・イベント', emoji:'🏫'}, {name:'ユーモア・バラエティ', emoji:'🤣'}, {name:'社会課題・SDGs', emoji:'🌱'},
+  {name:'その他', emoji:'📦'}
+];
+const MAX_TAGS = 3;
+
+const state = {
+  status: 'idle',          // idle|generating|refining|previewing|saving|saved
+  currentHtml: '',
+  editId: null,            // ?edit=id で再編集中の作品ID
+  editTitle: '',           // 再編集元の作品名
+  editTags: [],            // 再編集元のタグ
+  editVisibility: 'public', // 再編集元の公開範囲
+  editing: false,          // 手動編集モード中か
+  selectedTags: [],        // 保存時に付けるタグ
+  hasApp: false,
+  classroomTicketReady: false,
+  classroomTicketOk: false,
+  lockedLines: new Set(),
+  activeSubTab: 'html',    // html|css|js
+  nickname: '',
+  classId: new URLSearchParams(location.search).get('class') || '',
+  activeTab: 'preview',
+};
+
+/* ================= 要素 ================= */
+const els = {
+  prompt:$('prompt'), promptCount:$('promptCount'),
+  hintText:$('hintText'), applyHintBtn:$('applyHintBtn'),
+  generateBtn:$('generateBtn'), resetBtn:$('resetBtn'), saveBtn:$('saveBtn'), generateSpinner:$('codeLoadingOverlay'), loadingLabel:$('loadingLabel'),
+  previewTab:$('previewTab'), codeTab:$('codeTab'),
+  reloadBtn:$('reloadBtn'), commentBtn:$('commentBtn'), downloadBtn:$('downloadBtn'), editBtn:$('editBtn'),
+  useMenuWrap:$('useMenuWrap'), useMenuBtn:$('useMenuBtn'), useMenu:$('useMenu'),
+  codeEditWrap:$('codeEditWrap'), codeEditor:$('codeEditor'), editApplyBtn:$('editApplyBtn'), editCancelBtn:$('editCancelBtn'), editFeedback:$('editFeedback'),
+  undoBtn:$('undoBtn'), redoBtn:$('redoBtn'),
+  sourceViewSelect:$('sourceViewSelect'),
+  bulkLockBtn:$('bulkLockBtn'), codeBar:$('codeBar'),
+  codeWrap:$('codeWrap'), codeViewer:$('codeViewer'), codeMeta:$('codeMeta'),
+  previewFrameWrap:$('previewFrameWrap'), placeholder:$('placeholder'),
+  statusText:$('statusText'), statusDot:$('statusDot'),
+  saveModal:$('saveModal'), titleInput:$('titleInput'), cancelSaveBtn:$('cancelSaveBtn'), confirmSaveBtn:$('confirmSaveBtn'),
+  nameModal:$('nameModal'), nameInput:$('nameInput'), confirmNameBtn:$('confirmNameBtn'),
+  nicknameChip:$('nicknameChip'), nicknameLabel:$('nicknameLabel'), classIdLabel:$('classIdLabel'),
+  toast:$('toast'), toastTitle:$('toastTitle'), toastBody:$('toastBody'),
+};
+
+let hintIndex = 0;
+
+/* ===== スマホでキーボード表示中は使い魔を退避 ===== */
+els.prompt.addEventListener('focus', ()=>{
+  if(window.innerWidth < 700) document.body.classList.add('kb-open');
+});
+els.prompt.addEventListener('blur', ()=>document.body.classList.remove('kb-open'));
+
+/* ================= 画像素材(img/ フォルダ) =================
+   ブラウザはフォルダの中身を直接一覧できないため、以下の優先順で読み込む:
+   1) img/manifest.json … ["neko.png","robot.png", ...] というJSON配列を置けば自動で読む
+   2) IMG_FILES … 下のリストを手で編集する(デバッグ用フォールバック)
+   読み込みに失敗した画像(存在しないファイル)は自動で非表示になる。 */
+const IMG_DIR = 'img/';
+const IMG_FILES = [
+  "103_ワーニング.png",
+  "106_カメラアプリ.png",
+  "111_画面透過パソコン.png",
+  "112_笑顔のパソコン.png",
+  "113_画面透過スマホ.png",
+  "123_錠前.png",
+  "124_鍵.png",
+  "125_どくろの鍵.png",
+  "126_サーバー.png",
+  "137_指紋認証.png",
+  "141_パソコン悲しい顔.png",
+  "142_USBメモリー.png",
+  "149_まるちゃん(ふてくされ).png",
+  "16_まるちゃん(悲).png",
+  "53-1_チョコレート.png",
+  "53-2_チョコレート.png",
+  "53-3_チョコレート.png",
+  "53-4_チョコレート.png",
+  "53-5_チョコレート.png",
+  "53-6_チョコレート.png",
+  "9-3_タブレットを使った発表_提出.png",
+  "ノートパソコン.png",
+  "既読レンガ.png"
+];
+let imgFiles = [];                 // 実際に表示できたファイル名
+const selectedImages = new Set();  // 選択中のファイル名
+
+async function loadImageList(){
+  const savedUser = DB.get('user', {});
+  let ownedArr = savedUser.ownedImages;
+  if (!Array.isArray(ownedArr) || ownedArr.length === 0) {
+    ownedArr = ["ノートパソコン.png"];
+    savedUser.ownedImages = ownedArr;
+    DB.set('user', savedUser);
+  }
+  const owned = new Set(ownedArr);
+
+  let list = IMG_FILES.map(name => ({ name, url: IMG_DIR + name }));
+  
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    try {
+      const dbImages = await window.FirebaseAuthBridge.getFirestoreDocs('images');
+      if (dbImages && dbImages.length > 0) {
+        list = dbImages.map(img => ({ name: img.fileName, url: img.fileUrl }));
+      }
+    } catch(e) {
+      console.warn("Failed to load images from Firestore, fallback to local:", e);
+    }
+  } else {
+    try{
+      const res = await fetch(IMG_DIR + 'manifest.json', {cache:'no-store'});
+      if(res.ok){
+        const data = await res.json();
+        if(Array.isArray(data) && data.length) {
+          list = data.map(name => ({ name, url: IMG_DIR + name }));
+        }
+      }
+    }catch(e){ }
+  }
+
+  const filteredList = list.filter(item => owned.has(item.name));
+  renderImageGrid(filteredList);
+}
+
+function renderImageGrid(list){
+  const grid = $('imgGrid');
+  grid.innerHTML = '';
+  imgFiles = [];
+  let loaded = 0, failed = 0;
+  const total = list.length;
+  list.forEach(item=>{
+    const name = item.name;
+    const cell = document.createElement('div');
+    cell.className = 'img-thumb';
+    cell.title = name;
+    const img = document.createElement('img');
+    img.src = item.url;
+    img.alt = name;
+    img.loading = 'lazy';
+    img.onload = ()=>{ imgFiles.push(name); loaded++; };
+    img.onerror = ()=>{ cell.remove(); failed++; if(failed===total) showImgEmpty(); };
+    cell.appendChild(img);
+    cell.addEventListener('click', ()=>{
+      if(selectedImages.has(name)) selectedImages.delete(name);
+      else{
+        if(selectedImages.size>=6){ showToast('えらべるのは6枚まで','たくさん使いたいときは、まず6枚で作ってから「修正」で追加してね。', true); return; }
+        selectedImages.add(name);
+      }
+      cell.classList.toggle('selected', selectedImages.has(name));
+      updateImgSelUI();
+    });
+    grid.appendChild(cell);
+  });
+  if(total===0) showImgEmpty();
+}
+function showImgEmpty(){
+  $('imgGrid').innerHTML = `<div class="img-empty" style="grid-column:1/-1;">
+    画像が見つかりませんでした。<br/>
+    <code>img/manifest.json</code> にファイル名のJSON配列を置くか、<br/>
+    corder.html 内の <code>IMG_FILES</code> リストを実際のファイル名に書きかえてください。</div>`;
+}
+function updateImgSelUI(){
+  const n = selectedImages.size;
+  const c = $('imgSelCount');
+  c.textContent = n;
+  c.classList.toggle('show', n>0);
+}
+$('imgBoxHd').addEventListener('click', (e)=>{ e.stopPropagation(); $('imgBox').classList.toggle('open'); });
+$('imgBoxCloseBtn').addEventListener('click', ()=>$('imgBox').classList.remove('open'));
+document.addEventListener('click', (e)=>{
+  if (!e.target.closest('#imgBox')) $('imgBox').classList.remove('open');
+});
+$('imgClearBtn').addEventListener('click', ()=>{
+  selectedImages.clear();
+  document.querySelectorAll('.img-thumb.selected').forEach(el=>el.classList.remove('selected'));
+  updateImgSelUI();
+});
+$('imgInsertBtn').addEventListener('click', ()=>{
+  if(!selectedImages.size){ showToast('画像をえらんでね','先に使いたい画像をクリックしてえらんでね。', true); return; }
+  const names = [...selectedImages].join('、');
+  const add = `えらんだ画像(${names})を使って。`;
+  const current = els.prompt.value.trim();
+  const next = current ? `${current}\n${add}` : add;
+  if(next.length>500){ showToast('追加できません','500文字を超えてしまうよ。指示を少し短くしてね。', true); return; }
+  els.prompt.value = next; updateMeta(); els.prompt.focus();
+});
+
+/* ================= ユーティリティ ================= */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function setStatus(text, tone='info', pulse=false){
+  if (els.statusText) els.statusText.textContent = text;
+  const colors = {info:'var(--accent)', good:'var(--good)', warn:'var(--warn)', bad:'var(--bad)'};
+  const glows  = {info:'rgba(14,165,233,.6)', good:'rgba(16,185,129,.6)', warn:'rgba(245,158,11,.6)', bad:'rgba(225,29,72,.55)'};
+  if (els.statusDot) {
+    els.statusDot.style.background = colors[tone];
+    els.statusDot.style.boxShadow = `0 0 14px ${glows[tone]}`;
+    els.statusDot.classList.toggle('pulse', pulse);
+  }
+  const statusEl = document.querySelector('.status');
+  if (statusEl) statusEl.classList.toggle('busy', pulse);
+}
+let toastTimer;
+function showToast(title, body, isErr=false){
+  els.toastTitle.textContent = title;
+  els.toastBody.textContent = body;
+  els.toast.classList.toggle('err', isErr);
+  els.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>els.toast.classList.remove('show'), 3200);
+}
+
+async function refreshClassroomTicketStatus() {
+  state.classroomTicketReady = false;
+  state.classroomTicketOk = false;
+  window.__classroomTicketReady = false;
+  window.__classroomTicketOk = false;
+
+  if (!DB.getCurrentUid()) {
+    state.classroomTicketReady = true;
+    window.__classroomTicketReady = true;
+    return false;
+  }
+
+  try {
+    const ok = window.FirebaseAuthBridge?.hasClassroomTicket
+      ? await window.FirebaseAuthBridge.hasClassroomTicket()
+      : false;
+    state.classroomTicketOk = !!ok;
+    return state.classroomTicketOk;
+  } catch (err) {
+    console.error('Failed to refresh classroom ticket status', err);
+    state.classroomTicketOk = false;
+    return false;
+  } finally {
+    state.classroomTicketReady = true;
+    window.__classroomTicketReady = true;
+    window.__classroomTicketOk = state.classroomTicketOk;
+    applyCodeGuard();
+  }
+}
+
+// コードのコピーガードを課金状態に応じて適用する
+function applyCodeGuard() {
+  if (!els.codeViewer) return;
+  // 未課金（または確認前）はコピー不可。課金確認済みのみ選択・コピーを許可。
+  const locked = !state.classroomTicketOk;
+  els.codeViewer.classList.toggle('code-locked', locked);
+}
+
+function updateSidebarAuth() {
+  const uid = DB.getCurrentUid();
+  const signedIn = Boolean(uid);
+  
+  let userObj = null;
+  if (signedIn) {
+    userObj = DB.get('user', null);
+  }
+  
+  const nick = signedIn ? (userObj?.nickname || uid) : '未ログイン';
+  const coins = signedIn ? (userObj?.coins || 0) : 0;
+  
+  if ($('sideLoginBtn')) {
+    $('sideLoginBtn').style.display = signedIn ? 'none' : 'inline-flex';
+  }
+  if ($('sideSignupBtn')) {
+    $('sideSignupBtn').style.display = signedIn ? 'none' : 'inline-flex';
+  }
+  if ($('userMenu')) {
+    $('userMenu').style.display = signedIn ? 'flex' : 'none';
+  }
+  
+  if ($('userNickname')) {
+    $('userNickname').textContent = nick;
+  }
+  if ($('userCoinVal')) {
+    $('userCoinVal').textContent = coins;
+  }
+  if ($('coinVal')) {
+    $('coinVal').textContent = coins;
+  }
+  
+  if ($('coinChip')) {
+    $('coinChip').style.display = signedIn ? 'flex' : 'none';
+  }
+}
+
+window.addEventListener('vibecoding-auth-change', () => {
+  refreshClassroomTicketStatus();
+  updateSidebarAuth();
+  if ($('famBody')) {
+    $('famBody').innerHTML = famImg(currentFamKey(), 44);
+  }
+});
+
+function setBusy(busy){
+  els.generateBtn.disabled = busy;
+  els.resetBtn.disabled = busy;
+  els.saveBtn.disabled = busy || !state.hasApp;
+  els.prompt.disabled = busy;
+  els.commentBtn.disabled = busy || !state.hasApp;
+  els.downloadBtn.disabled = busy;
+  if (els.loadingLabel) {
+    els.loadingLabel.textContent =
+      state.status === 'saving' ? '作品を公開しています...' :
+      state.status === 'refining' ? 'AIがコードを修正しています...' :
+      'AIがコードを生成しています...';
+  }
+  if (els.generateSpinner) els.generateSpinner.classList.toggle('show', busy);
+  
+  // 生成中は案内文言を消す。生成中でなくなった時、アプリがまだ無いなら案内文言を戻す
+  if (els.placeholder) {
+    if (busy) {
+      els.placeholder.style.display = 'none';
+    } else if (!state.hasApp) {
+      els.placeholder.style.display = 'grid';
+    }
+  }
+}
+
+/* ================= タブ ================= */
+function setActiveTab(tab){
+  state.activeTab = tab;
+  const showCode = tab === 'code';
+  // プレビューとソースコードは常に左右並べて両方表示する(タブ切り替えは行わない)
+  els.previewTab.classList.toggle('active', !showCode);
+  els.codeTab.classList.toggle('active', showCode);
+  els.previewTab.setAttribute('aria-selected', String(!showCode));
+  els.codeTab.setAttribute('aria-selected', String(showCode));
+  if(showCode && state.hasApp){
+    hintOnce('codeTab',
+      'これがAIが作成した<b>コード</b>(プログラムの中身)です。上の小さなタブに注目してください。アプリは <b>HTML=構造</b>・<b>CSS=見た目</b>・<b>JS=動き</b> で構成されています。タブを切り替えて、それぞれの担当部分を確認しましょう。');
+  }
+
+  if (showCode) {
+    startCodeExplanation();
+  } else {
+    clearCodeExplanation();
+    if ($('famBubble')) $('famBubble').classList.remove('show');
+  }
+}
+els.previewTab.addEventListener('click', ()=>setActiveTab('preview'));
+els.codeTab.addEventListener('click', ()=>setActiveTab('code'));
+
+/* ================= プレビュー ================= */
+function renderPreview(html){
+  els.placeholder.style.display = 'none';
+  // 仕様: iframeを一度破棄して再マウント(前回JSの残存防止)
+  els.previewFrameWrap.querySelectorAll('iframe').forEach(n=>n.remove());
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox','allow-scripts'); // allow-same-origin等は付与しない
+  iframe.srcdoc = html;
+  els.previewFrameWrap.appendChild(iframe);
+}
+
+/* ================= サムネイル撮影 =================
+   保存時に、まっさらな初期状態のアプリを別iframeで描画し直してから撮影する。
+   (子どもがピクセルアプリ等で落書きした状態ではなく、本来の見た目を撮るため) */
+let _html2canvasPromise = null;
+function loadHtml2Canvas(){
+  if (window.html2canvas) return Promise.resolve(window.html2canvas);
+  if (_html2canvasPromise) return _html2canvasPromise;
+  _html2canvasPromise = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload = ()=> resolve(window.html2canvas);
+    s.onerror = ()=> reject(new Error('html2canvas load failed'));
+    document.head.appendChild(s);
+  });
+  return _html2canvasPromise;
+}
+
+// 撮影に使うビューポート(4:3)と出力サムネイルの幅
+const THUMB_VW = 400, THUMB_VH = 300, THUMB_OUT_W = 320;
+
+async function captureThumbnail(html){
+  try{
+    const html2canvas = await loadHtml2Canvas();
+    // 画面外に撮影用iframeを生成。html2canvasが中身を読むため allow-same-origin が必要。
+    const frame = document.createElement('iframe');
+    frame.setAttribute('sandbox','allow-scripts allow-same-origin');
+    frame.style.cssText = `position:fixed;left:-9999px;top:0;width:${THUMB_VW}px;height:${THUMB_VH}px;border:0;`;
+    document.body.appendChild(frame);
+
+    await new Promise((resolve)=>{
+      frame.onload = resolve;
+      frame.srcdoc = html;
+      setTimeout(resolve, 1500); // onloadが来ない場合の保険
+    });
+    // 初期描画(アニメーション開始やcanvas初期化)が落ち着くまで少し待つ
+    await new Promise(r=>setTimeout(r, 700));
+
+    const doc = frame.contentDocument;
+    if (!doc || !doc.body) { frame.remove(); return ''; }
+
+    const canvas = await html2canvas(doc.documentElement, {
+      backgroundColor: '#ffffff',
+      width: THUMB_VW,
+      height: THUMB_VH,
+      windowWidth: THUMB_VW,
+      windowHeight: THUMB_VH,
+      scale: THUMB_OUT_W / THUMB_VW,
+      logging: false,
+      useCORS: true
+    });
+    frame.remove();
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+    return (dataUrl && dataUrl.length <= 300000) ? dataUrl : '';
+  }catch(e){
+    console.warn('captureThumbnail failed:', e);
+    return '';
+  }
+}
+
+function parseLines(lines) {
+  let currentType = 'html';
+  return lines.map((text, i) => {
+    const globalIndex = i + 1;
+    let type = currentType;
+    const trimmed = text.trim();
+    if (trimmed.startsWith('<style')) {
+      currentType = 'css';
+      type = 'html';
+    } else if (trimmed.startsWith('<\/style>')) {
+      currentType = 'html';
+      type = 'html';
+    } else if (trimmed.startsWith('<script')) {
+      currentType = 'js';
+      type = 'html';
+    } else if (trimmed.startsWith('<\/script>')) {
+      currentType = 'html';
+      type = 'html';
+    } else {
+      type = currentType;
+    }
+    return { text, globalIndex, type };
+  });
+}
+
+/* ================= コードビューア(行キープ) ================= */
+function renderCode(code){
+  els.codeViewer.classList.remove('empty');
+  const allLines = code.split('\n');
+  const parsedLines = parseLines(allLines);
+  
+  const filtered = parsedLines.filter(line => {
+    if (state.activeSubTab === 'css') return line.type === 'css';
+    if (state.activeSubTab === 'js') return line.type === 'js';
+    return true; // html
+  });
+
+  els.codeViewer.innerHTML = filtered.map(line => {
+    const isLocked = state.lockedLines.has(line.globalIndex);
+    const keepClass = isLocked ? 'kept' : '';
+    const lineMarker = isLocked
+      ? '<svg class="ic keep-ic" aria-label="キープ中"><use href="#i-keep"></use></svg>'
+      : String(line.globalIndex);
+    
+    return `<div class="cl ${keepClass}" data-line="${line.globalIndex}">
+      <span class="ln" title="クリックでこの行をキープします">${lineMarker}</span>
+      <span class="lc">${escapeHtml(line.text) || ' '}</span>
+    </div>`;
+  }).join('');
+
+  els.codeMeta.textContent = `${filtered.length} 行`;
+  updateSelectionUI();
+  updateBulkLockBtn();
+}
+
+function renderCodeEmptyState(){
+  if (!els.codeViewer) return;
+  els.codeViewer.classList.add('empty');
+  els.codeViewer.innerHTML = `
+    <div class="code-empty-guide">
+      <div class="mark"><svg class="ic" style="width:28px;height:28px;"><use href="#i-code_reader"></use></svg></div>
+      AIが生成したコードがここに表示されます
+      <small>下の入力欄に作りたいアプリを書いて「生成」を押してください。</small>
+    </div>`;
+}
+
+// コピーガード: 未課金ユーザーのコピー/カット/右クリックを抑止
+['copy', 'cut'].forEach(evt => {
+  els.codeViewer.addEventListener(evt, e => {
+    if (state.classroomTicketOk) return; // 課金者は許可
+    e.preventDefault();
+    showToast('教室チケットが必要です', 'コードのコピーには教室チケットが必要です', true);
+  });
+});
+els.codeViewer.addEventListener('contextmenu', e => {
+  if (state.classroomTicketOk) return;
+  e.preventDefault();
+});
+
+els.codeViewer.addEventListener('click', e=>{
+  const ln = e.target.closest('.ln');
+  
+  if(ln) {
+    const row = ln.parentElement;
+    const num = Number(row.dataset.line);
+    if(state.lockedLines.has(num)) {
+      state.lockedLines.delete(num);
+    } else {
+      state.lockedLines.add(num);
+      hintOnce('lineSelect',
+        'この行をキープしました。気に入った部分を残したまま、ほかの部分を修正したいときに使えます。もう一度押すと通常の行番号に戻ります。');
+    }
+    renderCode(state.currentHtml);
+  }
+});
+
+function updateGenerateBtnText() {
+  const hasLocked = state.lockedLines.size > 0;
+  if (hasLocked) {
+    els.generateBtn.textContent = '修正';
+  } else {
+    els.generateBtn.textContent = '生成';
+  }
+
+  if (state.hasApp) {
+    const allLinesCount = state.currentHtml.split('\n').length;
+    const isAllLocked = state.lockedLines.size >= allLinesCount;
+    els.generateBtn.disabled = isAllLocked;
+    if (isAllLocked) {
+      els.generateBtn.title = "すべてのコードがキープされています。修正するにはキープをいくつか外してください。";
+    } else {
+      els.generateBtn.removeAttribute('title');
+    }
+  } else {
+    els.generateBtn.disabled = false;
+    els.generateBtn.removeAttribute('title');
+  }
+}
+
+function updateBulkLockBtn() {
+  if (!els.bulkLockBtn) return;
+  const anyLocked = state.lockedLines.size > 0;
+  els.bulkLockBtn.textContent = anyLocked ? 'キープ解除' : '一括キープ';
+  els.bulkLockBtn.title = anyLocked ? 'このタブのキープをすべて解除します' : 'このタブのコードをまとめてキープします';
+}
+
+function updateSelectionUI(){
+  updateGenerateBtnText();
+}
+function clearSelection(){
+  updateSelectionUI();
+}
+
+const CODE_FONT_SIZES = {
+  small: '12.5px',
+  medium: '14.5px',
+  large: '16.5px'
+};
+const CODE_FONT_ORDER = ['small', 'medium', 'large'];
+const CODE_FONT_LABELS = {
+  small: '小',
+  medium: '中',
+  large: '大'
+};
+function setCodeFontSize(sizeKey) {
+  const value = CODE_FONT_SIZES[sizeKey] || CODE_FONT_SIZES.small;
+  document.documentElement.style.setProperty('--code-font-size', value);
+  document.querySelectorAll('[data-code-font-toggle]').forEach(btn => {
+    btn.textContent = CODE_FONT_LABELS[sizeKey] || CODE_FONT_LABELS.small;
+    btn.dataset.currentCodeFont = sizeKey;
+    btn.classList.add('active');
+  });
+  DB.set('code_font_size', sizeKey);
+}
+function toggleCodeFontSize() {
+  const current = DB.get('code_font_size', 'small');
+  const index = CODE_FONT_ORDER.indexOf(current);
+  const next = CODE_FONT_ORDER[(index + 1) % CODE_FONT_ORDER.length] || 'small';
+  setCodeFontSize(next);
+}
+document.querySelectorAll('[data-code-font-toggle]').forEach(btn => {
+  btn.addEventListener('click', toggleCodeFontSize);
+});
+setCodeFontSize(DB.get('code_font_size', 'small'));
+
+/* ================= 生成 ================= */
+function setGeneratedApp(html){
+  state.currentHtml = html;
+  state.hasApp = true;
+  state.status = 'previewing';
+  renderPreview(html);
+  renderCode(html);
+  els.reloadBtn.style.display = 'inline-block';
+  els.useMenuWrap.style.display = 'inline-block';
+  history.push(html, state.lockedLines);
+  setStatus('プレビューを表示中。残したい行は行番号を押してキープできます。', 'good');
+  setBusy(false);
+}
+
+async function generateApp(){
+  if (!checkAiUsageLimit()) return;
+  const prompt = els.prompt.value.trim();
+  if(!prompt){
+    showToast('入力してね','作りたいアプリの指示を書いてから生成してね。', true);
+    setStatus('指示を待っています','warn');
+    return;
+  }
+  if(prompt.length>500){
+    showToast('文字数が多すぎます','指示は500文字以内にまとめてね。', true);
+    return;
+  }
+  if(state.hasApp && !confirm('今のアプリは消えるけどいい?')) return;
+
+  state.status = 'generating';
+  setBusy(true);
+  const images = [...selectedImages];  // えらんだ画像(AIが使える素材として渡す)
+
+  try{
+    let html;
+    /* --- 本番: /api/generate ---
+       images はWorkers側でGeminiのプロンプトに付与:
+       「次の画像のみ <img src="img/xxx.png"> として使ってよい。他のURLは禁止」 */
+    if (typeof showTutorialStep !== 'undefined') {
+      showTutorialStep(2);
+    }
+    setStatus('AIが考え中…','warn',true);
+    const res = await fetch(API.generate,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ prompt, classId: state.classId, author: state.nickname, images })
+    });
+    setStatus('コードを生成しています…','warn',true);
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data?.ok) throw new Error(data?.message || 'AIがうまく答えられなかったよ。もう一度試してみよう');
+    setStatus('安全チェック中…','warn',true);
+    html = data.html;
+
+    if (!DB.getCurrentUid()) {
+      incrementAiUsage();
+    }
+    setGeneratedApp(html);
+    showToast('生成が完了しました', 'アプリを作成しました。プレビューで動作を確認してください。');
+    if (typeof showTutorialStep !== 'undefined') {
+      showTutorialStep(3);
+    }
+    hintOnce('afterGenerate',
+      'アプリが生成されました。「<b>コードを見る</b>」タブを開くと、AIが作成したプログラムを確認できます。自分の指示がどのようなコードになったか見てみましょう。',
+      [{label:'📜 コードを見てみる', fn:()=>setActiveTab('code')}]);
+    els.prompt.value = '';
+    updateMeta();
+  }catch(err){
+    state.status = 'error';
+    setStatus('生成に失敗しました','bad');
+    setBusy(false);
+    showToast('生成できませんでした', err.message, true);
+    famSay(currentFam().cheer);
+  }
+}
+els.generateBtn.addEventListener('click', () => {
+  if (state.hasApp) {
+    refineApp();
+  } else {
+    generateApp();
+  }
+});
+
+/* ================= 差分修正(/api/refine) ================= */
+async function refineApp(){
+  if (!checkAiUsageLimit()) return;
+  const instruction = els.prompt.value.trim();
+  if(!instruction){
+    showToast('指示を入れてね','「ボタンの色を青にして」のように書いてみよう。', true);
+    return;
+  }
+  if(instruction.length>500){
+    showToast('文字数が多すぎます','指示は500文字以内にまとめてね。', true);
+    return;
+  }
+  const prevHtml = state.currentHtml; // 失敗時は前回コードを保持(仕様 3.4)
+  const images = [...selectedImages]; // 修正時も使える素材として渡す
+
+  state.status = 'refining';
+  setBusy(true);
+
+  try{
+    let html;
+    setStatus('キープした行をできるだけ残しながら、全体が正しく動くように調整中です…','warn',true);
+    const res = await fetch(API.refine,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        currentCode: state.currentHtml,
+        selectedLines: [],
+        selectedCode: '',
+        instruction,
+        classId: state.classId,
+        images
+      })
+    });
+    setStatus('安全チェック中…','warn',true);
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data?.ok) throw new Error(data?.message || 'うまく修正できなかったよ。別の言い方で頼んでみよう');
+    html = data.html;
+
+    // キープされた行が破壊されていないか検証
+    const prevLines = prevHtml.split('\n');
+    const lockedTexts = [...state.lockedLines].map(ln => prevLines[ln - 1] ?? '');
+    const checkFailed = lockedTexts.some(text => {
+      if (!text.trim()) return false;
+      return !html.includes(text);
+    });
+    if (checkFailed) {
+      throw new Error("キープが多すぎて正常に動作しないプログラムになりました。キープを変更してください。");
+    }
+
+    if (!DB.getCurrentUid()) {
+      incrementAiUsage();
+    }
+    setGeneratedApp(html);
+    setActiveTab('preview'); // 修正結果をプレビューで確認できるように
+    showToast('修正したよ 🔧','プレビューとコードを更新しました。');
+    els.prompt.value = '';
+    updateMeta();
+  }catch(err){
+    // 前回の正常なコード・プレビューはそのまま保持
+    state.currentHtml = prevHtml;
+    state.status = 'previewing';
+    setStatus('修正に失敗(前のアプリはそのまま)','bad');
+    setBusy(false);
+    showToast('修正できませんでした', err.message, true);
+    famSay(currentFam().cheer);
+  }
+}
+
+/* ================= 履歴管理 (Undo / Redo) ================= */
+const history = {
+  stack: [],
+  index: -1,
+  push(html, lockedLines) {
+    this.stack = this.stack.slice(0, this.index + 1);
+    this.stack.push({ html, lockedLines: new Set(lockedLines) });
+    if (this.stack.length > 15) {
+      this.stack.shift();
+    }
+    this.index = this.stack.length - 1;
+    this.updateUI();
+  },
+  undo() {
+    if (this.index > 0) {
+      this.index--;
+      const targetState = this.stack[this.index];
+      applyHistoryState(targetState);
+      this.updateUI();
+    }
+  },
+  redo() {
+    if (this.index < this.stack.length - 1) {
+      this.index++;
+      const targetState = this.stack[this.index];
+      applyHistoryState(targetState);
+      this.updateUI();
+    }
+  },
+  clear() {
+    this.stack = [];
+    this.index = -1;
+    this.updateUI();
+  },
+  updateUI() {
+    els.undoBtn.style.display = this.index > 0 ? 'inline-block' : 'none';
+    els.redoBtn.style.display = this.index < this.stack.length - 1 ? 'inline-block' : 'none';
+  }
+};
+
+function applyHistoryState(hState) {
+  state.currentHtml = hState.html;
+  state.hasApp = true;
+  state.lockedLines = new Set(hState.lockedLines);
+  renderPreview(hState.html);
+  renderCode(hState.html);
+  els.reloadBtn.style.display = 'inline-block';
+  els.useMenuWrap.style.display = 'inline-block';
+  setStatus('プレビューを表示中。残したい行は行番号を押してキープできます。', 'good');
+}
+
+/* ================= サブタブ (HTML/CSS/JS) 切り替え ================= */
+function updateSubTabUI() {
+  if (els.sourceViewSelect) els.sourceViewSelect.value = state.activeSubTab;
+}
+
+function setActiveSubTab(tab) {
+  state.activeSubTab = tab;
+  updateSubTabUI();
+  if (state.hasApp) {
+    renderCode(state.currentHtml);
+  }
+}
+
+els.sourceViewSelect.addEventListener('change', () => setActiveSubTab(els.sourceViewSelect.value));
+
+els.undoBtn.addEventListener('click', () => history.undo());
+els.redoBtn.addEventListener('click', () => history.redo());
+
+function bulkLockCurrentTab() {
+  if (!state.hasApp) return;
+  const anyLocked = state.lockedLines.size > 0;
+  if (anyLocked) {
+    state.lockedLines.clear();
+  } else {
+    const allLines = state.currentHtml.split('\n');
+    const parsedLines = parseLines(allLines);
+    parsedLines.forEach(line => {
+      const isTarget =
+        (state.activeSubTab === 'css' && line.type === 'css') ||
+        (state.activeSubTab === 'js' && line.type === 'js') ||
+        (state.activeSubTab === 'html');
+      if (isTarget) {
+        state.lockedLines.add(line.globalIndex);
+      }
+    });
+  }
+  renderCode(state.currentHtml);
+}
+
+els.bulkLockBtn.addEventListener('click', bulkLockCurrentTab);
+
+/* ================= リセット ================= */
+function resetAll(){
+  state.currentHtml=''; state.hasApp=false; state.status='idle';
+  clearSelection();
+  state.lockedLines.clear();
+  state.activeSubTab = 'html';
+  updateSubTabUI();
+  history.clear();
+  els.prompt.value='';
+  els.codeMeta.textContent='0 行';
+  renderCodeEmptyState();
+  els.previewFrameWrap.querySelectorAll('iframe').forEach(n=>n.remove());
+  els.placeholder.style.display='grid';
+  selectedImages.clear();
+  document.querySelectorAll('.img-thumb.selected').forEach(el=>el.classList.remove('selected'));
+  updateImgSelUI();
+  setActiveTab('preview');
+  exitEditMode();
+  closeUseMenu();
+  els.reloadBtn.style.display = 'none';
+  els.useMenuWrap.style.display = 'none';
+  setStatus('AIに作りたいものを伝えよう。','info');
+  updateMeta(); setBusy(false);
+}
+els.resetBtn.addEventListener('click', ()=>{
+  if(!state.hasApp || confirm('すべて消してやり直しますか？')) resetAll();
+});
+
+/* ================= 保存 ================= */
+els.saveBtn.addEventListener('click', ()=>{
+  if(!state.hasApp){ showToast('保存できないよ','先にアプリを生成してね。', true); return; }
+  
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    if (confirm('未ログインのままでは保存できません。ログインしますか？')) {
+      state.pendingSaveAfterLogin = true;
+      $('loginModal').classList.add('open');
+    }
+    return;
+  }
+
+  openSaveModal();
+});
+els.cancelSaveBtn.addEventListener('click', ()=>els.saveModal.classList.remove('open'));
+els.confirmSaveBtn.addEventListener('click', async ()=>{
+  // 本名対策: 未入力ならブロックせず安全な既定値「名前未設定」にする
+  const author = $('authorInput').value.trim() || '名前未設定';
+  const title = els.titleInput.value.trim();
+  const visibility = document.querySelector('input[name="vis"]:checked').value;
+  if(!title){ showToast('作品名を入れてね','公開には作品名が必要です。', true); return; }
+
+  els.saveModal.classList.remove('open');
+  state.status='saving';
+  setBusy(true);
+  setStatus('お名前をチェック中…','warn',true);
+
+  // 1. ニックネームのAI安全審査
+  try {
+    const checkRes = await fetch('/api/checkText', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: author })
+    });
+    const checkData = await checkRes.json().catch(() => null);
+    if (!checkRes.ok || !checkData?.ok || !checkData?.safe) {
+      const reason = checkData?.reason || '他の文字を使ってください。';
+      throw new Error(`他の文字を使ってください。(${reason})`);
+    }
+  } catch (err) {
+    state.status = 'previewing';
+    setStatus('公開に失敗しました', 'bad');
+    showToast('名前をなおしてね', err.message, true);
+    setBusy(false);
+    els.saveModal.classList.add('open');
+    return;
+  }
+
+  state.nickname = author;
+  if (els.nicknameLabel) els.nicknameLabel.textContent = author;
+  if ($('userNickname')) $('userNickname').textContent = author;
+
+  const savedUser = DB.get('user', {});
+  savedUser.nickname = author;
+  DB.set('user', savedUser);
+  syncFirebaseNickname(author);
+
+  const bgColor = savedUser.bgColor || '#FDFBF7';
+  const bgImage = savedUser.bgImage || 'default';
+  const bgType = savedUser.bgType || 'color';
+
+  setStatus('公開しています…','warn',true);
+
+  // 初期状態のサムネイルを撮影（失敗してもサムネイル無しで続行）
+  const thumbnail = await captureThumbnail(state.currentHtml);
+
+  try{
+    const saveFetch = window.FirebaseAuthBridge?.authFetch || fetch;
+    const res = await saveFetch(API.save,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        html: state.currentHtml,
+        title,
+        author,
+        classId: state.classId,
+        visibility,
+        images:[...selectedImages],
+        thumbnail,
+        tags: state.selectedTags.length ? state.selectedTags : ['その他'],
+        bgColor,
+        bgImage,
+        bgType,
+        editId: state.editId || undefined
+      })
+    });
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data?.ok) throw new Error(data?.message || '公開に失敗したよ。もう一度試してみよう');
+    state.status='saved';
+    setStatus('公開しました！','good');
+    showToast('公開したよ 🎉',`「${title}」が完成しました。`);
+    if (typeof tutorialState !== 'undefined' && tutorialState.active) {
+      closeTutorial();
+    }
+    
+    setBusy(false);
+
+    $('completionModal').classList.add('open');
+    triggerConfetti();
+
+    // 実績解除チェック
+    if (window.AchievementBridge) {
+      window.AchievementBridge.unlockAchievement('first_work');
+    }
+    
+    // ホームへ戻るボタンの挙動
+    $('completionGoBtn').onclick = () => {
+      $('completionModal').classList.remove('open');
+      goToGallery({ title, author, id: data.id, tags: state.selectedTags });
+    };
+  }catch(err){
+    state.status='previewing';
+    setStatus('公開に失敗しました','bad');
+    showToast('公開できませんでした', err.message, true);
+    setBusy(false);
+  }
+});
+
+function triggerConfetti() {
+  const colors = ['#3CC9F7', '#C4B5FD', '#AEEA00', '#2FE0A8', '#FFD23D', '#FB923C'];
+  const count = 60;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = -Math.random() * 20 - 10 + 'px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    
+    if (Math.random() > 0.5) {
+      el.style.borderRadius = '50%';
+    }
+    
+    const size = Math.random() * 8 + 6;
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    
+    const duration = Math.random() * 2 + 2;
+    const delay = Math.random() * 1.5;
+    el.style.animation = `fall ${duration}s linear ${delay}s forwards`;
+    
+    document.body.appendChild(el);
+    
+    setTimeout(() => {
+      el.remove();
+    }, (duration + delay) * 1000);
+  }
+}
+
+/* ギャラリー(index.html)へ遷移し、URLパラメータで作品を受け渡す(ダミー連携)
+   本番では /api/save 完了後に id を受け取り /works/{id} へ遷移する想定 */
+function goToGallery(meta){
+  const GALLERY_URL = 'index.html';
+  const params = new URLSearchParams({ from:'create', title: meta.title, author: meta.author, authorUid: DB.getCurrentUid() });
+  if (meta.id) params.set('id', meta.id);
+  if (Array.isArray(meta.tags) && meta.tags.length) params.set('tags', meta.tags.join(','));
+  try{
+    const b64 = btoa(unescape(encodeURIComponent(state.currentHtml)));
+    if(b64.length < 6000) params.set('html', b64); // URLが長くなりすぎる場合は本体を省略
+  }catch(e){ /* エンコード不可なら本体なしで遷移 */ }
+  setTimeout(()=>{ location.href = GALLERY_URL + '?' + params.toString(); }, 900);
+}
+function visLabel(v){return {public:'全体公開',school:'学校内のみ',private:'非公開'}[v];}
+
+/* ================= ニックネーム ================= */
+// ニックネーム未設定（本名対策の既定値）か判定
+function isNicknameUnset(nm){ return !nm || nm === '名前未設定'; }
+// 未設定なら初回にニックネームを決めさせる
+function promptNicknameIfUnset(){
+  if (!DB.getCurrentUid()) return;
+  if (isNicknameUnset(state.nickname)) {
+    openNameModal();
+    famSay('はじめまして！さくひんといっしょに表示される「ニックネーム」をきめてね。ほんみょう（じぶんの本当の名前）はつかわないでね。');
+  }
+}
+function openNameModal(){
+  els.nameInput.value = isNicknameUnset(state.nickname) ? '' : state.nickname;
+  els.nameModal.classList.add('open');
+  els.nameInput.focus();
+}
+if (els.nicknameChip) {
+  els.nicknameChip.addEventListener('click', () => {
+    const uid = DB.getCurrentUid();
+    if (!uid) {
+      $('loginModal').classList.add('open');
+    } else {
+      openNameModal();
+    }
+  });
+}
+els.confirmNameBtn.addEventListener('click', ()=>{
+  const v = els.nameInput.value.trim();
+  if(!v){ showToast('名前を入れてね','ニックネームが必要です。', true); return; }
+  state.nickname = v;
+  if (els.nicknameLabel) els.nicknameLabel.textContent = v;
+  if ($('userNickname')) $('userNickname').textContent = v;
+
+  const savedUser = DB.get('user', {});
+  savedUser.nickname = v;
+  DB.set('user', savedUser);
+  syncFirebaseNickname(v);
+
+  els.nameModal.classList.remove('open');
+  showToast('よろしくね 👋', `${v} さんとして作品を保存します。`);
+});
+
+function syncFirebaseNickname(nickname) {
+  if (!window.FirebaseAuthBridge?.isConfigured) return;
+  window.FirebaseAuthBridge.updateNickname(nickname).catch((error) => {
+    console.error('Firebase nickname update failed', error);
+    showToast('ニックネーム同期に失敗しました', 'Firebase設定とFirestoreルールを確認してください。', true);
+  });
+}
+
+/* ================= ヒント・文字数 ================= */
+function updateMeta(){ if(els.promptCount) els.promptCount.textContent = els.prompt.value.length; }
+els.prompt.addEventListener('input', updateMeta);
+/* テンプレート生成: 押すたびに次のサンプルへ切り替えて、そのまま指示文に入れる */
+els.applyHintBtn.addEventListener('click', ()=>{
+  hintIndex = (hintIndex+1)%hints.length;
+  els.hintText.innerHTML = hints[hintIndex].html;
+  els.prompt.value = hints[hintIndex].text;
+  updateMeta(); els.prompt.focus();
+});
+
+/* ================= 未ログイン制限・モーダル制御ヘルパー ================= */
+function getTodayString() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const date = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${date}`;
+}
+
+function getAiUsage() {
+  const today = getTodayString();
+  const usage = DB.get('ai_usage', { date: today, count: 0 });
+  if (usage.date !== today) {
+    usage.date = today;
+    usage.count = 0;
+    DB.set('ai_usage', usage);
+  }
+  return usage.count;
+}
+
+function incrementAiUsage() {
+  const today = getTodayString();
+  const usage = DB.get('ai_usage', { date: today, count: 0 });
+  if (usage.date !== today) {
+    usage.date = today;
+    usage.count = 0;
+  }
+  usage.count++;
+  DB.set('ai_usage', usage);
+  renderAiUsageCounter();
+}
+
+function renderAiUsageCounter() {
+  const uid = DB.getCurrentUid();
+  const container = $('aiUsageContainer');
+  if (!container) return;
+  if (uid) {
+    container.style.display = 'none';
+  } else {
+    container.style.display = 'block';
+    const count = getAiUsage();
+    $('aiUsageCount').textContent = count;
+  }
+}
+
+function checkAiUsageLimit() {
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    const count = getAiUsage();
+    if (count >= 5) {
+      showToast('回数制限に達しました', '未ログイン状態でのAI利用は1日5回までです。ログインしてください。', true);
+      $('loginModal').classList.add('open');
+      return false;
+    }
+  }
+  return true;
+}
+
+function closeLoginModal() {
+  $('loginModal').classList.remove('open');
+  state.pendingSaveAfterLogin = false;
+}
+
+function openSaveModal() {
+  const unset = isNicknameUnset(state.nickname);
+  $('authorInput').value = unset ? '' : state.nickname; // 本名対策: 未設定なら空欄
+  
+  if (state.editId) {
+    // 再編集時は元の値を復元
+    els.titleInput.value = state.editTitle || '';
+    state.selectedTags = [...(state.editTags || [])];
+    const vis = state.editVisibility || 'public';
+    const rad = document.querySelector(`input[name="vis"][value="${vis}"]`);
+    if (rad) rad.checked = true;
+  } else {
+    // 新規作成時はクリア
+    els.titleInput.value = '';
+    state.selectedTags = [];
+    const rad = document.querySelector('input[name="vis"][value="public"]');
+    if (rad) rad.checked = true;
+  }
+  
+  renderTagChips(state.selectedTags);
+  els.saveModal.classList.add('open');
+  (unset ? $('authorInput') : els.titleInput).focus();
+  suggestTags(); // AIにタグを提案させる
+}
+
+// タグチップを描画（suggested: AI提案で枠を強調）
+function renderTagChips(suggested){
+  const sug = new Set(suggested || []);
+  $('tagChips').innerHTML = WORK_TAGS.map(t => {
+    const on = state.selectedTags.includes(t.name);
+    const cls = `tag-chip${on?' on':''}${sug.has(t.name)?' suggested':''}`;
+    const disabled = (!on && state.selectedTags.length >= MAX_TAGS) ? 'disabled' : '';
+    return `<button type="button" class="${cls}" ${disabled} onclick="toggleTag('${t.name.replace(/'/g,"\\'")}')">${t.emoji} ${t.name}</button>`;
+  }).join('');
+}
+window.toggleTag = function(name){
+  const i = state.selectedTags.indexOf(name);
+  if (i >= 0) state.selectedTags.splice(i, 1);
+  else { if (state.selectedTags.length >= MAX_TAGS) return; state.selectedTags.push(name); }
+  renderTagChips(state._suggestedTags || []);
+};
+async function suggestTags(){
+  if (!state.currentHtml) return;
+  $('tagHint').textContent = '（AIがタグを考え中…）';
+  try {
+    const res = await fetch(API.classifyTags, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ html: state.currentHtml, title: els.titleInput.value.trim() })
+    });
+    const data = await res.json().catch(()=>null);
+    const tags = (data && Array.isArray(data.tags)) ? data.tags : [];
+    state._suggestedTags = tags;
+    // 提案を初期選択（ユーザーは変更可能）。モーダルが閉じられていたら何もしない。
+    if (els.saveModal.classList.contains('open')) {
+      if (state.selectedTags.length === 0) state.selectedTags = tags.slice(0, MAX_TAGS);
+      renderTagChips(tags);
+      $('tagHint').textContent = tags.length ? '（AIのおすすめ・タップで変更／3つまで）' : '（タグをえらんでね・3つまで）';
+    }
+  } catch (e) {
+    console.warn('suggestTags failed', e);
+    $('tagHint').textContent = '（タグをえらんでね・3つまで）';
+  }
+}
+
+function renderCoins() {
+  const u = DB.get('user', {});
+  const val = $('coinVal');
+  if (val) {
+    val.textContent = u.coins || 0;
+  }
+}
+
+let codeExplTimer = null;
+let lastExplIndex = 0;
+
+function startCodeExplanation() {
+  clearCodeExplanation();
+  
+  const explanations = [
+    'キープは「この行はなるべく残して」とAIに伝える機能です。行番号を押すとキープアイコンに変わります。',
+    'もう一度キープアイコンを押すと、通常の行番号に戻ります。気に入ったコードだけ残したいときに使いましょう。'
+  ];
+
+  function showNext() {
+    famSay(explanations[lastExplIndex], null, 12000);
+    lastExplIndex = (lastExplIndex + 1) % explanations.length;
+  }
+
+  showNext();
+  codeExplTimer = setInterval(showNext, 16000);
+}
+
+function clearCodeExplanation() {
+  if (codeExplTimer) {
+    clearInterval(codeExplTimer);
+    codeExplTimer = null;
+  }
+}
+
+// 実績解除・更新イベントリスナー
+window.addEventListener('vibecoding-achievement-unlocked', (e) => {
+  const coins = e.detail?.coins;
+  const chip = $('coinChip');
+  const val = $('coinVal');
+  if (chip && val) {
+    val.textContent = coins;
+    chip.classList.remove('bump');
+    void chip.offsetWidth;
+    chip.classList.add('bump');
+  }
+});
+window.addEventListener('vibecoding-achievement-modal-closed', () => {
+  renderCoins();
+});
+
+/* ================= ダミーログイン処理 ================= */
+function checkLogin() {
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    $('loginModal').classList.add('open');
+    return false;
+  }
+  $('loginModal').classList.remove('open');
+  return true;
+}
+
+function welcomeFam(){
+  // ユーザーごとのナビゲーター・用語数を反映して初回あいさつ
+  knowledge = DB.get('knowledge', []);
+  hintsSeen = DB.get('hints_seen', {});
+  renderKnowCount();
+  markLearnedChips();
+  if ($('famBody')) $('famBody').innerHTML = famImg(currentFamKey(), 44);
+  setTimeout(()=>{
+    hintOnce('welcome', currentFam().hello);
+  }, 900);
+}
+
+function dummyLogin(provider) {
+  if (provider === 'google' && window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.loginWithGoogle()
+      .then(() => {
+        const userObj = DB.get('user', null);
+        if (userObj?.nickname) {
+          state.nickname = userObj.nickname;
+          if (els.nicknameLabel) els.nicknameLabel.textContent = userObj.nickname;
+          if ($('userNickname')) $('userNickname').textContent = userObj.nickname;
+        }
+        $('loginModal').classList.remove('open');
+        showToast('ログインしたよ 🔑', `${userObj?.nickname || 'Googleユーザー'} さんとしてログインしました。`);
+        
+        renderAiUsageCounter();
+        renderCoins();
+        if (window.AchievementBridge) {
+          window.AchievementBridge.unlockAchievement('first_login');
+        }
+        
+        loadImageList();
+        welcomeFam();
+        refreshClassroomTicketStatus();
+
+        if (state.pendingSaveAfterLogin) {
+          state.pendingSaveAfterLogin = false;
+          openSaveModal();
+        } else {
+          // Googleの本名を既定にしないため、未設定なら初回にニックネームを決めさせる
+          setTimeout(promptNicknameIfUnset, 600);
+        }
+      })
+      .catch((error) => {
+        console.error('Firebase Google login failed', error);
+        showToast('ログインできませんでした', 'Firebase設定とGoogleログイン設定を確認してください。', true);
+      });
+    return;
+  }
+
+  let uid = '';
+  if (provider === 'google') uid = 'google_user_' + Math.floor(100 + Math.random() * 900);
+  else if (provider === 'school') uid = 'school_user_' + Math.floor(100 + Math.random() * 900);
+  else return; // ゲストログインは廃止
+
+  DB.setCurrentUid(uid);
+
+  let userObj = DB.get('user', null);
+  if (!userObj) {
+    userObj = getSeedUserForUid(uid);
+    DB.set('user', userObj);
+  }
+
+  state.nickname = userObj.nickname;
+  if (els.nicknameLabel) els.nicknameLabel.textContent = userObj.nickname;
+  if ($('userNickname')) $('userNickname').textContent = userObj.nickname;
+  updateSidebarAuth();
+
+  $('loginModal').classList.remove('open');
+  showToast('ログインしたよ 🔑', `${userObj.nickname} さんとしてログインしました。`);
+  
+  renderAiUsageCounter();
+  renderCoins();
+  if (window.AchievementBridge) {
+    window.AchievementBridge.unlockAchievement('first_login');
+  }
+
+    loadImageList();
+    welcomeFam();
+    refreshClassroomTicketStatus();
+
+    if (state.pendingSaveAfterLogin) {
+    state.pendingSaveAfterLogin = false;
+    openSaveModal();
+  }
+}
+
+function switchLoginPanel(panelType) {
+  $('studentLoginForm').style.display = panelType === 'student' ? 'block' : 'none';
+  $('adminLoginForm').style.display = panelType === 'admin' ? 'block' : 'none';
+  $('resendLoginForm').style.display = panelType === 'resend' ? 'block' : 'none';
+}
+
+function handleCodeLogin() {
+  const loginCode = $('loginCodeInput').value.trim();
+  if (!loginCode) {
+    showToast('入力してください ⚠️', 'ログインコードを入力してね。', true);
+    return;
+  }
+
+  const loginBtn = $('codeLoginBtn');
+  const originalText = loginBtn.textContent;
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'ログイン中...';
+
+  const finishLogin = (userObj) => {
+    state.nickname = userObj.nickname;
+    if (els.nicknameLabel) els.nicknameLabel.textContent = userObj.nickname;
+    if ($('userNickname')) $('userNickname').textContent = userObj.nickname;
+    updateSidebarAuth();
+    $('loginModal').classList.remove('open');
+    showToast('ログインしたよ 🔑', `${userObj.nickname} さんとしてログインしました。`);
+    renderAiUsageCounter();
+    renderCoins();
+    if (window.AchievementBridge) {
+      window.AchievementBridge.unlockAchievement('first_login');
+    }
+    loadImageList();
+    welcomeFam();
+    refreshClassroomTicketStatus();
+    if (state.pendingSaveAfterLogin) {
+      state.pendingSaveAfterLogin = false;
+      openSaveModal();
+    }
+  };
+
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.loginWithCode(loginCode)
+      .then(() => {
+        const userObj = DB.get('user', null);
+        finishLogin(userObj);
+      })
+      .catch((error) => {
+        console.error('Code login failed', error);
+        showToast('ログインできませんでした', error.message || 'ログインコードが違います。', true);
+      })
+      .finally(() => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = originalText;
+      });
+  } else {
+    // デモ用
+    setTimeout(() => {
+      loginBtn.disabled = false;
+      loginBtn.textContent = originalText;
+
+      const clean = loginCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      const orgId = clean.substring(0, 8) || 'DEMOORG';
+      const loginId = clean.substring(8) || '01';
+
+      const dummyUid = 'school_user_' + orgId + '_' + loginId;
+      DB.setCurrentUid(dummyUid);
+
+      let userObj = DB.get('user', null);
+      if (!userObj) {
+        userObj = {
+          uid: dummyUid,
+          nickname: loginId + '@' + orgId,
+          bio: '学校アカウント（デモ）でログイン中！',
+          avatarColor: '#f59e0b',
+          coins: 150,
+          slotsMax: 2,
+          famType: 'tora',
+          hobbies: ['プログラミング', '勉強'],
+          ownedImages: ['ノートパソコン.png'],
+          ownedFamTypes: ['tora', 'robo', 'fairy'],
+          role: 'student',
+          schoolId: orgId,
+          organizationId: orgId,
+          authType: 'school_id',
+          licenseState: 'paid',
+          paidUntil: null,
+          seatStatus: 'active'
+        };
+        DB.set('user', userObj);
+      }
+      finishLogin(userObj);
+    }, 800);
+  }
+}
+
+function handleAdminLogin() {
+  const orgId = $('adminOrgIdInput').value.trim();
+  const password = $('adminPasswordInput').value;
+
+  if (!orgId || !password) {
+    showToast('入力してください ⚠️', 'すべての項目を入力してね。', true);
+    return;
+  }
+
+  const loginBtn = $('adminLoginBtn');
+  const originalText = loginBtn.textContent;
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'ログイン中...';
+
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.loginClassroomManager(orgId, password)
+      .then(() => {
+        showToast('ログイン完了 🏫', '教室管理者としてログインしました。専用ページを開きます。');
+        setTimeout(() => {
+          location.href = 'manager.html';
+        }, 1000);
+      })
+      .catch((error) => {
+        console.error('Admin login failed', error);
+        showToast('ログインできませんでした', error.message || 'IDまたはパスワードが違います。', true);
+      })
+      .finally(() => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = originalText;
+      });
+  } else {
+    // デモ用
+    setTimeout(() => {
+      loginBtn.disabled = false;
+      loginBtn.textContent = originalText;
+      showToast('デモログイン 🏫', '管理者専用ページへ移動します。');
+      setTimeout(() => {
+        location.href = 'manager.html';
+      }, 1000);
+    }, 800);
+  }
+}
+
+function handleResendCodes() {
+  const orgId = $('resendOrgIdInput').value.trim();
+  const password = $('resendPasswordInput').value;
+
+  if (!orgId || !password) {
+    showToast('入力してください ⚠️', 'すべての項目を入力してね。', true);
+    return;
+  }
+
+  const btn = $('resendBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  fetch("/api/admin/resendLoginCodes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orgId, password })
+  })
+    .then(async (res) => {
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.message || '送信に失敗しました。');
+      }
+      showToast('送信完了 ✉️', '登録されているメールアドレスにログインコード一覧を送信したよ。');
+      switchLoginPanel('student');
+    })
+    .catch((err) => {
+      console.error('Resend failed', err);
+      showToast('送信できませんでした', err.message || '送信中にエラーが発生しました。', true);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    });
+}
+
+
+function getSeedUserForUid(uid) {
+  if (uid.startsWith('google_user')) {
+    return {
+      nickname: 'Googleたろう_' + uid.split('_')[2],
+      bio: 'Google SSOからやってきました！',
+      avatarColor: '#10b981',
+      coins: 300,
+      slotsMax: 2,
+      famType: 'robo',
+      hobbies: ['AI', 'Google', 'プログラミング'],
+      ownedImages: ['ノートパソコン.png'],
+      ownedFamTypes: ['tora', 'robo', 'fairy'],
+      authType: 'google',
+      licenseState: 'free',
+      paidUntil: null,
+      seatStatus: 'active'
+    };
+  }
+  if (uid.startsWith('school_user')) {
+    return {
+      nickname: '生徒_' + uid.split('_')[2],
+      bio: '学校アカウントでログイン中',
+      avatarColor: '#f59e0b',
+      coins: 150,
+      slotsMax: 2,
+      famType: 'fairy',
+      hobbies: ['学校', '勉強', 'クイズ'],
+      ownedImages: ['ノートパソコン.png'],
+      ownedFamTypes: ['tora', 'robo', 'fairy'],
+      authType: 'school_id',
+      licenseState: 'paid',
+      paidUntil: null,
+      seatStatus: 'active'
+    };
+  }
+  return {
+    nickname: 'ゲストさん',
+    bio: 'ゲストとしてお試し中！',
+    avatarColor: '#8b5cf6',
+    coins: 100,
+    slotsMax: 2,
+    famType: 'tora',
+    hobbies: ['ゲスト', 'おためし'],
+    ownedImages: ['ノートパソコン.png'],
+    ownedFamTypes: ['tora', 'robo', 'fairy'],
+    authType: 'guest',
+    licenseState: 'free',
+    paidUntil: null,
+    seatStatus: 'active'
+  };
+}
+
+/* ================= 初期化 ================= */
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ 
+    els.saveModal.classList.remove('open'); 
+    els.nameModal.classList.remove('open'); 
+    closeLoginModal();
+  }
+});
+
+const uid = DB.getCurrentUid();
+if (uid) {
+  const savedUser = DB.get('user', {});
+  let userUpdated = false;
+  if (!savedUser.famType || savedUser.famType === 'cat') {
+    savedUser.famType = 'tora';
+    userUpdated = true;
+  }
+  if (!savedUser.ownedFamTypes) {
+    savedUser.ownedFamTypes = ['tora', 'robo', 'fairy'];
+    userUpdated = true;
+  } else {
+    if (savedUser.ownedFamTypes.includes('cat')) {
+      savedUser.ownedFamTypes = savedUser.ownedFamTypes.filter(x => x !== 'cat');
+      userUpdated = true;
+    }
+    if (!savedUser.ownedFamTypes.includes('tora')) {
+      savedUser.ownedFamTypes.push('tora');
+      userUpdated = true;
+    }
+  }
+  if (userUpdated) {
+    DB.set('user', savedUser);
+  }
+
+  if(savedUser.nickname) {
+    state.nickname = savedUser.nickname;
+    if (els.nicknameLabel) els.nicknameLabel.textContent = savedUser.nickname;
+    if ($('userNickname')) $('userNickname').textContent = savedUser.nickname;
+  }
+  loadImageList();
+  welcomeFam();
+  // 既ログインでもニックネーム未設定なら決めさせる
+  setTimeout(promptNicknameIfUnset, 800);
+} else {
+  const guestUser = DB.get('user', null);
+  if (guestUser) {
+    let guestUpdated = false;
+    if (!guestUser.famType || guestUser.famType === 'cat') {
+      guestUser.famType = 'tora';
+      guestUpdated = true;
+    }
+    if (guestUpdated) {
+      DB.set('user', guestUser);
+    }
+  }
+  state.nickname = 'ゲストさん';
+  if (els.nicknameLabel) els.nicknameLabel.textContent = 'ゲストさん';
+  if ($('userNickname')) $('userNickname').textContent = 'ゲストさん';
+  loadImageList();
+  welcomeFam();
+}
+renderAiUsageCounter();
+renderCoins();
+refreshClassroomTicketStatus();
+updateSidebarAuth();
+
+if(state.classId && els.classIdLabel) els.classIdLabel.textContent = state.classId;
+
+// ❓せつめいは常にON(トグルは非表示)
+setQmode(true);
+renderKnowCount();
+markLearnedChips();
+
+els.reloadBtn.addEventListener('click', ()=>{
+  if (state.currentHtml) {
+    renderPreview(state.currentHtml);
+    showToast('リロードしたよ 🔄', 'アプリを最初から読み込み直しました。');
+  }
+});
+
+/* ================= 手動編集モード（課金者のみ） ================= */
+function exitEditMode() {
+  if (!els.codeEditWrap) return;
+  els.codeEditWrap.style.display = 'none';
+  els.codeViewer.style.display = '';
+  if (els.codeBar) els.codeBar.style.display = ''; // AI修正用のサブタブ・キープ操作を戻す
+  if (els.editFeedback) { els.editFeedback.style.display = 'none'; els.editFeedback.textContent = ''; }
+  state.editing = false;
+}
+
+async function enterEditMode() {
+  if (!state.currentHtml) return;
+  // チケット不要で誰でも手動編集できるように変更
+  setActiveTab('code');
+  els.codeViewer.style.display = 'none';
+  if (els.codeBar) els.codeBar.style.display = 'none'; // 手動編集中はAI修正用の操作（サブタブ・一括キープ）を隠す
+  els.codeEditWrap.style.display = 'flex';
+  els.editFeedback.style.display = 'none';
+  els.editFeedback.textContent = '';
+  els.codeEditor.value = state.currentHtml;
+  state.editing = true;
+  els.codeEditor.focus();
+  setStatus('編集モードです。変更後は「ソース保存」を押してください。AIチェック後に反映します。', 'info');
+  famSay('編集モードです。変更後は「ソース保存」を押してください。AIチェック後に反映します。');
+}
+
+function showEditFeedback(text, kind) {
+  els.editFeedback.style.display = 'block';
+  els.editFeedback.style.color = kind === 'bad' ? '#fecaca' : (kind === 'good' ? '#bbf7d0' : '#ffd');
+  els.editFeedback.textContent = text;
+}
+
+// 層②: 編集したコードをプレビューiframeで実際に実行し、ランタイムエラーを捕捉する
+function runtimeErrorCheck(html, waitMs = 1200) {
+  return new Promise((resolve) => {
+    const probe = document.createElement('iframe');
+    probe.setAttribute('sandbox', 'allow-scripts');
+    probe.style.cssText = 'position:fixed;left:-9999px;top:0;width:360px;height:270px;border:0;';
+    const token = 'vibe_' + Math.random().toString(36).slice(2);
+    let done = false;
+    const finish = (err) => {
+      if (done) return; done = true;
+      window.removeEventListener('message', onMsg);
+      probe.remove();
+      resolve(err);
+    };
+    const onMsg = (e) => {
+      if (e.data && e.data.__vibeErrToken === token) finish(String(e.data.message || '実行時エラー'));
+    };
+    window.addEventListener('message', onMsg);
+    // エラー捕捉スクリプトを<head>直後に注入（保存される元コードには影響しない）
+    const catcher = `<script>window.onerror=function(m){parent.postMessage({__vibeErrToken:'${token}',message:m},'*');return true;};window.addEventListener('unhandledrejection',function(ev){parent.postMessage({__vibeErrToken:'${token}',message:(ev.reason&&ev.reason.message)||String(ev.reason)},'*');});<\/script>`;
+    probe.srcdoc = /<head[^>]*>/i.test(html)
+      ? html.replace(/<head([^>]*)>/i, (mm, attrs) => `<head${attrs}>${catcher}`)
+      : catcher + html;
+    document.body.appendChild(probe);
+    setTimeout(() => finish(null), waitMs); // 時間内にエラーが来なければOK
+  });
+}
+
+async function checkAndApplyEdit() {
+  if (!state.editing) return;
+  const edited = els.codeEditor.value.trim();
+  if (!edited) { showEditFeedback('コードが空です。', 'bad'); return; }
+
+  // 1日3回制限のAIチェック無料枠ロジック
+  const hasTicket = await requireClassroomTicketForUi();
+  if (!hasTicket) {
+    const today = new Date().toLocaleDateString('ja-JP');
+    const freeChecksData = DB.get('jisakuya_free_edit_checks', { date: today, count: 0 });
+    
+    if (freeChecksData.date !== today) {
+      freeChecksData.date = today;
+      freeChecksData.count = 0;
+    }
+    
+    if (freeChecksData.count >= 3) {
+      showToast('AIチェック上限に達しました', '本日の無料AIチェック回数（1日3回）の上限に達しました。教室チケットを購入していただくか、明日またお試しください。', true);
+      famSay('本日の無料AIチェックの上限（3回）に達しました。教室チケットがあれば制限なく使えます！');
+      showEditFeedback('本日の無料AIチェックの上限（3回）に達しました。教室チケットが必要です。', 'bad');
+      return;
+    }
+    
+    freeChecksData.count += 1;
+    DB.set('jisakuya_free_edit_checks', freeChecksData);
+    showToast('無料AIチェック実行中', `本日の無料チェック枠を使用します（残り ${3 - freeChecksData.count} 回）`);
+  }
+
+  setBusy(true);
+  els.editApplyBtn.disabled = true;
+  showEditFeedback('AIがチェック中…（安全・エラー・内容）', 'info');
+  setStatus('AIがあなたの修正をチェックしています…', 'warn', true);
+
+  try {
+    // 層①+③: サーバーで安全チェック＋AI内容レビュー
+    const fetcher = window.FirebaseAuthBridge?.authFetch || fetch;
+    const res = await fetcher(API.reviewCode, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentCode: edited })
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.ok) throw new Error(data?.message || 'チェックできませんでした。');
+
+    if (data.safe === false) {
+      showEditFeedback('🚫 ' + (data.message || 'このコードは安全でない可能性があるよ。直してみよう。'), 'bad');
+      famSay('ちょっと危ないコードが見つかったみたい。' + (data.message || '') + ' いっしょに直そう！');
+      setStatus('安全チェックに引っかかりました', 'bad'); setBusy(false); els.editApplyBtn.disabled = false; return;
+    }
+    if (data.appropriate === false) {
+      showEditFeedback('✋ ' + (data.advice || 'この内容はそのまま公開しないほうがいいみたい。直してみよう。'), 'bad');
+      famSay(data.advice || 'この内容は修正した方がよさそうです。指摘を確認して直しましょう。');
+      setStatus('内容チェックで修正をおすすめされました', 'warn'); setBusy(false); els.editApplyBtn.disabled = false; return;
+    }
+
+    // 層②: 実際に動かしてランタイムエラーを確認
+    showEditFeedback('動かして確認中…', 'info');
+    const runtimeErr = await runtimeErrorCheck(edited);
+    if (runtimeErr) {
+      showEditFeedback('⚠️ 実行時エラーが出ています: ' + runtimeErr + '\n該当箇所を修正してください。', 'bad');
+      famSay('動かしてみたらエラーが出たよ：' + runtimeErr + ' この部分を直してみよう！');
+      setStatus('実行エラーが見つかりました', 'bad'); setBusy(false); els.editApplyBtn.disabled = false; return;
+    }
+
+    // すべてOK → そのまま反映（AIは書き換えない）
+    exitEditMode();
+    setGeneratedApp(edited);
+    setActiveTab('preview');
+    showToast('反映しました', 'あなたの修正を反映しました。' + (data.advice ? '（AIレビュー: ' + data.advice + '）' : ''));
+    famSay(data.advice ? data.advice : '修正が反映され、正常に動作しています。');
+  } catch (err) {
+    console.error('reviewCode failed', err);
+    showEditFeedback('チェックに失敗したよ。少し待ってもう一度ためしてね。', 'bad');
+    setStatus('チェックに失敗しました', 'bad');
+    showToast('チェックできませんでした', err.message, true);
+  } finally {
+    els.editApplyBtn.disabled = false;
+    setBusy(false);
+  }
+}
+
+// 「つかう ▾」ドロップダウンの開閉
+function openUseMenu(){ els.useMenu.style.display='block'; els.useMenuBtn.setAttribute('aria-expanded','true'); }
+function closeUseMenu(){ if(els.useMenu){ els.useMenu.style.display='none'; els.useMenuBtn.setAttribute('aria-expanded','false'); } }
+els.useMenuBtn.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  (els.useMenu.style.display==='block') ? closeUseMenu() : openUseMenu();
+});
+// メニュー内の項目を押したら閉じる（各ボタンの本来の動作は別リスナーで実行される）
+els.useMenu.addEventListener('click', ()=> closeUseMenu());
+// メニュー外をクリックしたら閉じる
+document.addEventListener('click', (e)=>{
+  if(els.useMenuWrap && !els.useMenuWrap.contains(e.target)) closeUseMenu();
+});
+
+els.editBtn.addEventListener('click', enterEditMode);
+els.editApplyBtn.addEventListener('click', checkAndApplyEdit);
+els.editCancelBtn.addEventListener('click', () => { exitEditMode(); setStatus('編集をキャンセルしました。', 'info'); });
+
+async function addSourceComments() {
+  if (!state.currentHtml) return;
+  if (!(await requireClassroomTicketForUi())) return;
+
+  setBusy(true);
+  state.status = 'refining';
+  setStatus('ソースにコメントを追加しています…','warn',true);
+
+  try {
+    const fetcher = window.FirebaseAuthBridge?.authFetch || fetch;
+    const res = await fetcher(API.commentSource, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ currentCode: state.currentHtml })
+    });
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data?.ok) throw new Error(data?.message || 'コメントを追加できませんでした。');
+
+    setGeneratedApp(data.html);
+    setActiveTab('code');
+    showToast('コメントを追加しました', 'ソースコードに学習用コメントを入れました。');
+  } catch (err) {
+    console.error('commentSource failed', err);
+    state.status = 'previewing';
+    setStatus('コメント追加に失敗しました','bad');
+    setBusy(false);
+    showToast('コメントを追加できませんでした', err.message, true);
+  }
+}
+
+async function requireClassroomTicketForUi() {
+  if (window.FirebaseAuthBridge?.requireClassroomTicket) {
+    try {
+      const result = await window.FirebaseAuthBridge.requireClassroomTicket('download_source');
+      if (result?.ok) return true;
+      showToast('教室チケットが必要です', result?.message || 'この機能をつかうには教室チケットが必要です', true);
+      return false;
+    } catch (err) {
+      console.error('Classroom ticket check failed', err);
+      showToast('確認できませんでした', '契約状態を確認できませんでした。少し時間をおいてもう一度試してください。', true);
+      return false;
+    }
+  }
+
+  const savedUser = DB.get('user', {});
+  if (savedUser?.licenseState === 'paid' && savedUser?.seatStatus !== 'inactive') return true;
+  showToast('教室チケットが必要です', 'この機能をつかうには教室チケットが必要です', true);
+  return false;
+}
+
+function hasClassroomTicketForDownload() {
+  if (!state.classroomTicketReady) {
+    showToast('契約状態を確認中です', '少し待ってからもう一度押してください。', true);
+    refreshClassroomTicketStatus();
+    return false;
+  }
+  if (!state.classroomTicketOk) {
+    showToast('教室チケットが必要です', 'この機能をつかうには教室チケットが必要です', true);
+    return false;
+  }
+  return true;
+}
+
+function downloadApp() {
+  if (!state.currentHtml) return;
+  if (!hasClassroomTicketForDownload()) return;
+
+  const blob = new Blob([state.currentHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  
+  let filename = '作成したアプリ.html';
+  if (state.nickname) {
+    filename = `${state.nickname}_のアプリ.html`;
+  } else {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    filename = `${y}_${m}_${d}_作成したアプリ.html`;
+  }
+  
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('ダウンロードしたよ 📥', `${filename} を保存しました。ダブルクリックして動かしてみてね！`);
+}
+els.commentBtn.addEventListener('click', addSourceComments);
+els.downloadBtn.addEventListener('click', downloadApp);
+els.hintText.innerHTML = hints[0].html;
+renderCodeEmptyState();
+updateMeta();
+setStatus('AIに作りたいものを伝えよう。','info');
+setActiveTab('preview');
+
+// ?edit=id での再編集読み込み（Firestoreモジュールが準備できてから実行）
+(function() {
+  const editId = new URLSearchParams(location.search).get('edit');
+  if (!editId) return;
+  const tryLoad = () => {
+    if (!window.FirebaseAuthBridge?.isConfigured) { setTimeout(tryLoad, 300); return; }
+    window.FirebaseAuthBridge.getFirestoreDoc('works', editId).then(work => {
+      if (!work?.html) { showToast('読み込みエラー', '作品が見つかりませんでした。', true); return; }
+      state.editId = editId; // 編集モード: 保存時にこのIDを更新する
+      state.currentHtml = work.html;
+      state.hasApp = true;
+      // 元のメタデータを state に保持
+      state.editTitle = work.title || '';
+      state.editTags = Array.isArray(work.tags) ? work.tags : [];
+      state.editVisibility = work.visibility || 'public';
+      
+      renderPreview(work.html);
+      setStatus('再編集モード', 'good');
+      showToast('作品を読み込みました ✏️', `「${work.title || '作品'}」を開きました（保存すると評価はリセットされます）`);
+    }).catch(() => showToast('読み込みエラー', '作品の読み込みに失敗しました。', true));
+  };
+  setTimeout(tryLoad, 400);
+})();
+
+/* ================= チュートリアル機能 ================= */
+const tutorialState = {
+  active: false,
+  step: 0
+};
+
+const tutorialTexts = {
+  1: "じさくやへようこそ！入力欄に作りたいものをかくのじゃ。思いつかないときはテンプレボタンを押すべし",
+  2: "AIがアプリを作っておるぞ。少々待つがよい！",
+  3: "できたぞ！プレビューで動かしてみるのじゃ。コードを直接書き換えたいときは『手動で編集』を押すべし！",
+  4: "最後に『保存』ボタンを押して、ギャラリーに公開するのじゃ！これでチュートリアルは終わりじゃ、お見事！"
+};
+
+function showTutorialStep(step) {
+  if (localStorage.getItem('jisakuya_tutorial_done') === 'true') return;
+  tutorialState.active = true;
+  tutorialState.step = step;
+  
+  const overlay = $('tutorialOverlay');
+  const textEl = $('tutorialText');
+  const nextBtn = $('tutorialNextBtn');
+  const skipBtn = $('tutorialSkipBtn');
+  
+  if (!overlay || !textEl) return;
+  
+  textEl.textContent = tutorialTexts[step];
+  overlay.style.display = 'flex';
+  
+  if (step === 3) {
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = '次へ';
+  } else {
+    nextBtn.style.display = 'none';
+  }
+  
+  if (step === 4) {
+    skipBtn.textContent = '閉じる';
+  } else {
+    skipBtn.textContent = 'スキップ';
+  }
+}
+
+function closeTutorial() {
+  const overlay = $('tutorialOverlay');
+  if (overlay) overlay.style.display = 'none';
+  tutorialState.active = false;
+  tutorialState.step = 0;
+  localStorage.setItem('jisakuya_tutorial_done', 'true');
+}
+
+function initTutorial() {
+  const isDone = localStorage.getItem('jisakuya_tutorial_done');
+  if (isDone === 'true') return;
+  
+  setTimeout(() => {
+    showTutorialStep(1);
+  }, 1000);
+}
+
+// サイドバーのユーザーメニュー開閉
+if ($('userBtn')) {
+  $('userBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    $('userDrop').classList.toggle('open');
+  });
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#userMenu') && $('userDrop')) {
+    $('userDrop').classList.remove('open');
+  }
+});
+
+function logoutFromHeader() {
+  if ($('userDrop')) $('userDrop').classList.remove('open');
+  const finish = () => {
+    DB.setCurrentUid(null);
+    updateSidebarAuth();
+    renderAiUsageCounter();
+    renderCoins();
+    showToast('ログアウトしました', 'ログインボタンから再度ログインできます。');
+  };
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.logout()
+      .then(finish)
+      .catch(err => {
+        console.error('Firebase logout failed', err);
+        showToast('ログアウトできませんでした', '少し時間をおいてもう一度試してください。', true);
+      });
+    return;
+  }
+  finish();
+}
+
+if ($('sideLogoutBtn')) {
+  $('sideLogoutBtn').addEventListener('click', () => logoutFromHeader());
+}
+
+// チュートリアル用のイベントリスナー
+setTimeout(() => {
+  const nextBtn = $('tutorialNextBtn');
+  const skipBtn = $('tutorialSkipBtn');
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (tutorialState.step === 3) {
+        showTutorialStep(4);
+      }
+    });
+  }
+  
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      closeTutorial();
+    });
+  }
+  
+  initTutorial();
+}, 500);
+</script>
+<script src="sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教室管理者ポータル | じさくや</title>
+  <link rel="stylesheet" href="styles/base.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4EDE0;         /* 生成り・和紙色 */
+      --panel: #FFFCF5;      /* カード背景 */
+      --line: #2A2620;       /* 墨色 */
+      --text: #22201C;       /* 本文テキスト */
+      --muted: #6B5C4B;      /* サブテキスト */
+      --accent: #1B3A5C;     /* 藍色 */
+      --accent2: #C9A646;    /* 金 */
+      --pink: #C1440E;       /* 朱色 */
+      --good: #1B3A5C;       /* 藍色(成功・確定) */
+      --warn: #C9A646;       /* 金(ハイライト) */
+      --bad: #A6321B;        /* 濃い朱 */
+      --stroke: 1.5px solid var(--line);
+      --font-display: 'Yuji Syuku', serif;
+      --font-body: 'Noto Sans JP', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: var(--stroke);
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      border: var(--stroke);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: var(--bg);
+      transform: translateY(-2px);
+    }
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background: #254b73;
+    }
+    .btn.danger {
+      background: var(--bad);
+      color: #fff;
+    }
+    .btn.danger:hover {
+      background: #bd3c24;
+    }
+
+    main {
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .login-container {
+      max-width: 450px;
+      margin: 60px auto;
+      background: var(--panel);
+      border: var(--stroke);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .login-container h2 {
+      font-family: var(--font-display);
+      color: var(--accent);
+      text-align: center;
+      margin: 0 0 10px 0;
+      font-size: 28px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      padding: 12px;
+      font-size: 16px;
+      border: var(--stroke);
+      background: #fff;
+      font-family: var(--font-body);
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fdfdfd;
+    }
+
+    .error-msg {
+      color: var(--bad);
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    .dashboard {
+      display: none;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel);
+      border: var(--stroke);
+      padding: 20px 30px;
+    }
+
+    .info-bar .classroom-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .info-bar .classroom-name span {
+      color: var(--accent);
+      margin-left: 10px;
+    }
+
+    .info-bar .classroom-name span#orgIdSpan {
+      color: var(--text);
+    }
+
+    .works-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .work-card {
+      background: var(--panel);
+      border: var(--stroke);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+    }
+    .work-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .work-thumbnail {
+      aspect-ratio: 1.6;
+      background: #eae3d5;
+      border-bottom: var(--stroke);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .work-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .work-thumbnail .no-image {
+      font-size: 40px;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+
+    .work-info {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .work-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+      min-height: 50px;
+    }
+
+    .work-author {
+      font-size: 14px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .work-author b {
+      color: var(--text);
+    }
+
+    .work-date {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .work-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    .work-actions .btn {
+      flex: 1;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      background: var(--panel);
+      border: var(--stroke);
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .empty-state p {
+      margin: 0 0 20px 0;
+      font-size: 16px;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(244, 237, 224, 0.85);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .loading-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--panel);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    footer {
+      background: var(--panel);
+      border-top: var(--stroke);
+      padding: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: auto;
+    }
+    .bulk-actions-bar {
+      display: none;
+      margin-bottom: 20px;
+      background: var(--panel);
+      border: var(--stroke);
+      padding: 15px 20px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .bulk-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .work-card {
+      position: relative;
+    }
+
+    .work-select-checkbox {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 22px;
+      height: 22px;
+      z-index: 10;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+  </style>
+  <!-- QRコード生成ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1 class="title">🏫 教室管理者ポータル</h1>
+    <div id="headerActions" style="display: none;">
+      <button class="btn danger" id="logoutBtn">ログアウト</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ログインフォーム -->
+    <div id="loginForm" class="login-container">
+      <h2>先生ログイン</h2>
+      <div class="form-group">
+        <label for="orgIdInput">学校/塾ID</label>
+        <input type="text" id="orgIdInput" placeholder="例: ABCDEFGH" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="passwordInput">契約者パスワード</label>
+        <input type="password" id="passwordInput" placeholder="パスワードを入力" autocomplete="current-password">
+      </div>
+      <div id="loginError" class="error-msg"></div>
+      <button class="btn primary" id="loginSubmitBtn">ログイン</button>
+    </div>
+
+    <!-- ダッシュボード画面 -->
+    <div id="dashboardArea" class="dashboard">
+      <div class="info-bar">
+        <div class="classroom-name">
+          教室名: <span id="orgNameSpan">-</span>
+          <span style="font-size: 14px; font-weight: normal; color: var(--muted); margin-left: 15px;">
+            ID: <span id="orgIdSpan" style="font-weight: 700; color: var(--text);">-</span>
+          </span>
+        </div>
+        <button class="btn" id="refreshBtn">🔄 最新の情報に更新</button>
+      </div>
+
+      <h2>生徒の作品一覧</h2>
+      
+      <!-- 一括操作バー -->
+      <div id="bulkActionsBar" class="bulk-actions-bar">
+        <div class="bulk-actions-left">
+          <button class="btn" id="selectAllBtn">すべて選択</button>
+          <button class="btn" id="deselectAllBtn">選択解除</button>
+          <span id="selectedCountSpan" style="font-weight: 700; color: var(--accent); margin-left: 10px;">0 件選択中</span>
+        </div>
+        <button class="btn primary" id="printQrBtn">🖨️ 選択した作品のQRコードを一括出力</button>
+      </div>
+
+      <div id="worksContainer" class="works-grid">
+        <!-- 作品カードがJSで挿入されます -->
+      </div>
+    </div>
+  </main>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div style="font-weight: 700;" id="loadingText">処理中...</div>
+  </div>
+
+  <footer>
+    &copy; じさくや All Rights Reserved.
+  </footer>
+
+  <script type="module" src="./firebase-auth.js?v=1.0.5"></script>
+  <script type="module">
+    // DOM要素
+    const els = {
+      loginForm: document.getElementById('loginForm'),
+      dashboardArea: document.getElementById('dashboardArea'),
+      headerActions: document.getElementById('headerActions'),
+      orgIdInput: document.getElementById('orgIdInput'),
+      passwordInput: document.getElementById('passwordInput'),
+      loginError: document.getElementById('loginError'),
+      loginSubmitBtn: document.getElementById('loginSubmitBtn'),
+      orgNameSpan: document.getElementById('orgNameSpan'),
+      orgIdSpan: document.getElementById('orgIdSpan'),
+      logoutBtn: document.getElementById('logoutBtn'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      worksContainer: document.getElementById('worksContainer'),
+      loadingOverlay: document.getElementById('loadingOverlay'),
+      loadingText: document.getElementById('loadingText'),
+      bulkActionsBar: document.getElementById('bulkActionsBar'),
+      selectAllBtn: document.getElementById('selectAllBtn'),
+      deselectAllBtn: document.getElementById('deselectAllBtn'),
+      selectedCountSpan: document.getElementById('selectedCountSpan'),
+      printQrBtn: document.getElementById('printQrBtn')
+    };
+
+    let checkAuthTimer = null;
+
+    // ローディング表示の切り替え
+    function toggleLoading(active, text = '処理中...') {
+      els.loadingText.textContent = text;
+      if (active) {
+        els.loadingOverlay.classList.add('active');
+      } else {
+        els.loadingOverlay.classList.remove('active');
+      }
+    }
+
+    // 認証状態の監視を開始
+    function initAuth() {
+      checkAuthTimer = setInterval(() => {
+        if (window.FirebaseAuthBridge) {
+          clearInterval(checkAuthTimer);
+          setupAuthListener();
+        }
+      }, 100);
+    }
+
+    function setupAuthListener() {
+      window.FirebaseAuthBridge.onChange((authState) => {
+        const profile = authState?.profile || null;
+        if (profile && profile.role === 'classroom_manager') {
+          showDashboard(profile);
+        } else {
+          showLoginForm();
+        }
+      });
+    }
+
+    // ログイン画面の表示
+    function showLoginForm() {
+      els.loginForm.style.display = 'flex';
+      els.dashboardArea.style.display = 'none';
+      els.headerActions.style.display = 'none';
+      els.loginError.textContent = '';
+      els.bulkActionsBar.style.display = 'none';
+    }
+
+    // ダッシュボードの表示
+    function showDashboard(profile) {
+      els.loginForm.style.display = 'none';
+      els.dashboardArea.style.display = 'flex';
+      els.headerActions.style.display = 'block';
+      els.orgIdSpan.textContent = profile.orgId;
+      els.orgNameSpan.textContent = profile.orgName || '教室ユーザー';
+
+      loadWorks(profile.orgId);
+    }
+
+    // 選択されたチェックボックスの件数を更新
+    function updateSelectedCount() {
+      const checked = document.querySelectorAll('.work-select-checkbox:checked');
+      els.selectedCountSpan.textContent = `${checked.length} 件選択中`;
+    }
+
+    // 作品一覧のロード
+    async function loadWorks(orgId) {
+      toggleLoading(true, '生徒の作品を読み込んでいます...');
+      els.worksContainer.innerHTML = '';
+      els.bulkActionsBar.style.display = 'none';
+      try {
+        const works = await window.FirebaseAuthBridge.getClassroomWorks(orgId);
+        if (!works || works.length === 0) {
+          els.worksContainer.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <p>まだ生徒の作品がありません。</p>
+              <p style="font-size: 13px; font-weight: normal;">生徒が作品を保存すると、ここに表示されます。</p>
+            </div>
+          `;
+          return;
+        }
+
+        // 作品があれば一括操作バーを表示
+        els.bulkActionsBar.style.display = 'flex';
+        updateSelectedCount();
+
+        works.forEach(w => {
+          const dateStr = w.createdAt ? new Date(w.createdAt).toLocaleString('ja-JP', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+          }) : '不明';
+
+          const card = document.createElement('div');
+          card.className = 'work-card';
+
+          const thumbnailHtml = w.thumbnail 
+            ? `<img src="${w.thumbnail}" alt="${w.title}">` 
+            : `<div class="no-image">🎨</div>`;
+
+          card.innerHTML = `
+            <input type="checkbox" class="work-select-checkbox" data-id="${w.id}" data-title="${escapeHtml(w.title || '無題の作品')}" data-author="${escapeHtml(w.author || 'ななし')}" data-login-id="${escapeHtml(w.loginId || '-')}">
+            <div class="work-thumbnail">
+              ${thumbnailHtml}
+            </div>
+            <div class="work-info">
+              <h3 class="work-title">${escapeHtml(w.title || '無題の作品')}</h3>
+              <div class="work-author">
+                <span>作者: <b>${escapeHtml(w.author || 'ななし')}</b></span>
+                <span style="font-variant-numeric: tabular-nums;">生徒番号: ${escapeHtml(w.loginId || '-')}</span>
+              </div>
+              <div class="work-date">更新日: ${dateStr}</div>
+              <div class="work-actions">
+                <a href="/index.html?work=${w.id}" target="_blank" class="btn primary">開いてみる</a>
+              </div>
+            </div>
+          `;
+          
+          // チェックボックスの変化イベントを監視
+          const cb = card.querySelector('.work-select-checkbox');
+          cb.addEventListener('change', updateSelectedCount);
+
+          els.worksContainer.appendChild(card);
+        });
+      } catch (err) {
+        console.error('loadWorks failed:', err);
+        els.worksContainer.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1; color: var(--bad);">
+            <p>作品の読み込みに失敗しました。</p>
+            <p style="font-size: 13px; font-weight: normal;">${escapeHtml(err.message)}</p>
+          </div>
+        `;
+      } finally {
+        toggleLoading(false);
+      }
+    }
+
+    // HTMLエスケープヘルパー
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return '';
+      return str.replace(/[&<>"']/g, function(match) {
+        const escapeMap = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#x27;'
+        };
+        return escapeMap[match];
+      });
+    }
+
+    // QRコード用のCanvasデータURLを生成する関数
+    function generateQrCodeDataUrl(url) {
+      try {
+        const canvas = document.createElement('canvas');
+        new QRious({
+          element: canvas,
+          value: url,
+          size: 250,
+          level: 'H' // 高い誤り訂正レベルでスキャンを容易に
+        });
+        return canvas.toDataURL('image/png');
+      } catch (e) {
+        console.error('QR code generation failed:', e);
+        return '';
+      }
+    }
+
+    // すべて選択
+    els.selectAllBtn.addEventListener('click', () => {
+      document.querySelectorAll('.work-select-checkbox').forEach(cb => {
+        cb.checked = true;
+      });
+      updateSelectedCount();
+    });
+
+    // 選択解除
+    els.deselectAllBtn.addEventListener('click', () => {
+      document.querySelectorAll('.work-select-checkbox').forEach(cb => {
+        cb.checked = false;
+      });
+      updateSelectedCount();
+    });
+
+    // 一括印刷処理
+    els.printQrBtn.addEventListener('click', () => {
+      const checkedCbs = document.querySelectorAll('.work-select-checkbox:checked');
+      if (checkedCbs.length === 0) {
+        alert('印刷したい作品にチェックを入れてください。');
+        return;
+      }
+
+      // ドメインのベースURLを取得
+      const baseUrl = window.location.origin;
+
+      let cardsHtml = '';
+      checkedCbs.forEach(cb => {
+        const id = cb.dataset.id;
+        const title = cb.dataset.title;
+        const author = cb.dataset.author;
+        const loginId = cb.dataset.loginId;
+        const workUrl = `${baseUrl}/index.html?work=${id}`;
+        const qrDataUrl = generateQrCodeDataUrl(workUrl);
+
+        cardsHtml += `
+          <div class="print-card">
+            <div class="card-header">
+              <h3 class="card-title">${title}</h3>
+            </div>
+            <div class="card-body">
+              <div class="qr-container">
+                <img src="${qrDataUrl}" alt="QR Code">
+              </div>
+              <div class="info-container">
+                <div class="info-item">作者ユーザー名: <b>${author}</b></div>
+                <div class="info-item">生徒ログインID: <code>${loginId}</code></div>
+                <div class="info-item" style="font-size: 11px; color: #555; word-break: break-all; margin-top: 5px;">
+                  作品URL:<br>${workUrl}
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span>じさくや作品展示カード</span>
+              <span>スマートフォンで読み取って遊べます</span>
+            </div>
+          </div>
+        `;
+      });
+
+      // 印刷用別ウィンドウを開く
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('ポップアップブロックが有効になっているため、印刷画面を開けませんでした。ポップアップを許可してください。');
+        return;
+      }
+
+      // 印刷用HTMLの書き込み
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="ja">
+        <head>
+          <meta charset="UTF-8">
+          <title>じさくや 作品QRコード印刷</title>
+          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+          <style>
+            body {
+              font-family: 'Noto Sans JP', sans-serif;
+              margin: 0;
+              padding: 10px;
+              background: #fff;
+              color: #000;
+            }
+            .print-grid {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 20px;
+            }
+            .print-card {
+              border: 2px dashed #000;
+              padding: 20px;
+              display: flex;
+              flex-direction: column;
+              height: 290px;
+              box-sizing: border-box;
+              page-break-inside: avoid;
+              background: #fff;
+            }
+            .card-header {
+              border-bottom: 1.5px solid #000;
+              padding-bottom: 8px;
+              margin-bottom: 15px;
+            }
+            .card-title {
+              font-size: 16px;
+              font-weight: 700;
+              margin: 0;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              line-height: 1.4;
+              height: 44px;
+            }
+            .card-body {
+              display: flex;
+              gap: 20px;
+              align-items: center;
+              flex: 1;
+            }
+            .qr-container {
+              width: 130px;
+              height: 130px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid #ccc;
+              padding: 5px;
+              box-sizing: border-box;
+            }
+            .qr-container img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            .info-container {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              font-size: 14px;
+            }
+            .info-item {
+              line-height: 1.3;
+            }
+            .info-item b {
+              font-size: 16px;
+              color: #000;
+            }
+            .info-item code {
+              font-family: monospace;
+              font-size: 15px;
+              background: #f0f0f0;
+              padding: 2px 6px;
+              border: 1px solid #ccc;
+              font-weight: bold;
+            }
+            .card-footer {
+              font-size: 10px;
+              color: #444;
+              border-top: 1px dashed #ccc;
+              padding-top: 8px;
+              margin-top: 10px;
+              display: flex;
+              justify-content: space-between;
+            }
+            @media print {
+              body { padding: 0; }
+              .print-card { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-grid">
+            ${cardsHtml}
+          </div>
+          <script>
+            // 画像のロード完了を待ってから印刷をトリガー
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+              }, 600);
+            };
+          </script>
+        </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+    });
+
+    // ログインボタンの処理
+    els.loginSubmitBtn.addEventListener('click', async () => {
+      const orgId = els.orgIdInput.value.trim();
+      const { value } = els.passwordInput;
+      const password = value.trim();
+
+      if (!orgId || !password) {
+        els.loginError.textContent = '学校/塾IDとパスワードを入力してください。';
+        return;
+      }
+
+      els.loginError.textContent = '';
+      toggleLoading(true, 'ログインしています...');
+
+      try {
+        await window.FirebaseAuthBridge.loginClassroomManager(orgId, password);
+      } catch (err) {
+        console.error('Login failed:', err);
+        els.loginError.textContent = err.message || 'ログインに失敗しました。';
+      } finally {
+        toggleLoading(false);
+      }
+    });
+
+    // ログアウトボタンの処理
+    els.logoutBtn.addEventListener('click', async () => {
+      toggleLoading(true, 'ログアウトしています...');
+      try {
+        await window.FirebaseAuthBridge.logout();
+        showLoginForm();
+      } catch (err) {
+        console.error('Logout failed:', err);
+      } finally {
+        toggleLoading(false);
+      }
+    });
+
+    // 更新ボタンの処理
+    els.refreshBtn.addEventListener('click', () => {
+      const profile = window.FirebaseAuthBridge.getCurrentProfile();
+      if (profile && profile.orgId) {
+        loadWorks(profile.orgId);
+      }
+    });
+
+    // 初期化実行
+    initAuth();
+  </script>
+</body>
+</html>

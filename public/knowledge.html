@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ナレッジベース | じさくや</title>
+<meta property="og:title" content="じさくや" />
+<meta property="og:description" content="AIと一緒にWebアプリを制作する学習サービス。じさくや。" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root{
+    --bg: #F4EDE0; --panel: #FFFCF5; --line: #2A2620; --text: #22201C; --muted: #6B5C4B;
+    --accent: #1B3A5C; --accent2: #C9A646; --pink: #C1440E; --good: #1B3A5C; --warn: #C9A646; --bad: #A6321B;
+    --coin: var(--accent2); --shadow: none; --shadow-lg: none; --shadow-sm: none; --radius: 0; --radius-md: 0;
+    --stroke: 1.5px solid var(--line);
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+
+    --paper: #FFFBF0;          /* 和紙のページ色 */
+    --paper-line: rgba(42,38,32,.10);
+    --cover: #8E330A;          /* 表紙(深朱) */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--font-body);
+    color:var(--text);
+    min-height:100vh;
+    background:
+      radial-gradient(700px 380px at 10% -8%, rgba(184,230,168,.18), transparent 60%),
+      radial-gradient(700px 380px at 92% -8%, rgba(90,187,111,.18), transparent 60%),
+      var(--bg);
+  }
+  a{color:inherit;text-decoration:none}
+  button{
+    font-family:var(--font-body);cursor:pointer;font-weight:800;
+    border:var(--stroke);border-radius:0;
+    box-shadow:none;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  button:hover{box-shadow:none}
+  button:active{box-shadow:none}
+  button:disabled{opacity:.55;cursor:not-allowed;pointer-events:none}
+  /* Sidebar layout is shared by styles/base.css and sidebar.js. */
+
+
+  /* --- 創作ドロップダウン(サイドバー下部から上に開く) --- */
+  .create-menu{position:relative}
+  .create-btn{
+    width:100%;
+    padding:11px 16px;
+    border-radius:0;
+    font-size:13.5px;
+    color: #fff;
+    background: var(--pink);
+    border:none;
+    font-weight: 800;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;
+    transition: background .15s ease;
+  }
+  .create-btn:hover{ background:#A8390C; }
+  .create-drop{
+    position:absolute;left:0;right:0;top:calc(100% + 8px);min-width:210px;z-index:45;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    padding:10px;display:none;
+  }
+  .create-drop.open{display:block;animation:rise .18s ease}
+  .create-drop .cd-head{
+    font-size:12px;font-weight:800;color:var(--muted);
+    padding:6px 12px 10px;border-bottom:1.5px dashed var(--line);margin-bottom:8px;
+  }
+  .create-drop .cd-item{
+    display:flex;align-items:center;gap:8px;width:100%;
+    padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;
+    border:none;background:transparent;text-align:left;
+    text-decoration:none;color:var(--text);
+    transition: background .15s ease, color .15s ease;
+  }
+  .create-drop .cd-item:hover{background: var(--accent);color:#fff;}
+  .create-drop .cd-item .cd-desc{
+    font-size:11px;font-weight:400;color:var(--muted);display:block;margin-top:1px;
+  }
+  .create-drop .cd-item:hover .cd-desc{color:#fff;}
+  @keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+
+  .main-area{flex:1;min-width:0}
+  .topbar{
+    position:sticky;top:0;z-index:30;
+    display:flex;align-items:center;gap:12px;
+    padding:14px 24px;
+    background: var(--panel);
+    border-bottom: var(--stroke);
+  }
+  .hd-spacer{flex:1}
+  .chip{
+    display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:0;
+    font-size:13px;font-weight:800;background:var(--panel);border:var(--stroke);box-shadow:none;
+  }
+  .chip.link{cursor:pointer;transition:background .15s ease}
+  .chip.link:hover{background:var(--accent);color:#fff}
+
+  /* ===== 本のステージ ===== */
+  .stage{
+    max-width:1100px;margin:0 auto;padding:34px 20px 70px;
+    display:flex;justify-content:center;
+  }
+  .book-wrap{
+    position:relative;
+    width:min(760px,100%);
+    perspective:1600px;
+  }
+
+  /* しおりタブ(章ジャンプ) */
+  .bookmarks{
+    position:absolute;right:-14px;top:46px;z-index:6;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .bm{
+    writing-mode:vertical-rl;text-orientation:mixed;
+    font-size:12px;font-weight:800;letter-spacing:.12em;
+    padding:14px 7px;border-radius:0 10px 10px 0;
+    border:var(--stroke);border-left:none;
+    box-shadow:none;
+    background:var(--panel);
+  }
+  .bm.b1{background:var(--warn)}
+  .bm.b2{background:var(--accent)}
+  .bm.b3{background:var(--pink);color:var(--text)}
+  .bm.active{transform:translateX(5px)}
+  .bm:hover{transform:translateX(5px);box-shadow:2px 2px 0 var(--line)}
+
+  /* 本体(下に重なったページのフチで本っぽさを出す) */
+  .book{
+    position:relative;
+    border-radius:0;
+  }
+  .book::before, .book::after{
+    content:"";position:absolute;border-radius:0;
+    border:var(--stroke);background:#fff;
+  }
+  .book::before{inset:6px -10px -10px 6px;background:#F2EEE2;z-index:0}
+  .book::after{inset:3px -5px -5px 3px;background:#FAF7EC;z-index:0}
+
+  .page{
+    position:relative;z-index:2;
+    min-height:560px;
+    background:
+      linear-gradient(0deg, var(--paper-line) 1px, transparent 1px) 0 14px/100% 30px,
+      var(--paper);
+    border:var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    padding:30px 34px 76px 46px;
+    transform-origin:left center;
+    overflow:hidden;
+  }
+  /* とじしろ(左端の綴じ部分) */
+  .page::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:26px;
+    background:repeating-linear-gradient(180deg, transparent 0 26px, rgba(27,27,58,.12) 26px 30px);
+    border-right:1.5px dashed rgba(27,27,58,.25);
+  }
+
+  /* めくりアニメーション */
+  @keyframes flipOutNext{from{transform:rotateY(0)}to{transform:rotateY(-78deg);opacity:.25}}
+  @keyframes flipInNext{from{transform:rotateY(60deg);opacity:.25}to{transform:rotateY(0);opacity:1}}
+  @keyframes flipOutPrev{from{transform:rotateY(0)}to{transform:rotateY(60deg);opacity:.25}}
+  @keyframes flipInPrev{from{transform:rotateY(-78deg);opacity:.25}to{transform:rotateY(0);opacity:1}}
+  .page.out-next{animation:flipOutNext .18s ease-in forwards}
+  .page.in-next{animation:flipInNext .2s ease-out forwards}
+  .page.out-prev{animation:flipOutPrev .18s ease-in forwards}
+  .page.in-prev{animation:flipInPrev .2s ease-out forwards}
+
+  /* ページ番号・章名 */
+  .page-foot{
+    position:absolute;left:46px;right:34px;bottom:18px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11.5px;font-weight:800;color:var(--muted);
+  }
+
+  /* ページ送りボタン */
+  .pager{
+    position:absolute;left:0;right:0;bottom:-26px;z-index:5;
+    display:flex;justify-content:center;gap:14px;
+  }
+  .pager button{
+    padding:11px 26px;border-radius:0;font-size:14px;background:var(--panel);
+  }
+  .pager .pg-next{background:var(--warn)}
+
+  /* ===== 表紙ページ ===== */
+  .cover-inner{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(#FCD34D 14%, transparent 14%) 0 0/22px 22px,
+      var(--cover);
+    border-radius:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 30px;color:#fff;
+  }
+  .cover-inner .belt{
+    background:var(--warn);color:var(--text);
+    border:var(--stroke);border-radius:0;
+    padding:10px 30px;font-family:var(--font-display);font-size:clamp(22px,4vw,32px);
+    box-shadow:none;transform:rotate(-2deg);
+  }
+  .cover-inner .owner{
+    margin-top:22px;background:#fff;color:var(--text);
+    border:var(--stroke);border-radius:0;padding:8px 22px;
+    font-weight:800;font-size:14px;box-shadow:none;
+  }
+  .cover-stats{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;justify-content:center}
+  .cover-stat{
+    background:#fff;color:var(--text);border:var(--stroke);border-radius:0;
+    box-shadow:none;padding:14px 22px;min-width:120px;
+  }
+  .cover-stat .v{font-family:var(--font-display);font-size:24px}
+  .cover-stat .k{font-size:11px;font-weight:800;color:var(--muted);margin-top:2px}
+  .cover-hint{margin-top:28px;font-size:13px;font-weight:800;opacity:.95;line-height:1.9}
+
+  /* ===== 用語ページ ===== */
+  .ch-title{
+    display:flex;align-items:center;gap:10px;margin:0 0 6px;
+    font-family:var(--font-display);font-size:20px;
+  }
+  .ch-sub{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 18px;line-height:1.7}
+  .term-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .term{
+    background:#fff;border:var(--stroke);border-radius:0;
+    box-shadow:none;overflow:hidden;
+    align-self:start;
+  }
+  .term-hd{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;
+  }
+  .term-hd .emoji{font-size:22px;flex:none}
+  .term-hd .lbl{flex:1;font-size:14px;font-weight:800;min-width:0}
+  .term-hd .cat{font-size:10px;font-weight:800;color:var(--muted)}
+  .qchip{
+    width:24px;height:24px;min-width:24px;border-radius:999px;padding:0;flex:none;
+    border:2px solid var(--line);background:var(--warn);
+    font-size:12px;font-weight:800;line-height:1;
+    box-shadow:none;
+    display:inline-grid;place-items:center;position:relative;
+  }
+  .qchip::after{content:"";position:absolute;inset:-10px;border-radius:999px}
+  .qchip.learned{background:var(--good)}
+  .qchip.learned::before{content:"✓";font-size:12px}
+  .qchip:not(.learned)::before{content:"?"}
+  .term-bd{
+    display:none;padding:0 14px 14px;font-size:13px;line-height:1.8;font-weight:700;color:var(--text);
+    border-top:1.5px dashed rgba(27,27,58,.25);
+  }
+  .term.open .term-bd{display:block;padding-top:10px}
+  .term.open{box-shadow:var(--shadow)}
+  .term-bd .got{
+    display:inline-block;margin-top:10px;font-size:11px;font-weight:800;
+    background:var(--good);border:1.5px solid var(--line);border-radius:0;padding:3px 12px;
+  }
+  /* 「理解済みにする」ボタン(能動アクション) */
+  .memorize-btn{
+    display:block;margin-top:12px;width:100%;
+    padding:10px 14px;border-radius:0;font-size:13px;
+    background:var(--warn);
+    box-shadow:none;
+  }
+  .memorize-btn:hover{box-shadow:1px 1px 0 var(--line)}
+
+  /* ===== きろくのページ(日記) ===== */
+  .diary-date{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-display);font-size:18px;
+    background:var(--warn);border:var(--stroke);border-radius:0;
+    padding:6px 16px;box-shadow:none;transform:rotate(-1deg);
+    margin-bottom:16px;
+  }
+  .diary-date .demo{font-size:10px;font-family:var(--font-body);font-weight:800;color:var(--muted)}
+  .diary-date .cont{font-size:12px;font-family:var(--font-body);font-weight:800;color:var(--muted)}
+  .entry{
+    position:relative;
+    background:#fff;border:var(--stroke);border-radius:0;
+    box-shadow:none;
+    padding:14px 16px 12px;margin-bottom:14px;
+  }
+  /* 消すボタン: ダイアログを使わない2タップ確認方式
+     1回目のタップ →「本当に消す?」に変化(3秒で元に戻る)
+     2回目のタップ → 削除実行 */
+  .entry-del{
+    position:absolute;top:10px;right:10px;z-index:2;
+    height:26px;min-width:26px;border-radius:999px;padding:0 7px;
+    font-size:11px;display:grid;place-items:center;
+    background:#fff;border:1.5px solid var(--line);
+    box-shadow:none;
+    color:var(--muted);
+  }
+  .entry-del:hover{background:#FFD2D2;color:var(--text)}
+  .entry-del.arm{
+    background:var(--pink);color:var(--text);border-color:var(--line);
+    font-size:10.5px;padding:0 12px;
+  }
+  .entry-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-right:34px}
+  .entry-time{
+    font-size:11.5px;font-weight:800;color:var(--text);
+    background:#E0F2FE;border:1.5px solid var(--line);border-radius:0;padding:3px 12px;
+  }
+  .entry-kind{font-size:11.5px;font-weight:800;border:1.5px solid var(--line);border-radius:0;padding:3px 12px}
+  .entry-kind.generate{background:#FCE7F3}
+  .entry-kind.refine{background:#F7FEE7}
+  .entry-kind.publish{background:var(--warn)}
+  .entry-title{font-size:14.5px;font-weight:800;margin-top:8px}
+  .entry-summary{font-size:12.5px;font-weight:700;color:var(--muted);line-height:1.75;margin-top:4px}
+  .entry-feats{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .feat{
+    font-size:10.5px;font-weight:800;background:#EEF2FF;
+    border:1.5px solid var(--line);border-radius:0;padding:2px 10px;
+  }
+
+  /* --- きろくのメモ(ふせん風) & ポストボタン --- */
+  .entry-actions{display:flex;gap:8px;align-items:flex-start;margin-top:10px;flex-wrap:wrap}
+  .entry-memo{
+    flex:1;min-width:180px;
+    background:#FFF9DB;
+    border:1.5px dashed var(--line);
+    border-radius:0;padding:8px 12px;
+    font-size:12px;font-weight:700;line-height:1.75;
+  }
+  .memo-mini{
+    width:24px;height:24px;border-radius:999px;padding:0;font-size:11px;
+    display:inline-grid;place-items:center;vertical-align:middle;margin-left:6px;
+    background:#fff;border:1.5px solid var(--line);box-shadow:none;
+  }
+  .memo-add{
+    font-size:11.5px;padding:8px 16px;border-radius:0;
+    background:#fff;box-shadow:none;
+  }
+  .x-btn{
+    font-size:11.5px;padding:8px 16px;border-radius:0;
+    background:#E2E8F0;color:#94A3B8;border-color:#CBD5E1;box-shadow:none;
+  }
+  .memo-edit textarea{
+    width:100%;min-height:64px;resize:vertical;
+    border:var(--stroke);border-radius:0;padding:10px 12px;
+    font:inherit;font-size:12.5px;font-weight:700;line-height:1.7;
+    background:#FFF9DB;outline:none;
+  }
+  .memo-edit textarea:focus{box-shadow:var(--shadow-sm)}
+  .memo-actions{display:flex;gap:8px;margin-top:8px;align-items:center}
+  .memo-actions button{font-size:11.5px;padding:7px 16px;border-radius:0;box-shadow:var(--shadow-sm)}
+  .memo-actions .save{background:var(--good)}
+  .memo-counter{font-size:10.5px;font-weight:700;color:var(--muted);margin-left:auto}
+
+  .diary-learn{
+    margin-top:6px;font-size:12px;font-weight:800;color:var(--text);
+    background:#F7FEE7;border:1.5px dashed var(--line);border-radius:0;padding:10px 14px;
+  }
+  .empty-page{
+    text-align:center;padding:80px 20px;font-weight:700;color:var(--muted);line-height:2;
+  }
+  .empty-page .big{font-size:44px;margin-bottom:10px;filter:drop-shadow(3px 3px 0 var(--line))}
+  .empty-page a{color:var(--pink);text-decoration:underline;font-weight:800}
+
+  /* ===== 使い魔 - 非表示化 ===== */
+  .familiar, .fam-menu {
+    display: none !important;
+  }
+  .fam-bubble{
+    pointer-events:auto;max-width:320px;position:relative;
+    background:var(--panel);border:var(--stroke);border-radius:0;
+    box-shadow:none;padding:14px 36px 14px 18px;
+    font-size:13px;line-height:1.75;font-weight:700;
+    opacity:0;transform:translateY(8px);transition:.25s;margin-bottom:8px;display:none;
+  }
+  .fam-bubble.show{opacity:1;transform:none;display:block}
+  .fam-bubble .fb-name{font-size:11px;font-weight:800;color:var(--pink);margin-bottom:4px}
+  .fam-bubble .fb-close{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:999px;padding:0;
+    font-size:12px;display:grid;place-items:center;background:var(--bg);
+    border:1.5px solid var(--line);box-shadow:none;
+  }
+
+  .toast{
+    position:fixed;right:20px;bottom:20px;min-width:260px;max-width:400px;z-index:60;
+    padding:16px 20px;border-radius:0;background:var(--panel);border:var(--stroke);
+    box-shadow:none;transform:translateY(16px);opacity:0;pointer-events:none;transition:.22s;
+  }
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast strong{font-size:14px;font-family:var(--font-display)}
+  .toast .sub{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5;font-weight:700}
+
+  @media (max-width:900px){
+    .app-shell{flex-direction:column}
+  }
+  @media (max-width:760px){
+    .term-grid{grid-template-columns:1fr}
+    .page{padding:24px 20px 76px 36px;min-height:520px}
+    .page::before{width:20px}
+    .page-foot{left:36px;right:20px}
+    .bookmarks{right:-8px;top:30px}
+    .bm{font-size:11px;padding:12px 6px}
+    .fam-bubble{position:fixed;left:10px;right:10px;bottom:72px;max-width:none;border-radius:0}
+    .familiar{left:10px;bottom:10px}
+    .fam-body{width:52px;height:52px;font-size:27px}
+  }
+
+  /* ===== Wikipedia風ナレッジベース ===== */
+  body.knowledge-wiki{
+    background:#F2F6EF;
+    color:#202122;
+  }
+  .knowledge-wiki .main-area{
+    background:#FBFCF7;
+  }
+  .knowledge-wiki .topbar{
+    background:#FBFCF7;
+    border-bottom:1px solid #C5D1BC;
+  }
+  .knowledge-wiki .topbar .logo{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-size:18px;
+    font-weight:400;
+    letter-spacing:0;
+  }
+  .wiki-shell{
+    display:grid;
+    grid-template-columns:220px minmax(0,1fr);
+    gap:28px;
+    max-width:1120px;
+    margin:0 auto;
+    padding:26px 24px 64px;
+    align-items:start;
+  }
+  .wiki-side,
+  .wiki-infobox{
+    position:sticky;
+    top:78px;
+    align-self:start;
+  }
+  .wiki-side{
+    font-size:13px;
+    color:#202122;
+  }
+  .wiki-side h2,
+  .wiki-infobox h2{
+    margin:0 0 8px;
+    padding-bottom:5px;
+    border-bottom:1px solid #a2a9b1;
+    font-family:Georgia, 'Times New Roman', serif;
+    font-size:16px;
+    font-weight:400;
+  }
+  .wiki-search{
+    width:100%;
+    height:34px;
+    border:1px solid #a2a9b1;
+    border-radius:0;
+    padding:6px 8px;
+    font:inherit;
+    background:#fff;
+  }
+  .wiki-nav-group{
+    margin:18px 0;
+  }
+  .wiki-cat,
+  .wiki-filter{
+    width:100%;
+    border:none;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    padding:6px 4px;
+    color:#0645ad;
+    font-size:13px;
+    font-weight:400;
+    text-align:left;
+  }
+  .wiki-cat:hover,
+  .wiki-filter:hover{background:#eaecf0}
+  .wiki-cat.active,
+  .wiki-filter.active{
+    color:#202122;
+    background:#eaecf0;
+    font-weight:700;
+  }
+  .wiki-cat .count{
+    color:#54595d;
+    font-variant-numeric:tabular-nums;
+  }
+  .wiki-main{
+    min-width:0;
+    border-left:1px solid #C5D1BC;
+    padding-left:28px;
+  }
+  .wiki-title-row{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    justify-content:space-between;
+    border-bottom:1px solid #a2a9b1;
+    margin-bottom:12px;
+  }
+  .wiki-title{
+    margin:0 0 6px;
+    font-family:Georgia, 'Times New Roman', serif;
+    font-size:34px;
+    font-weight:400;
+    line-height:1.25;
+  }
+  .wiki-subtitle{
+    margin:0 0 18px;
+    color:#54595d;
+    font-size:13px;
+    line-height:1.7;
+  }
+  .wiki-section{
+    margin-top:24px;
+  }
+  .wiki-section h2{
+    margin:0 0 10px;
+    padding-bottom:4px;
+    border-bottom:1px solid #a2a9b1;
+    font-family:Georgia, 'Times New Roman', serif;
+    font-size:22px;
+    font-weight:400;
+  }
+  .wiki-section p,
+  .wiki-section li{
+    font-size:15px;
+    line-height:1.9;
+  }
+  .wiki-toc{
+    display:inline-block;
+    min-width:220px;
+    border:1px solid #a2a9b1;
+    background:#f8f9fa;
+    padding:10px 14px;
+    margin:8px 0 18px;
+    font-size:13px;
+  }
+  .wiki-toc b{
+    display:block;
+    margin-bottom:6px;
+    text-align:center;
+  }
+  .wiki-toc a{
+    display:block;
+    color:#0645ad;
+    padding:2px 0;
+  }
+  .wiki-term-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:0 20px;
+    border-top:1px solid #eaecf0;
+  }
+  .wiki-term-link{
+    border:none;
+    border-bottom:1px solid #eaecf0;
+    background:transparent;
+    box-shadow:none;
+    border-radius:0;
+    padding:9px 4px;
+    text-align:left;
+    color:#0645ad;
+    font-size:14px;
+    font-weight:400;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .wiki-term-link:hover{background:#f8f9fa;text-decoration:underline}
+  .wiki-term-link.active{color:#202122;font-weight:700;background:#eaecf0}
+  .wiki-term-link.learned::after{
+    content:"済";
+    margin-left:auto;
+    color:#14866d;
+    font-size:11px;
+    font-weight:700;
+  }
+  .wiki-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:18px 0 6px;
+  }
+  .wiki-learn-btn{
+    border:1px solid #a2a9b1;
+    background:#f8f9fa;
+    color:#202122;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:700;
+  }
+  .wiki-learn-btn.primary{
+    background:#36c;
+    border-color:#36c;
+    color:#fff;
+  }
+  .wiki-learned{
+    display:inline-flex;
+    border:1px solid #14866d;
+    color:#14866d;
+    background:#f5fffb;
+    padding:7px 12px;
+    font-size:13px;
+    font-weight:700;
+  }
+  .wiki-infobox{
+    border:1px solid #a2a9b1;
+    background:#f8f9fa;
+    font-size:13px;
+  }
+  .wiki-infobox h2{
+    margin:0;
+    padding:9px 10px;
+    border-bottom:1px solid #a2a9b1;
+    background:#eaecf0;
+    text-align:center;
+    font-family:var(--font-body);
+    font-size:14px;
+    font-weight:700;
+  }
+  .wiki-info-hero{
+    display:grid;
+    place-items:center;
+    padding:18px 10px;
+    font-size:42px;
+    background:#fff;
+    border-bottom:1px solid #c8ccd1;
+  }
+  .wiki-info-row{
+    display:grid;
+    grid-template-columns:86px 1fr;
+    border-bottom:1px solid #eaecf0;
+  }
+  .wiki-info-row b{
+    padding:8px 10px;
+    background:#eaecf0;
+    font-weight:700;
+  }
+  .wiki-info-row span{
+    padding:8px 10px;
+    min-width:0;
+  }
+  .wiki-related{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .wiki-related button{
+    border:none;
+    background:transparent;
+    color:#0645ad;
+    padding:0;
+    font-size:13px;
+    font-weight:400;
+  }
+  .wiki-section button.wiki-related{
+    display:inline;
+    border:none;
+    background:transparent;
+    color:#0645ad;
+    padding:0;
+    box-shadow:none;
+    font:inherit;
+    font-weight:400;
+    text-align:left;
+  }
+  .wiki-section button.wiki-related:hover{
+    text-decoration:underline;
+  }
+  .wiki-history{
+    border-top:1px solid #eaecf0;
+  }
+  .wiki-entry{
+    position:relative;
+    padding:12px 36px 12px 0;
+    border-bottom:1px solid #eaecf0;
+  }
+  .wiki-entry h3{
+    margin:4px 0 3px;
+    font-size:15px;
+  }
+  .wiki-entry p{
+    margin:0;
+    color:#54595d;
+    font-size:13px;
+    line-height:1.7;
+  }
+  .wiki-entry-meta{
+    color:#54595d;
+    font-size:12px;
+  }
+  .wiki-entry .entry-del{
+    top:12px;
+    right:0;
+  }
+  .wiki-memo-area{
+    margin-top:8px;
+  }
+  .wiki-empty{
+    border:1px solid #c8ccd1;
+    background:#f8f9fa;
+    padding:18px;
+    color:#54595d;
+    font-size:14px;
+    line-height:1.8;
+  }
+  .wiki-progress{
+    margin-top:10px;
+    height:8px;
+    background:#eaecf0;
+    border:1px solid #c8ccd1;
+  }
+  .wiki-progress span{
+    display:block;
+    height:100%;
+    background:#36c;
+  }
+  @media (max-width:1100px){
+    .wiki-shell{grid-template-columns:190px minmax(0,1fr)}
+  }
+  @media (max-width:760px){
+    .wiki-shell{display:block;padding:18px 14px 56px}
+    .wiki-side,
+    .wiki-infobox{position:static;margin-bottom:20px}
+    .wiki-main{border-left:none;padding-left:0}
+    .wiki-title{font-size:28px}
+    .wiki-term-list{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body class="knowledge-wiki">
+<div class="app-shell">
+  <aside class="sidebar" data-active="knowledge"></aside>
+  <script src="sidebar.js?v=1.0.0"></script>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="logo" style="padding:0;">ナレッジベース</div>
+      <div class="hd-spacer"></div>
+    </div>
+
+    <main class="wiki-shell" aria-label="ナレッジベース">
+      <aside class="wiki-side" aria-label="用語ナビゲーション">
+        <h2>目次</h2>
+        <input class="wiki-search" id="wikiSearch" type="search" placeholder="ナレッジベース内を検索" autocomplete="off" />
+        <div class="wiki-nav-group" id="wikiFilters"></div>
+        <div class="wiki-nav-group">
+          <h2>カテゴリ</h2>
+          <div id="wikiCategories"></div>
+        </div>
+        <div class="wiki-nav-group">
+          <h2>記録</h2>
+          <a class="wiki-cat" href="knowledge_history.html"><span>学習履歴を開く</span><span class="count">→</span></a>
+        </div>
+      </aside>
+
+      <article class="wiki-main" id="wikiMain"></article>
+    </main>
+
+  </div><!-- /.main-area -->
+</div><!-- /.app-shell -->
+
+<!-- 
+  =====================================================================
+  ※警告：使い魔機能は廃止されたため、以下のUIは非表示（コメントアウト）にしています。
+  不具合や表示エラーではありませんので、絶対に再表示（コメントアウト解除）しないでください。
+  =====================================================================
+-->
+<!--
+<div class="familiar">
+  <div class="fam-body" id="famBody">😼</div>
+  <div class="fam-bubble" id="famBubble">
+    <button class="fb-close" type="button" onclick="hideFam()">✕</button>
+    <div class="fb-name" id="famName">灯</div>
+    <div id="famText"></div>
+  </div>
+</div>
+-->
+
+<div class="toast" id="toast"><strong id="toastTitle">通知</strong><span class="sub" id="toastBody"></span></div>
+
+<script src="./firebase-config.js"></script>
+<script type="module" src="./firebase-auth.js?v=1.0.5"></script>
+<script>
+/* =====================================================================
+   ナレッジベース(knowledge.html)
+   --------------------------------------------------------------------
+   ▼ データ連携(localStorage / otq: プレフィックス)
+   ・otq:knowledge:{uid}     … 理解済み用語 [{key,label,date}]
+                               corder.html の？チップと共有(双方向)
+   ・otq:activity_log:{uid}  … 活動記録 [{at,kind,title,summary,features[],memo}]
+                               kind: 'generate' | 'refine' | 'publish'
+                               memo: このページで本人が書き足すふり返り(140字)
+   ・otq:demo_memos:{uid}    … サンプル日記に書いたメモ(おためし用)
+   ・otq:demo_hidden:{uid}   … サンプル日記を消したフラグ
+   ・otq:kb_complete:{uid}   … 用語完了ボーナス受け取り済みフラグ
+   ・otq:user:{uid}          … famType(使い魔の口調)・nickname を参照
+
+   ▼ 報酬
+   ・5件完了 → +10両
+   ・全件完了 → +50両(1回だけ)
+
+   ▼ 削除の確認は confirm() を使わない
+   ・サンドボックスiframeや一部端末ではネイティブダイアログが
+     ブロックされるため、「2タップ確認」(ボタンが「ほんとに消す?」に
+     変化→もう1回タップで実行)方式にしている。
+
+   ▼ X(旧Twitter)ポスト連携 ※今はボタンのみ(グレーアウト)
+   ・将来: メモ+作品名+#じさくや を intent/tweet で投稿予定。
+     有効化するときは .x-btn の disabled を外し、
+     `https://twitter.com/intent/tweet?text=${encodeURIComponent(メモ等)}`
+     を window.open する(未成年の利用は学校・保護者の方針に従う想定)。
+
+   ▼ 用語データベース(管理者設定)
+   ・Firestore コレクション 'knowledge_terms'
+     doc: { key, label, emoji, text, category, order }
+   ・FirebaseAuthBridge.getFirestoreDocs('knowledge_terms') で取得し、
+     組み込みの DEFAULT_TERMS とマージ(同じ key はDB側を優先)。
+     admin.html に登録タブを追加すれば、ここに自動反映される。
+
+   ▼ corder.html 側に追加する接続コード(あとで貼り込み用)
+   --------------------------------------------------------------
+   function addActivityLog(kind, title, html, prompt){
+     const feats = [];
+     if(/<button/i.test(html)) feats.push('🔘 ボタン');
+     if(/<img/i.test(html)) feats.push('🖼️ 画像');
+     if(/<canvas/i.test(html)) feats.push('🎨 キャンバス');
+     if(/<input|<textarea|<select/i.test(html)) feats.push('⌨️ 入力らん');
+     if(/setInterval|setTimeout/.test(html)) feats.push('⏰ タイマー');
+     if(/@keyframes|animation/.test(html)) feats.push('✨ アニメ');
+     if(/Audio|<audio/i.test(html)) feats.push('🎵 音');
+     if(/Math\.random/.test(html)) feats.push('🎲 ランダム');
+     if(/score|スコア|点数/i.test(html)) feats.push('🏆 スコア');
+     const lines=(html.match(/\n/g)||[]).length;
+     const log = DB.get('activity_log', []);
+     log.push({
+       at: new Date().toISOString(),
+       kind,                                   // generate / refine / publish
+       title: title || (prompt||'').slice(0,24) || '無題',
+       summary: `${lines}行のコードでできたアプリ。` +
+                (prompt ? `指示:「${prompt.slice(0,40)}${prompt.length>40?'…':''}」` : ''),
+       features: feats.slice(0,6),
+       memo: '',
+     });
+     DB.set('activity_log', log.slice(-200)); // 最大200件
+   }
+   呼び出し場所:
+   ・setGeneratedApp() 内 → addActivityLog(初回?'generate':'refine', null, html, 直前の指示)
+   ・保存成功時 → addActivityLog('publish', title, state.currentHtml, '')
+   ・index.html / corder.html のヘッダーに knowledge.html へのリンク(📖)を追加
+   ===================================================================== */
+
+const $ = id => document.getElementById(id);
+
+/* ---------- DB(他ページと共通仕様) ---------- */
+const DB_PREFIX = 'otq:';
+const DB = {
+  getCurrentUid(){ return localStorage.getItem(DB_PREFIX+'current_uid') || null; },
+  resolveKey(key){
+    const isIsolated = ['user','favorites','owned_misc','liked_works','reacted_works','played_works','knowledge','hints_seen','activity_log','demo_hidden','demo_memos','kb_complete'].includes(key);
+    if(isIsolated){
+      const uid = this.getCurrentUid();
+      return uid ? `${key}:${uid}` : `${key}:guest`;
+    }
+    return key;
+  },
+  get(key,def){
+    try{
+      const v = localStorage.getItem(DB_PREFIX+this.resolveKey(key));
+      return v ? JSON.parse(v) : def;
+    }catch(e){ return def; }
+  },
+  set(key,val){
+    try{ localStorage.setItem(DB_PREFIX+this.resolveKey(key), JSON.stringify(val)); }catch(e){}
+  }
+};
+
+/* ---------- 使い魔(口調はマイページの famType に連動) ---------- */
+const FAM_TYPES = {
+  tora:  {emoji:'🏮', img:'karakuri_1.svg', name:'灯', catch:'理解しておくと、制作時に役立ちます。'},
+  robo:  {emoji:'🧮', img:'karakuri_2.svg', name:'算', catch:'記録完了。覚えておくと役立つ。'},
+  fairy: {emoji:'🎐', img:'karakuri_3.svg', name:'結', catch:'これでひとつ、かしこくなったね。'},
+  dragon:{emoji:'⚔️', img:'karakuri_4.svg', name:'武', catch:'覚えておくがよい、必ず役に立つ。'},
+  rabbit:{emoji:'🔔', img:'karakuri_5.svg', name:'鈴', catch:'理解が進むと、指示の精度も上がります。'},
+};
+function currentFam(){
+  const u = DB.get('user', {});
+  return FAM_TYPES[u.famType] || FAM_TYPES.tora;
+}
+function currentFamKey(){
+  const u = DB.get('user', {});
+  return FAM_TYPES[u.famType] ? u.famType : 'tora';
+}
+/* 使い魔アバター: 画像があれば<img>、無ければ絵文字。読み込み失敗時も絵文字にフォールバック */
+function famImg(key,size){
+  const f=FAM_TYPES[key]||FAM_TYPES.tora;
+  if(f.img){
+    return `<img src="img/${f.img}" alt="${f.name}" class="fam-img" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${f.emoji}',style:'font-size:${Math.round(size*0.85)}px;line-height:1;'}))">`;
+  }
+  return `<span style="font-size:${Math.round(size*0.85)}px;line-height:1;">${f.emoji}</span>`;
+}
+let famTimer=null;
+function famSay(html, holdMs){
+  const f = currentFam();
+  $('famBody').innerHTML = famImg(currentFamKey(), 44);
+  $('famName').textContent = '' + f.name;
+  $('famText').innerHTML = html;
+  $('famBubble').classList.add('show');
+  clearTimeout(famTimer);
+  famTimer = setTimeout(()=>$('famBubble').classList.remove('show'), holdMs||8000);
+}
+function hideFam(){ clearTimeout(famTimer); $('famBubble').classList.remove('show'); }
+window.hideFam = hideFam;
+$('famBody').addEventListener('click', ()=>{
+  famSay('ここは専用の<b>ナレッジベース</b>です。用語記事を読んで「理解済みにする」を押すと、学習状況として記録されます。すべて完了すると<b>+50両</b>の報酬があります。学習履歴にはメモも残せます。');
+});
+
+/* ---------- トースト ---------- */
+let toastTimer;
+function showToast(t,b){
+  $('toastTitle').textContent=t; $('toastBody').textContent=b;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200);
+}
+
+/* ---------- 用語データ(デフォルト50語 + Firestore上書き) ---------- */
+const DEFAULT_TERMS = [
+  /* --- きほん (9) --- */
+  {key:'prompt',  emoji:'💬', label:'指示(プロンプト)', category:'きほん',
+   text:'AIへのお願いの文章のこと。「プロンプト」ともいうよ。「何を・どうしたい」をくわしく書くほど、思いどおりのアプリに近づくんだ。'},
+  {key:'code',    emoji:'📜', label:'コード', category:'基礎',
+   text:'プログラムの中身のこと。アプリは「コード」という文字の命令で構成されています。AIはあなたの指示をコードに変換しています。'},
+  {key:'app',     emoji:'📱', label:'アプリ', category:'基礎',
+   text:'「アプリケーション」の略。誰かの役に立ったり、楽しませたりするために作られたプログラムのことです。'},
+  {key:'program', emoji:'🧩', label:'プログラム', category:'基礎',
+   text:'コンピュータへの命令を、順番どおりに書き並べたもの。コンピュータは書かれた手順に沿って高速に処理を実行します。'},
+  {key:'tabs',    emoji:'🖥️', label:'プレビューとコード', category:'基礎',
+   text:'「プレビュー」は作ったアプリを実際に動かして試せる画面です。「コードを見る」ではAIが作成したプログラムの中身を確認できます。'},
+  {key:'images',  emoji:'🖼️', label:'画像素材', category:'基礎',
+   text:'アプリの中で使える画像のこと。えらんでおくと、AIがその画像を使ったアプリを作ってくれるよ。'},
+  {key:'browser', emoji:'🌐', label:'ブラウザ', category:'基礎',
+   text:'Webページやアプリを表示するためのソフトです。Chrome、Safari、Edge などが代表例です。あなたのアプリもブラウザ上で動いています。'},
+  {key:'url',     emoji:'🔗', label:'URL', category:'基礎',
+   text:'Webページの「住所」にあたる文字列です。URLを共有すると、相手はそのページにアクセスできます。'},
+  {key:'qr',      emoji:'▦', label:'QRコード', category:'基礎',
+   text:'URLなどの情報を、カメラで読み取れる白黒の模様にしたものです。作品のQRコードを作ると、スマートフォンからすぐにアクセスできます。'},
+
+  /* --- バイブコーディング (7) --- */
+  {key:'vibe',    emoji:'🤝', label:'バイブコーディング', category:'バイブコーディング',
+   text:'AIと会話しながらアプリを作るプログラミングの進め方です。コードをすべて自分で書かなくても、「こうしたい」を言葉で伝えながら形にしていきます。'},
+  {key:'spec',    emoji:'📋', label:'要件(やりたいことリスト)', category:'バイブコーディング',
+   text:'「どんなアプリにしたいか」を整理した、やりたいことのリスト。作る前に要件をはっきりさせるほど、AIへの指示も上手になるよ。プロの開発でも一番大事な作業なんだ。'},
+  {key:'iteration',emoji:'♻️', label:'くり返し改良(イテレーション)', category:'バイブコーディング',
+   text:'「作る→ためす→直す」を何度もくり返して、少しずつ良くしていくこと。一発で完ぺきを目指すより、小さく直し続けるほうが良いものができるんだ。'},
+  {key:'feedback',emoji:'📣', label:'フィードバック', category:'バイブコーディング',
+   text:'できたものを見て「ここが良い・ここを直したい」と伝えることです。AIに伝える感想も、他者から受け取る感想も、作品改善に役立つフィードバックです。'},
+  {key:'context', emoji:'🧵', label:'コンテキスト(文脈)', category:'バイブコーディング',
+   text:'AIが覚えている「これまでの会話の流れ」のこと。前に頼んだことをふまえて答えてくれるのはコンテキストのおかげ。ただし長くなりすぎると忘れることもあるんだ。'},
+  {key:'review',  emoji:'👀', label:'レビュー', category:'バイブコーディング',
+   text:'できあがったものを確かめることです。AIが作ったコードでも、正しく動くか、問題がないかを人が確認することが重要です。'},
+  {key:'linenum', emoji:'🎯', label:'行番号', category:'バイブコーディング',
+   text:'行番号をタップすると、AIに「ここに注目して直してね」と伝えられるよ。直したい場所をしぼって伝えると、思いどおりに直りやすくなるんだ。'},
+
+  /* --- 3人チーム (6) --- */
+  {key:'html',    emoji:'🦴', label:'HTML', category:'3人チーム',
+   text:'アプリの構造を作る言語です。ボタンや文字をどこに配置するかを決めるのがHTMLの役割です。'},
+  {key:'css',     emoji:'🎨', label:'CSS', category:'3人チーム',
+   text:'見た目を整える言語です。色・大きさ・形・装飾はCSSで指定します。「ボタンをピンクにして」と頼むと、AIは主にCSSを書き換えます。'},
+  {key:'js',      emoji:'⚡', label:'JS(JavaScript)', category:'3人チーム',
+   text:'動きを担当する言語です。「ボタンを押したら色が変わる」などの反応や、ゲームの点数計算などを処理します。'},
+  {key:'tag',     emoji:'🏷️', label:'タグ', category:'3人チーム',
+   text:'HTMLの部品を表す < > のしるし。たとえば &lt;button&gt; はボタン、&lt;img&gt; は画像。コードを見るとたくさん見つかるよ。'},
+  {key:'font',    emoji:'✒️', label:'フォント', category:'3人チーム',
+   text:'文字のデザインのこと。まるっこい字、かっちりした字、手書きふうの字…フォントを変えるだけでアプリの雰囲気がガラッと変わるよ。'},
+  {key:'pixel',   emoji:'🔲', label:'ピクセル(px)', category:'3人チーム',
+   text:'画面を作っている小さな点のこと。「文字を20pxに」のように、大きさの単位としても使うよ。画面はピクセルの集まりでできているんだ。'},
+
+  /* --- 動きの仕組み (6) --- */
+  {key:'variable',emoji:'📦', label:'変数', category:'動きの仕組み',
+   text:'数や言葉を入れておく「箱」のこと。たとえばゲームの点数は「score」という箱に入れて、増やしたり表示したりしているんだ。'},
+  {key:'function',emoji:'🛠️', label:'関数', category:'動きの仕組み',
+   text:'よく使う命令のまとまりに名前を付けたもの。「おみくじを引く」をひとつの関数にしておけば、何回でもかんたんに呼び出せるんだ。'},
+  {key:'if',      emoji:'🔀', label:'条件分岐(もしも)', category:'動きの仕組み',
+   text:'「もし〜なら、こうする」という命令。「もし点数が100以上なら、クリア画面を出す」みたいに、プログラムが考えて動きを変えられるのはこれのおかげ。'},
+  {key:'loop',    emoji:'🔁', label:'くり返し(ループ)', category:'動きの仕組み',
+   text:'同じ命令を何度もくり返すしくみ。「星を100個ならべて」も、人間なら大変だけどプログラムはループで一瞬でやってしまうんだ。'},
+  {key:'event',   emoji:'👆', label:'イベント', category:'動きの仕組み',
+   text:'「ボタンを押した」「画面をさわった」みたいな出来事のこと。プログラムはイベントをきっかけに動き出すよ。'},
+  {key:'random',  emoji:'🎲', label:'ランダム', category:'動きの仕組み',
+   text:'サイコロのように、結果が毎回変わる仕組みです。おみくじやガチャ、敵の動きなど、ゲームの意外性はランダムで作られることがあります。'},
+
+  /* --- なおす (5) --- */
+  {key:'lock',    emoji:'🔒', label:'ロック', category:'なおす',
+   text:'「この行は変えないで」とAIにお願いする鍵のこと。気に入った部分を守ったまま、ほかの場所を直してもらえるよ。'},
+  {key:'bug',     emoji:'🐛', label:'バグ', category:'なおす',
+   text:'プログラムの「思いどおりに動かないところ」のこと。昔、本物の虫(バグ)がコンピュータにはさまって故障したのが名前の由来なんだって。'},
+  {key:'debug',   emoji:'🔍', label:'デバッグ', category:'なおす',
+   text:'バグ(思いどおりに動かないところ)を見つけて直すことです。プロのプログラマーも仕事時間の多くをデバッグに使います。'},
+  {key:'error',   emoji:'⚠️', label:'エラー', category:'なおす',
+   text:'プログラムが「ここがわからないよ!」と教えてくれるメッセージのこと。エラーはこわいものじゃなくて、直す場所を教えてくれるヒントなんだ。'},
+  {key:'reload',  emoji:'🔄', label:'リロード', category:'なおす',
+   text:'ページやアプリを最初から読み込み直すことです。動きがおかしくなったら、まずリロードしてみるのは基本的な確認方法です。'},
+
+  /* --- AIモデル (6) --- */
+  {key:'model',   emoji:'🤖', label:'AIモデル', category:'AIモデル',
+   text:'学習を終えたAIの「本体」のこと。GeminiやGPTなどいろいろなモデルがあって、それぞれ得意なことや性格(クセ)がちがうんだ。'},
+  {key:'llm',     emoji:'🦾', label:'LLM(大規模言語モデル)', category:'AIモデル',
+   text:'大量の文章を学習した、言語を扱うAIモデルです。Large Language Model の略で、会話しながらコードを書いてくれるAIもLLMの一種です。'},
+  {key:'ml',      emoji:'🎓', label:'機械学習', category:'AIモデル',
+   text:'コンピュータが、たくさんの例(データ)からルールやパターンを自分で見つけ出すしくみ。人間が全部ルールを書かなくても、AIが「学ぶ」のはこのおかげ。'},
+  {key:'deep',    emoji:'🕸️', label:'ディープラーニング', category:'AIモデル',
+   text:'人間の脳の神経のつながりをまねた「ニューラルネットワーク」を何層も重ねて学習する方法。いまのAIブームはこの技術から始まったんだ。'},
+  {key:'token',   emoji:'🔤', label:'トークン', category:'AIモデル',
+   text:'AIが言葉を読むときの「ひとかたまり」の単位。AIは文章をトークンに区切って、次に来るトークンを予想しながら答えを作っているんだ。'},
+  {key:'traindata',emoji:'📊', label:'学習データ', category:'AIモデル',
+   text:'AIが学ぶために使う、たくさんの文章や画像などのこと。AIのかしこさは学習データしだい。だからデータにかたよりがあると、AIの答えもかたよるんだ。'},
+
+  /* --- 生成AI (6) --- */
+  {key:'ai',      emoji:'🧠', label:'生成AI', category:'生成AI',
+   text:'文章やコード、絵などを新しく作り出せるAIのこと。たくさんのデータからパターンを学んでいるよ。ただし間違うこともあるから、出てきたものを確かめるのは人間の仕事!'},
+  {key:'chatai',  emoji:'🗨️', label:'対話型AI(チャットAI)', category:'生成AI',
+   text:'会話のやりとりで使える生成AIのこと。質問したり、お願いしたり、続けて直してもらったり。バイブコーディングは対話型AIとの共同作業なんだ。'},
+  {key:'imggen',  emoji:'🖌️', label:'画像生成AI', category:'生成AI',
+   text:'言葉で説明すると画像を生成するAIです。便利ですが、人の作品に似すぎていないか、使ってよい場面かを考えることも重要です。'},
+  {key:'hallucination',emoji:'💭', label:'ハルシネーション', category:'生成AI',
+   text:'AIが、本当ではないことを「もっともらしく」答えてしまうこと。AIは自信たっぷりに間違えることがあるから、大事なことは必ず自分でも確かめよう。'},
+  {key:'api',     emoji:'🔌', label:'API', category:'生成AI',
+   text:'プログラム同士をつなぐ窓口のことです。このサイトもAPIを通じてAIにアプリ生成を指示しています。'},
+  {key:'ailiteracy',emoji:'🧭', label:'AIとのつきあい方', category:'生成AI',
+   text:'AIは強力な道具ですが、間違えることや偏ることもあります。「うのみにしない」「最後は自分で決める」「作ったものに責任を持つ」ことが重要です。'},
+
+  /* --- あんぜん (5) --- */
+  {key:'iframe',  emoji:'🛡️', label:'サンドボックス', category:'あんぜん',
+   text:'作ったアプリを「安全な砂場(サンドボックス)」の中で動かすしくみ。もしへんな動きをしても、サイト全体に影響しないように守られているんだ。'},
+  {key:'account', emoji:'🪪', label:'アカウント', category:'あんぜん',
+   text:'サービスを使うときの「自分専用の入口」のこと。アカウントがあるから、作品や両が自分のものとして保存されるんだ。'},
+  {key:'password',emoji:'🔑', label:'パスワード', category:'あんぜん',
+   text:'アカウントを守る重要な鍵です。友人にも教えないこと。同じパスワードの使い回しも危険です。'},
+  {key:'privacy', emoji:'🤫', label:'個人情報', category:'あんぜん',
+   text:'本名・住所・学校名・顔写真など、自分が誰か特定できる情報のことです。作品やニックネームには入れないようにします。'},
+  {key:'copyright',emoji:'📚', label:'著作権', category:'あんぜん',
+   text:'作った人が持つ「その作品は私のもの」という権利です。他人のイラストや音楽を勝手に使ってはいけない理由にもなります。あなたの作品にも著作権があります。'},
+
+  /* --- はかせ (6) --- */
+  {key:'server',  emoji:'🗄️', label:'サーバー', category:'はかせ',
+   text:'作品やデータを保管し、必要に応じて届けるコンピュータです。公開した作品もサーバーに保存されています。'},
+  {key:'cloud',   emoji:'☁️', label:'クラウド', category:'はかせ',
+   text:'インターネットの向こう側にあるサーバーにデータを置いておくしくみ。どのタブレットから開いても自分のデータが使えるのはクラウドのおかげ。'},
+  {key:'database',emoji:'🗃️', label:'データベース', category:'はかせ',
+   text:'たくさんのデータを、あとから探しやすいように整理してしまっておく場所。このひろばの作品・いいね・両もデータベースで管理されているんだ。'},
+  {key:'frontend',emoji:'🎭', label:'フロントエンド', category:'はかせ',
+   text:'アプリの利用者に見える側のことです。画面・ボタン・動きなど、使う人が直接操作する部分を指します。HTML/CSS/JSで作る画面はフロントエンドです。'},
+  {key:'backend', emoji:'⚙️', label:'バックエンド', category:'はかせ',
+   text:'アプリの「見えない側」のこと。サーバーの中でデータを保存したり、AIを呼んだりする裏方の仕事。フロントエンドとペアでアプリは動いているんだ。'},
+  {key:'opensource',emoji:'🎁', label:'オープンソース', category:'はかせ',
+   text:'コードを誰でも見られて、使えるように公開することです。世界中の開発者が協力して良いものを作る文化でもあります。多くの技術がオープンソースとして公開されています。'},
+];
+let TERMS = [...DEFAULT_TERMS];
+let selectedTermKey = TERMS[0]?.key || '';
+let activeCategory = 'all';
+let activeFilter = 'all';
+let searchQuery = '';
+
+async function loadTermsFromDB(){
+  if(!window.FirebaseAuthBridge?.isConfigured) return;
+  try{
+    const docs = await window.FirebaseAuthBridge.getFirestoreDocs('knowledge_terms');
+    if(docs && docs.length){
+      const map = new Map(DEFAULT_TERMS.map(t=>[t.key,t]));
+      docs.forEach(d=>{
+        if(d.key && d.label && d.text){
+          map.set(d.key, {key:d.key, emoji:d.emoji||'🏷️', label:d.label, category:d.category||'その他', text:d.text, order:d.order});
+        }
+      });
+      TERMS = [...map.values()].sort((a,b)=>(a.order??999)-(b.order??999));
+      if(!TERMS.some(t=>t.key===selectedTermKey)) selectedTermKey = TERMS[0]?.key || '';
+      renderWiki();
+    }
+  }catch(e){ console.warn('knowledge_terms の読み込みに失敗(デフォルト用語を使用):', e); }
+}
+
+/* ---------- 理解済み用語 ---------- */
+let knowledge = DB.get('knowledge', []);
+function isLearned(key){ return knowledge.some(k=>k.key===key); }
+function learnTerm(term){
+  if(isLearned(term.key)) return false;
+  knowledge.push({key:term.key, label:term.label, date:new Date().toISOString()});
+  DB.set('knowledge', knowledge);
+
+  // 報酬1: 5件完了で +10両
+  if(knowledge.length===5){
+    addCoins(10);
+    showToast('📖 用語を5件理解済みにしました','報酬として +10両を獲得しました。');
+  }
+  // 報酬2: 全件完了で +50両(1回だけ)
+  if(TERMS.length && TERMS.every(t=>isLearned(t.key)) && !DB.get('kb_complete', false)){
+    DB.set('kb_complete', true);
+    addCoins(50);
+    showToast('👑 用語をすべて理解済みにしました',`全${TERMS.length}件の用語を完了しました。報酬として +50両を獲得しました。`);
+    setTimeout(()=>{
+      famSay(`<b>👑 全用語を完了しました。</b> ナレッジベースの理解が進んでいます。<b>+50両</b>を受け取りました。`, 12000);
+    }, 600);
+  }
+  return true;
+}
+function addCoins(n){
+  const u = DB.get('user', {});
+  u.coins = (u.coins||0)+n;
+  DB.set('user', u);
+}
+
+/* ---------- 活動記録 ---------- */
+function loadActivityLog(){
+  const stored = DB.get('activity_log', []);
+  // 元配列での位置を _i として持たせる(削除・メモ編集に使う)
+  const log = stored.map((e,i)=>({...e, _i:i}));
+  if(log.length) return log;
+
+  // 本物の記録もサンプル非表示フラグもないときだけ、サンプルを見せる
+  if(DB.get('demo_hidden', false)) return [];
+  const demoMemos = DB.get('demo_memos', {}); // サンプルへのおためしメモ
+  const today = new Date();
+  const d1 = new Date(today); d1.setDate(d1.getDate()-1); d1.setHours(10,12,0,0);
+  const d2 = new Date(today); d2.setDate(d2.getDate()-1); d2.setHours(10,40,0,0);
+  const d3 = new Date(today); d3.setHours(14,25,0,0);
+  const demos = [
+    {at:d1.toISOString(), kind:'generate', demo:true, _i:-1, title:'おみくじアプリ',
+     summary:'42行のコードでできたアプリ。指示:「ボタンを押すとおみくじが引けるアプリを作って」',
+     features:['🔘 ボタン','🎲 ランダム','✨ アニメ']},
+    {at:d2.toISOString(), kind:'refine', demo:true, _i:-2, title:'おみくじアプリ(修正)',
+     summary:'背景の色をかえて、大吉のときに紙ふぶきが出るようにした。',
+     features:['🎨 キャンバス','✨ アニメ'],
+     memo:'「大吉のときだけ」って伝えるのがむずかしかった。条件分岐ってやつかも。'},
+    {at:d3.toISOString(), kind:'publish', demo:true, _i:-3, title:'うんめいのおみくじ',
+     summary:'ギャラリー「じさくや」に公開した!',
+     features:['🏆 スコア']},
+  ];
+  // おためしメモがあれば上書き
+  demos.forEach(d=>{ if(demoMemos[d._i] !== undefined) d.memo = demoMemos[d._i]; });
+  return demos;
+}
+
+/* ---------- きろくを消す(2タップ確認・ダイアログ不使用) ----------
+   1回目: ボタンが「本当に消す?」に変化(3秒で元に戻る)
+   2回目: 削除を実行 */
+let armTimer=null;
+window.armDelete = function(btn, i, isDemo){
+  if(btn.classList.contains('arm')){
+    doDelete(i, isDemo);
+    return;
+  }
+  // 他のボタンの確認状態は解除
+  document.querySelectorAll('.entry-del.arm').forEach(b=>{ b.classList.remove('arm'); b.textContent='✕'; });
+  btn.classList.add('arm');
+  btn.textContent = isDemo ? 'サンプルを全部消す?' : 'ほんとに消す?';
+  clearTimeout(armTimer);
+  armTimer = setTimeout(()=>{ btn.classList.remove('arm'); btn.textContent='✕'; }, 3000);
+};
+function doDelete(i, isDemo){
+  if(isDemo){
+    DB.set('demo_hidden', true);
+    DB.set('demo_memos', {});
+  }else{
+    const stored = DB.get('activity_log', []);
+    stored.splice(i, 1);
+    DB.set('activity_log', stored);
+  }
+  renderWiki();
+  showToast('🗑️ 記録を削除しました','ナレッジベースを整理しました。');
+}
+
+/* ---------- メモ(ふり返り)の編集 ----------
+   本物のきろく → activity_log の memo に保存
+   サンプル     → demo_memos におためし保存(本物の記録ができたら消える) */
+function getMemoValue(i, isDemo){
+  if(isDemo){
+    const dm = DB.get('demo_memos', {});
+    if(dm[i] !== undefined) return dm[i];
+    // 組み込みサンプルの初期メモ
+    return i === -2 ? '「大吉のときだけ」って伝えるのがむずかしかった。条件分岐ってやつかも。' : '';
+  }
+  const stored = DB.get('activity_log', []);
+  return stored[i]?.memo || '';
+}
+window.editMemo = function(i, isDemo){
+  const box = $('memo-'+i);
+  if(!box) return;
+  const cur = getMemoValue(i, isDemo);
+  box.innerHTML = `<div class="memo-edit" style="flex:1;min-width:0;">
+      <textarea id="memoTa-${i}" maxlength="140" placeholder="きょうの気づき・くふうしたこと(140字まで)">${escHtml(cur)}</textarea>
+      <div class="memo-actions">
+        <button class="save" type="button" onclick="saveMemo(${i}, ${isDemo?'true':'false'})">💾 保存</button>
+        <button type="button" onclick="cancelMemo()">やめる</button>
+        <span class="memo-counter"><span id="memoCount-${i}">${cur.length}</span>/140</span>
+      </div>
+    </div>`;
+  const ta = $('memoTa-'+i);
+  ta.addEventListener('input', ()=>{ $('memoCount-'+i).textContent = ta.value.length; });
+  ta.focus();
+};
+window.saveMemo = function(i, isDemo){
+  const ta = $('memoTa-'+i);
+  if(!ta) return;
+  const val = ta.value.trim();
+  if(isDemo){
+    const dm = DB.get('demo_memos', {});
+    dm[i] = val;
+    DB.set('demo_memos', dm);
+  }else{
+    const stored = DB.get('activity_log', []);
+    if(!stored[i]) return;
+    stored[i].memo = val;
+    DB.set('activity_log', stored);
+  }
+  renderWiki();
+  showToast('📝 メモを保存しました','ナレッジベースに書き込みました。');
+};
+window.cancelMemo = function(){ renderWiki(); };
+
+/* 時刻を「10時ごろ」「14時半ごろ」に丸める */
+function aboutTime(iso){
+  const d = new Date(iso);
+  let h = d.getHours(); const m = d.getMinutes();
+  if(m < 15) return `${h}時ごろ`;
+  if(m < 45) return `${h}時半ごろ`;
+  return `${(h+1)%24}時ごろ`;
+}
+function dateLabel(iso){
+  const d = new Date(iso);
+  const youbi = ['日','月','火','水','木','金','土'][d.getDay()];
+  return `${d.getMonth()+1}月${d.getDate()}日(${youbi})`;
+}
+function dateKey(iso){ const d=new Date(iso); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+
+/* ---------- Wikipedia風ビュー ---------- */
+function categories(){
+  return [...new Set(TERMS.map(t=>t.category || 'その他'))];
+}
+function filteredTerms(){
+  const q = searchQuery.trim().toLowerCase();
+  return TERMS.filter(t=>{
+    if(activeCategory !== 'all' && (t.category || 'その他') !== activeCategory) return false;
+    if(activeFilter === 'learned' && !isLearned(t.key)) return false;
+    if(activeFilter === 'unlearned' && isLearned(t.key)) return false;
+    if(q){
+      const hay = `${t.label} ${t.category || ''} ${t.text || ''}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function selectedTerm(){
+  return TERMS.find(t=>t.key===selectedTermKey) || TERMS[0] || null;
+}
+function learnedRecord(key){
+  return knowledge.find(k=>k.key===key) || null;
+}
+window.selectWikiTerm = function(key){
+  selectedTermKey = key;
+  renderWiki();
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+window.setWikiCategory = function(cat){
+  activeCategory = cat;
+  const list = filteredTerms();
+  if(list.length) selectedTermKey = list[0].key;
+  renderWiki();
+};
+window.setWikiFilter = function(filter){
+  activeFilter = filter;
+  const list = filteredTerms();
+  if(list.length) selectedTermKey = list[0].key;
+  renderWiki();
+};
+function renderWiki(){
+  knowledge = DB.get('knowledge', []);
+  const u = DB.get('user', {});
+  if($('sideAccountName')) $('sideAccountName').textContent = u.nickname || 'ゲスト';
+  if($('coinVal')) $('coinVal').textContent = u.coins || 0;
+
+  const visibleTerms = filteredTerms();
+  if(visibleTerms.length && !visibleTerms.some(t=>t.key===selectedTermKey)){
+    selectedTermKey = visibleTerms[0].key;
+  }
+  const term = selectedTerm();
+  renderWikiSidebar(visibleTerms);
+  renderWikiArticle(term, visibleTerms);
+}
+function renderWikiSidebar(visibleTerms){
+  const allCount = TERMS.length;
+  const learnedCount = TERMS.filter(t=>isLearned(t.key)).length;
+  $('wikiFilters').innerHTML = `
+    <h2>表示</h2>
+    <button class="wiki-filter ${activeFilter==='all'?'active':''}" type="button" onclick="setWikiFilter('all')"><span>すべて</span><span>${allCount}</span></button>
+    <button class="wiki-filter ${activeFilter==='learned'?'active':''}" type="button" onclick="setWikiFilter('learned')"><span>理解済み</span><span>${learnedCount}</span></button>
+    <button class="wiki-filter ${activeFilter==='unlearned'?'active':''}" type="button" onclick="setWikiFilter('unlearned')"><span>これから</span><span>${allCount-learnedCount}</span></button>
+    <div class="wiki-progress" title="${learnedCount}/${allCount}"><span style="width:${allCount ? Math.round(learnedCount/allCount*100) : 0}%"></span></div>`;
+
+  const catHtml = [`<button class="wiki-cat ${activeCategory==='all'?'active':''}" type="button" onclick="setWikiCategory('all')"><span>すべての記事</span><span class="count">${TERMS.length}</span></button>`];
+  categories().forEach(cat=>{
+    const count = TERMS.filter(t=>(t.category || 'その他')===cat).length;
+    catHtml.push(`<button class="wiki-cat ${activeCategory===cat?'active':''}" type="button" onclick="setWikiCategory('${escJs(cat)}')"><span>${escHtml(cat)}</span><span class="count">${count}</span></button>`);
+  });
+  $('wikiCategories').innerHTML = catHtml.join('');
+
+  const input = $('wikiSearch');
+  if(input && input.value !== searchQuery) input.value = searchQuery;
+}
+function renderWikiArticle(term, visibleTerms){
+  if(!term){
+    $('wikiMain').innerHTML = `<div class="wiki-empty">表示できる用語がありません。検索条件を変えてください。</div>`;
+    return;
+  }
+  const learned = isLearned(term.key);
+  const related = TERMS
+    .filter(t=>t.key!==term.key && (t.category || 'その他') === (term.category || 'その他'))
+    .slice(0,6);
+  const visibleListHtml = visibleTerms.length
+    ? visibleTerms.map(t=>wikiTermLinkHtml(t)).join('')
+    : `<div class="wiki-empty">条件に合う用語がありません。</div>`;
+  const learnedHtml = learned
+    ? `<span class="wiki-learned">✓ 理解済み</span>`
+    : `<button class="wiki-learn-btn primary" type="button" onclick="memorizeTerm('${escJs(term.key)}')">理解済みにする</button>`;
+  $('wikiMain').innerHTML = `
+    <div class="wiki-title-row">
+      <h1 class="wiki-title">${escHtml(term.label)}</h1>
+      <div class="wiki-actions">${learnedHtml}</div>
+    </div>
+    <p class="wiki-subtitle">じさくやナレッジベースの記事。カテゴリ: ${escHtml(term.category || 'その他')}</p>
+    <nav class="wiki-toc" aria-label="記事目次">
+      <b>目次</b>
+      <a href="#wiki-summary">1 概要</a>
+      <a href="#wiki-use">2 使う場面</a>
+      <a href="#wiki-related">3 関連する用語</a>
+      <a href="#wiki-list">4 用語一覧</a>
+      <a href="knowledge_history.html">5 学習履歴</a>
+    </nav>
+    <section class="wiki-section" id="wiki-summary">
+      <h2>概要</h2>
+      <p>${escHtml(term.text)}</p>
+    </section>
+    <section class="wiki-section" id="wiki-use">
+      <h2>使う場面</h2>
+      <p>この用語は、AIにアプリ制作を指示するとき、できたものを修正するとき、または作品を安全に公開するときに役立ちます。意味を知っておくと、AIへの指示や自分の振り返りが具体的になります。</p>
+    </section>
+    <section class="wiki-section" id="wiki-related">
+      <h2>関連する用語</h2>
+      ${related.length ? `<ul>${related.map(t=>`<li><button class="wiki-related" type="button" onclick="selectWikiTerm('${escJs(t.key)}')">${escHtml(t.label)}</button></li>`).join('')}</ul>` : '<p>同じカテゴリの関連語はまだありません。</p>'}
+    </section>
+    <section class="wiki-section" id="wiki-list">
+      <h2>用語一覧</h2>
+      <div class="wiki-term-list">${visibleListHtml}</div>
+    </section>`;
+}
+function renderWikiInfobox(term){
+  if(!term){
+    $('wikiInfobox').innerHTML = '';
+    return;
+  }
+  const rec = learnedRecord(term.key);
+  const learnedCount = TERMS.filter(t=>isLearned(t.key)).length;
+  const related = TERMS
+    .filter(t=>t.key!==term.key && (t.category || 'その他') === (term.category || 'その他'))
+    .slice(0,4);
+  $('wikiInfobox').innerHTML = `
+    <h2>${escHtml(term.label)}</h2>
+    <div class="wiki-info-hero">${term.emoji || '🏷️'}</div>
+    <div class="wiki-info-row"><b>カテゴリ</b><span>${escHtml(term.category || 'その他')}</span></div>
+    <div class="wiki-info-row"><b>状態</b><span>${rec ? '理解済み' : '未完了'}</span></div>
+    <div class="wiki-info-row"><b>学習日</b><span>${rec ? dateLabel(rec.date) : '-'}</span></div>
+    <div class="wiki-info-row"><b>進捗</b><span>${learnedCount}/${TERMS.length}</span></div>
+    <div class="wiki-info-row"><b>関連語</b><span class="wiki-related">${related.map(t=>`<button type="button" onclick="selectWikiTerm('${escJs(t.key)}')">${escHtml(t.label)}</button>`).join(' / ') || '-'}</span></div>`;
+}
+function wikiTermLinkHtml(t){
+  return `<button class="wiki-term-link ${t.key===selectedTermKey?'active':''} ${isLearned(t.key)?'learned':''}" type="button" onclick="selectWikiTerm('${escJs(t.key)}')"><span>${t.emoji || '🏷️'}</span><span>${escHtml(t.label)}</span></button>`;
+}
+function wikiHistoryHtml(){
+  const log = loadActivityLog().sort((a,b)=>b.at.localeCompare(a.at)).slice(0,8);
+  if(!log.length){
+    return `<div class="wiki-empty">まだ学習履歴がありません。アプリ制作や用語学習を進めると、ここに記録されます。</div>`;
+  }
+  return `<div class="wiki-history">${log.map(wikiEntryHtml).join('')}</div>`;
+}
+function wikiEntryHtml(e){
+  const kindLbl = {generate:'つくった', refine:'なおした', publish:'公開した'}[e.kind] || 'メモ';
+  const demoFlag = e.demo ? 'true' : 'false';
+  const memo = getMemoValue(e._i, !!e.demo);
+  return `<div class="wiki-entry">
+    <button class="entry-del" type="button" title="このきろくを消す" onclick="armDelete(this, ${e._i}, ${demoFlag})">✕</button>
+    <div class="wiki-entry-meta">${dateLabel(e.at)} ${aboutTime(e.at)} / ${kindLbl}${e.demo?' / サンプル':''}</div>
+    <h3>${escHtml(e.title || '無題')}</h3>
+    <p>${escHtml(e.summary || '')}</p>
+    ${(e.features&&e.features.length)?`<p>${e.features.map(escHtml).join(' / ')}</p>`:''}
+    <div class="wiki-memo-area" id="memo-${e._i}">
+      ${memo
+        ? `<div class="entry-memo">📝 ${escHtml(memo)} <button class="memo-mini" type="button" title="メモを書きなおす" onclick="editMemo(${e._i}, ${demoFlag})">✏️</button></div>`
+        : `<button class="memo-add" type="button" onclick="editMemo(${e._i}, ${demoFlag})">✏️ メモをかく</button>`}
+    </div>
+  </div>`;
+}
+function escJs(s){
+  return String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+/* ---------- ページ構築 ----------
+   pages = [{chapter:'cover'|'terms'|'diary', html, footL, footR}] */
+let pages = [];
+let pageIndex = 0;
+const TERMS_PER_PAGE = 6;
+const ENTRIES_PER_PAGE = 3; // メモ欄が増えた分、1ページ3件に(多い日は「つづき」へ)
+
+function buildPages(){
+  pages = [];
+  knowledge = DB.get('knowledge', []); // 最新を読み直す
+
+  // --- 表紙 ---
+  const log = loadActivityLog();
+  const realLog = log.filter(e=>!e.demo);
+  const days = new Set(realLog.map(e=>dateKey(e.at))).size;
+  const u = DB.get('user', {});
+  const complete = TERMS.length && knowledge.length >= TERMS.length;
+  pages.push({
+    chapter:'cover',
+    html:`<div class="cover-inner">
+      <div class="belt">📖 ナレッジベース</div>
+      <div class="owner">👤 ${escHtml(u.nickname || 'ゲスト')} の学習記録 ${complete?'👑':''}</div>
+      <div class="cover-stats">
+        <div class="cover-stat"><div class="v">${knowledge.length}<span style="font-size:13px">/${TERMS.length}</span></div><div class="k">理解済み用語</div></div>
+        <div class="cover-stat"><div class="v">${days}</div><div class="k">記録した日</div></div>
+        <div class="cover-stat"><div class="v">${realLog.filter(e=>e.kind==='publish').length}</div><div class="k">公開した作品</div></div>
+      </div>
+      <div class="cover-hint">${complete?'👑 すべての用語を完了済みです':'すべての用語を完了すると +50両'}<br/>「次 ▶」または右のしおりでページを移動できます。</div>
+    </div>`,
+    footL:'', footR:''
+  });
+
+  // --- 用語ページ ---
+  for(let i=0; i<TERMS.length; i+=TERMS_PER_PAGE){
+    const chunk = TERMS.slice(i, i+TERMS_PER_PAGE);
+    const pageNo = Math.floor(i/TERMS_PER_PAGE)+1;
+    const totalP = Math.ceil(TERMS.length/TERMS_PER_PAGE);
+    pages.push({
+      chapter:'terms',
+      html:`<h2 class="ch-title">🏷️ 用語ページ <span style="font-size:12px;color:var(--muted);font-family:var(--font-body)">(${pageNo}/${totalP})</span></h2>
+        <p class="ch-sub">用語を選択し、説明を読んだら「理解済みにする」を押してください。<span id="learnCount-${pageNo}">${knowledge.length}</span>/${TERMS.length} 件完了(5件で+10 / すべてで+50両)</p>
+        <div class="term-grid">${chunk.map(termCardHtml).join('')}</div>`,
+      footL:'第1章 用語', footR:''
+    });
+  }
+
+  // --- きろくのページ(日付ごと・3件ずつで「つづき」ページ) ---
+  const byDay = new Map();
+  log.forEach(e=>{
+    const k = dateKey(e.at);
+    if(!byDay.has(k)) byDay.set(k, []);
+    byDay.get(k).push(e);
+  });
+  const dayKeys = [...byDay.keys()].sort().reverse();
+
+  if(!dayKeys.length){
+    pages.push({
+      chapter:'diary',
+      html:`<h2 class="ch-title">📔 記録ページ</h2>
+        <div class="empty-page"><div class="big">🪄</div>
+        まだ記録がありません。<br/><a href="corder.html">体験ページ</a>でアプリを制作すると、<br/>ここに活動履歴が保存されます。</div>`,
+      footL:'第2章 記録', footR:''
+    });
+  } else {
+    let dayNo = 0;
+    dayKeys.forEach(k=>{
+      dayNo++;
+      const entries = byDay.get(k).sort((a,b)=>a.at.localeCompare(b.at));
+      const isDemo = entries.some(e=>e.demo);
+      const learnedThatDay = knowledge.filter(x=>dateKey(x.date)===k).map(x=>x.label);
+
+      for(let i=0; i<entries.length; i+=ENTRIES_PER_PAGE){
+        const chunk = entries.slice(i, i+ENTRIES_PER_PAGE);
+        const isFirst = i===0;
+        const isLast = i+ENTRIES_PER_PAGE >= entries.length;
+        pages.push({
+          chapter:'diary',
+          html:`<h2 class="ch-title">📔 記録ページ</h2>
+            <div class="diary-date">${dateLabel(entries[0].at)}
+              ${!isFirst?'<span class="cont">(つづき)</span>':''}
+              ${isDemo&&isFirst?'<span class="demo">※これはサンプルです(メモの試用可)</span>':''}
+            </div>
+            ${chunk.map(entryHtml).join('')}
+            ${(isLast && learnedThatDay.length)?`<div class="diary-learn">📖 この日に理解済みにした用語: ${learnedThatDay.map(escHtml).join('、')}</div>`:''}`,
+          footL:'第2章 記録', footR:`${dayNo}日目/${dayKeys.length}日`
+        });
+      }
+    });
+  }
+}
+
+function termCardHtml(t){
+  const learned = isLearned(t.key);
+  return `<div class="term" id="term-${t.key}">
+    <div class="term-hd" onclick="openTerm('${t.key}')">
+      <span class="emoji">${t.emoji}</span>
+      <span class="lbl">${escHtml(t.label)}<br/><span class="cat">${escHtml(t.category||'')}</span></span>
+      <button class="qchip ${learned?'learned':''}" type="button" onclick="event.stopPropagation();openTerm('${t.key}')"></button>
+    </div>
+    <div class="term-bd">${t.text}${learned
+      ?'<br/><span class="got">✓ 理解済み</span>'
+      :`<button class="memorize-btn" type="button" onclick="memorizeTerm('${t.key}')">理解済みにする</button>`}</div>
+  </div>`;
+}
+
+function entryHtml(e){
+  const kindLbl = {generate:'✨ つくった', refine:'🔧 なおした', publish:'🏆 公開した'}[e.kind] || '📝 メモ';
+  const demoFlag = e.demo ? 'true' : 'false';
+  /* メモ欄: サンプルにも書ける(おためし保存)。本物の記録は activity_log に保存 */
+  const memoBlock = `<div class="entry-actions" id="memo-${e._i}">
+    ${e.memo
+      ? `<div class="entry-memo">📝 ${escHtml(e.memo)}<button class="memo-mini" type="button" title="メモを書きなおす" onclick="editMemo(${e._i}, ${demoFlag})">✏️</button></div>`
+      : `<button class="memo-add" type="button" onclick="editMemo(${e._i}, ${demoFlag})">✏️ メモをかく</button>`}
+    <button class="x-btn" type="button" disabled title="じゅんび中: メモといっしょにポストできるようになる予定">𝕏 ポスト(じゅんび中)</button>
+  </div>`;
+  return `<div class="entry">
+    <button class="entry-del" type="button" title="このきろくを消す" onclick="armDelete(this, ${e._i}, ${demoFlag})">✕</button>
+    <div class="entry-top">
+      <span class="entry-time">🕐 ${aboutTime(e.at)}</span>
+      <span class="entry-kind ${e.kind}">${kindLbl}</span>
+    </div>
+    <div class="entry-title">${escHtml(e.title||'無題')}</div>
+    <div class="entry-summary">${escHtml(e.summary||'')}</div>
+    ${(e.features&&e.features.length)?`<div class="entry-feats">${e.features.map(f=>`<span class="feat">${escHtml(f)}</span>`).join('')}</div>`:''}
+    ${memoBlock}
+  </div>`;
+}
+
+function escHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+/* ---------- 用語を開く(読むだけ。記録は別アクション) ---------- */
+window.openTerm = function(key){
+  const el = $('term-'+key);
+  if(!el) return;
+  const wasOpen = el.classList.contains('open');
+  // 同じページの他カードは閉じる(本のスペースを守る)
+  document.querySelectorAll('.term.open').forEach(x=>x.classList.remove('open'));
+  if(!wasOpen) el.classList.add('open');
+};
+
+/* ---------- 「理解済みにする」を押す(能動アクションで初めて記録) ---------- */
+window.memorizeTerm = function(key){
+  const t = TERMS.find(x=>x.key===key);
+  if(!t || isLearned(key)) return;
+  learnTerm(t);
+  renderWiki();
+
+  // 完全制覇の演出は learnTerm 側で出るので、ふだんはひとこと
+  if(knowledge.length < TERMS.length){
+    const f = currentFam();
+    famSay(`<b>${t.emoji} ${escHtml(t.label)}</b>をナレッジベースに記録しました。<span style="color:var(--good)">${f.catch}</span>(${knowledge.length}/${TERMS.length}件)`, 6000);
+  }
+};
+
+/* ---------- ページめくり ---------- */
+function renderPage(animate, dir){
+  const p = pages[pageIndex];
+  const pageEl = $('page');
+
+  const apply = ()=>{
+    pageEl.innerHTML = p.html + `<div class="page-foot"><span>${p.footL||''}</span><span>${p.footR || (pageIndex>0 ? `- ${pageIndex} -` : '')}</span></div>`;
+    // しおりのアクティブ表示
+    ['Cover','Terms','Diary'].forEach(n=>$('bm'+n).classList.remove('active'));
+    $('bm' + p.chapter.charAt(0).toUpperCase() + p.chapter.slice(1)).classList.add('active');
+    // ページャ
+    $('pgPrev').disabled = pageIndex===0;
+    $('pgNext').disabled = pageIndex===pages.length-1;
+  };
+
+  if(!animate){ apply(); return; }
+
+  const outCls = dir>0 ? 'out-next' : 'out-prev';
+  const inCls  = dir>0 ? 'in-next'  : 'in-prev';
+  pageEl.classList.remove('out-next','in-next','out-prev','in-prev');
+  pageEl.classList.add(outCls);
+  setTimeout(()=>{
+    apply();
+    pageEl.classList.remove(outCls);
+    pageEl.classList.add(inCls);
+    setTimeout(()=>pageEl.classList.remove(inCls), 220);
+  }, 175);
+}
+
+window.turnPage = function(dir){
+  const next = pageIndex + dir;
+  if(next<0 || next>=pages.length) return;
+  pageIndex = next;
+  renderPage(true, dir);
+};
+
+window.jumpChapter = function(ch){
+  const idx = pages.findIndex(p=>p.chapter===ch);
+  if(idx<0 || idx===pageIndex) return;
+  const dir = idx>pageIndex ? 1 : -1;
+  pageIndex = idx;
+  renderPage(true, dir);
+};
+
+/* キーボード(← →)でもめくれる ※メモ入力中は無効 */
+document.addEventListener('keydown', e=>{
+  if(e.target.closest('textarea')) return;
+  if(e.key==='ArrowRight') turnPage(1);
+  if(e.key==='ArrowLeft') turnPage(-1);
+});
+
+/* スワイプでめくる(タブレット/スマホ)
+   ※メモ入力中(textarea)のスワイプは無視する */
+let touchX=null;
+const oldBookEl = document.querySelector('.book');
+if(oldBookEl){
+  oldBookEl.addEventListener('touchstart', e=>{
+    if(e.target.closest('textarea')) { touchX=null; return; }
+    touchX=e.touches[0].clientX;
+  }, {passive:true});
+  oldBookEl.addEventListener('touchend', e=>{
+    if(touchX===null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx)>56) turnPage(dx<0 ? 1 : -1);
+    touchX=null;
+  }, {passive:true});
+}
+
+/* ---------- 初期化 ---------- */
+(function init(){
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    alert('未ログインだと使えません');
+    location.href = 'index.html';
+    return;
+  }
+  const u = DB.get('user', {});
+  if($('sideAccountName')) $('sideAccountName').textContent = u.nickname || 'ゲスト';
+  $('coinVal').textContent = u.coins || 0;
+  $('famBody').innerHTML = famImg(currentFamKey(), 44);
+  selectedTermKey = TERMS[0]?.key || '';
+  const search = $('wikiSearch');
+  if(search){
+    search.addEventListener('input', e=>{
+      searchQuery = e.target.value;
+      renderWiki();
+    });
+  }
+  renderWiki();
+  loadTermsFromDB();
+  setTimeout(()=>{
+    famSay('ナレッジベースを百科事典風に整理しました。左の目次から用語を選び、記事を読んだら「理解済みにする」を押してください。');
+  }, 900);
+})();
+
+/* ---------- 創作ドロップダウンメニュー ---------- */
+$('createBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  $('createDrop').classList.toggle('open');
+});
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#createMenu')) $('createDrop').classList.remove('open');
+});
+</script>
+<script src="sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

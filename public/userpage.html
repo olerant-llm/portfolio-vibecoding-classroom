@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>マイページ | じさくや</title>
+<meta property="og:title" content="マイページ | じさくや" />
+<meta property="og:description" content="AIと一緒にWebアプリを制作する学習サービス。じさくや。" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root{
+    --bg: #F4EDE0; --panel: #FFFCF5; --line: #2A2620; --text: #22201C; --muted: #6B5C4B;
+    --accent: #1B3A5C; --accent2: #C9A646; --pink: #C1440E; --good: #1B3A5C; --warn: #C9A646; --bad: #A6321B;
+    --coin: var(--accent2); --shadow: none; --shadow-lg: none; --shadow-sm: none; --radius: 0; --radius-md: 0;
+    --stroke: 1.5px solid var(--line);
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+
+    /* --- 江戸の淡色（枠の背景用） --- */
+    --pop-lavender-soft: #E7ECE3;
+    --pop-blue-soft: #E7ECE3;
+    --pop-mint-soft: #F3EAD3;
+    --pop-pink-soft: #F1DDD2;
+    --pop-yellow-soft: #F3EAD3;
+  }
+  button:disabled{
+    background: #E2E8F0;
+    color: #94a3b8;
+    box-shadow:none;
+    cursor: not-allowed;
+    pointer-events: none;
+    border-color: #cbd5e1;
+  }
+
+  .container{max-width:1180px;margin:0 auto;padding:20px}
+  .layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
+
+  .card{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    padding:20px;margin-bottom:18px;
+  }
+  .card h2{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:8px; font-family: var(--font-display)}
+  .card h2 .desc{font-size:11.5px;color:var(--muted);font-weight:800;margin-left:auto; font-family: var(--font-body)}
+
+  /* ---- プロフィール ---- */
+  .prof{text-align:center}
+  
+  .big-avatar{
+    width:88px;height:88px;border-radius:999px;margin:4px auto 12px;display:grid;place-items:center;
+    color:#fff;font-size:36px;font-weight:800;
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .prof .nm{font-size:20px;font-weight:800}
+  
+  .prof .lvl-badge{
+    display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background: var(--accent);
+    color: #fff;font-size:12px;font-weight:800;vertical-align:middle;margin-left:6px;
+    border: 1.5px solid var(--line);
+  }
+  .prof .sch{font-size:13px;color:var(--muted);margin-top:4px; font-weight:700}
+  
+  .prof .bio{
+    font-size:13px;color: var(--text);line-height:1.75;margin:12px 0;
+    background: var(--bg);
+    border-radius:0;padding:12px 14px;
+    border: var(--stroke);
+    font-weight: 600;
+  }
+  .rank-bar{
+    height:14px;border-radius:0;background:#eef2f9;overflow:hidden;margin-top:8px;
+    border: 2px solid var(--line);
+  }
+  .rank-bar i{
+    display:block;height:100%;border-radius:0;
+    background: var(--warn);
+    border-right: 1.5px solid var(--line);
+    width:62%;
+  }
+  .rank-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text);font-weight:800;margin-top:6px}
+  
+  .ghost{
+    background: var(--panel);
+    border: var(--stroke);
+    font-size:13px;padding:10px 18px;border-radius:0;
+    box-shadow:none;
+  }
+  .ghost:hover{
+    box-shadow:none;
+  }
+
+  /* ---- 使い魔のへや (Neobrutalism) - 非表示化 ---- */
+  .fam-room{
+    display: none !important;
+  }
+  .fam-stage{text-align:center;padding:8px 0 4px}
+  
+  .fam-face{
+    font-size:58px;display:inline-block;animation:float 3.2s ease-in-out infinite;cursor:pointer;
+    filter:drop-shadow(4px 4px 0 var(--line));
+  }
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .fam-nm{font-size:14px;font-weight:800;color: var(--text);margin-top:6px; font-family: var(--font-display)}
+  
+  .fam-msg{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;padding:12px 16px;
+    font-size:12.5px;line-height:1.75;color: var(--text);margin-top:12px;min-height:56px;
+    font-weight: 700;
+    box-shadow:none;
+  }
+  .fam-pick{display:flex;justify-content:center;gap:8px;margin-top:12px}
+  
+  .fam-pick button{
+    font-size:20px;width:42px;height:42px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .fam-pick button:hover {
+    box-shadow:none;
+  }
+  .fam-pick button.sel{
+    border-color: var(--line);
+    background: var(--accent2);
+  }
+  
+  .hobby-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  
+  .hobby{
+    font-size:11.5px;font-weight:800;color: var(--text);
+    background: var(--panel);
+    border: 1.8px solid var(--line);
+    border-radius:0;padding:4px 12px;display:inline-flex;align-items:center;gap:5px;
+    box-shadow:none;
+  }
+  .hobby .x{cursor:pointer;opacity:.6}
+  
+  .hobby-add{
+    font-size:11.5px;border-radius:0;padding:4px 12px;
+    background: var(--panel);
+    border: 1.8px dashed var(--line);
+    color: var(--text);
+    font-weight: 800;
+  }
+  .fam-note{font-size:11px;color: var(--text);line-height:1.6;margin-top:10px; font-weight:700}
+
+  /* ---- 統計 ---- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  
+  .stat{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    padding:16px;text-align:center;
+  }
+  .stat .v{
+    font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;
+    color: var(--text);
+    font-family: var(--font-display);
+  }
+  .stat .k{font-size:11.5px;color:var(--muted);font-weight:800;margin-top:4px}
+
+  /* ---- おしらせ ---- */
+  .notif{
+    display:flex;gap:12px;align-items:flex-start;padding:12px 16px;
+    border-radius:0;
+    border: var(--stroke);
+    background: var(--pop-blue-soft);
+    font-size:13px;line-height:1.7;margin-bottom:10px;
+    font-weight: 700;
+  }
+  .notif.warn{background: var(--pop-yellow-soft); border-color: var(--line)}
+  .notif .ni{font-size:18px;flex:none}
+  .notif .na{margin-left:auto;flex:none}
+  
+  .notif .na button{
+    font-size:11.5px;padding:6px 14px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    color: var(--text);
+    box-shadow:none;
+  }
+
+  /* ---- 作品列表 ---- */
+  .tabs{
+    display:flex;gap:6px;
+    background: var(--bg);
+    border: var(--stroke);
+    border-radius:0;padding:4px;
+    width:fit-content;margin-bottom:16px;
+  }
+  .tab{
+    padding:8px 18px;border-radius:0;background:transparent;
+    color: var(--text);font-size:13px;font-weight:800;box-shadow:none;
+  }
+  .tab:hover{transform:none;color: var(--pink)}
+  .tab.active{
+    background: var(--accent2);
+    color: var(--text);
+    border: var(--stroke);
+  }
+  
+  .work{
+    display:flex;gap:16px;align-items:center;
+    border: var(--stroke);
+    border-radius:0;padding:14px 18px;margin-bottom:12px;
+    background: var(--panel);
+    box-shadow:none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .work:hover{
+    transform: translateY(-2px);
+    box-shadow:none;
+  }
+  .w-thumb{
+    width:88px;height:68px;
+    border: var(--stroke);
+    border-radius:0;display:grid;place-items:center;font-size:32px;flex:none;
+    background: var(--pop-blue-soft);
+  }
+  .w-info{flex:1;min-width:0}
+  .w-ttl{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .w-stats{font-size:12px;color:var(--muted);font-weight:700;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .w-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  
+  .w-btns button{
+    font-size:12px;padding:8px 14px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    color: var(--text);
+    box-shadow:none;
+  }
+  .w-btns button:hover{
+    box-shadow:none;
+  }
+  .w-btns .danger:hover{
+    background: var(--pop-pink-soft);
+    color: var(--pink);
+  }
+  
+  .pill{
+    font-size:10.5px;font-weight:800;border-radius:0;padding:3px 12px;
+    border: 1.5px solid var(--line);
+  }
+  .pill.pub{background: var(--good); color: #fff}
+  .pill.pri{background:#e2e8f0;color:#475569; border-color: #cbd5e1}
+  .pill.pen{background: var(--warn); color: var(--text)}
+  
+  .slot-bar{display:flex;gap:7px;margin:6px 0 14px}
+  .slot{
+    flex:1;height:14px;border-radius:0;background:#eef2f9;
+    border: 2px solid var(--line);
+  }
+  .slot.used{
+    background: var(--accent);
+  }
+  .slot-info{font-size:13px;color: var(--text);font-weight:800;display:flex;justify-content:space-between;margin-bottom:4px}
+
+  /* ---- ショップ ---- */
+  .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  
+  .shop-item{
+    border: var(--stroke);
+    border-radius:0;padding:16px;
+    background: var(--panel);
+    display:flex;flex-direction:column;gap:8px;
+    box-shadow:none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .shop-item:hover{
+    transform: translateY(-3px);
+    box-shadow:none;
+  }
+  .shop-item .si{font-size:32px; filter: drop-shadow(2px 2px 0 var(--line))}
+  .shop-item .sn{font-size:14px;font-weight:800}
+  .shop-item .sd{font-size:11.5px;color:var(--muted);line-height:1.65;flex:1; font-weight:700}
+  
+  .buy-btn{
+    font-size:12.5px;padding:10px;border-radius:0;color: var(--text);
+    background: var(--warn);
+    box-shadow:none;
+  }
+  .buy-btn.owned{background:#e2e8f0;color:#64748b;box-shadow:none;pointer-events:none; border-color:#cbd5e1}
+
+  /* ---- お気に入り ---- */
+  .fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  
+  .fav{
+    border: var(--stroke);
+    border-radius:0;overflow:hidden;
+    background: var(--panel);
+    cursor:pointer;
+    box-shadow:none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    position:relative;
+  }
+  .fav:hover{
+    transform: translateY(-4px);
+    box-shadow:none;
+  }
+  .fav .ft{
+    aspect-ratio:4/3;display:grid;place-items:center;font-size:36px;
+    border-bottom: var(--stroke);
+    background: var(--pop-blue-soft);
+  }
+  .fav .fb{padding:10px 12px;font-size:12.5px;font-weight:800;line-height:1.4}
+  .fav .fb small{display:block;color:var(--muted);font-weight:700;margin-top:4px}
+  
+  .fav .unfav{
+    position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border-radius:999px;width:28px;height:28px;
+    display:grid;place-items:center;font-size:14px;
+    border: var(--stroke);
+    box-shadow:none;
+  }
+
+  /* ---- モーダル (Neobrutalism) ---- */
+  .modal{position:fixed;inset:0;background:rgba(27,27,58,.5);display:none;place-items:center;padding:20px;z-index:40;backdrop-filter:blur(2px)}
+  .modal.open{display:grid}
+  
+  .modal-card{
+    width:min(520px,100%);
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;padding:26px;
+    animation:rise .22s ease;
+  }
+  @keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+  .modal-card h3{margin:0 0 10px;font-size:20px; font-family: var(--font-display)}
+  .modal-card p{margin:0 0 16px;color: var(--text);line-height:1.75;font-size:13.5px; font-weight:700}
+  
+  .reset-box{
+    background: var(--pop-pink-soft);
+    border: var(--stroke);
+    border-radius:0;padding:14px 18px;font-size:13px;line-height:1.9;color: var(--text);margin-bottom:16px;
+    font-weight: 700;
+  }
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+  .modal-foot button{font-size:12.5px; padding:10px 20px;}
+  
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .field label{font-size:12.5px;color: var(--text);font-weight:800}
+  .field input,.field textarea{
+    width:100%;border-radius:0;
+    border: var(--stroke);
+    padding:12px 14px;font:inherit;outline:none;
+    font-weight: 700;
+    transition: background-color 0.15s ease;
+  }
+  .field input:focus,.field textarea:focus{
+    background: var(--pop-blue-soft);
+    box-shadow:none;
+  }
+  .color-pick{display:flex;gap:10px;flex-wrap:wrap}
+  .color-pick button{
+    width:34px;height:34px;border-radius:999px;
+    border: 2px solid var(--line);
+    box-shadow:none;
+  }
+  .color-pick button.sel{
+    border-width: 4px;
+    transform: scale(1.1);
+  }
+
+  /* ---- 作品ダッシュボード(統計詳細) ---- */
+  .chart{
+    display:flex;align-items:flex-end;gap:6px;height:120px;padding:10px 8px;
+    background: var(--panel);
+    border-radius:0;
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .chart .bar{
+    flex:1;border-radius:0 0 0;
+    background: var(--accent);
+    border: 1.5px solid var(--line);
+    min-height:4px;position:relative;
+  }
+  .chart .bar:hover{
+    background: var(--pink);
+  }
+  .chart-lbl{font-size:11px;color: var(--text);text-align:center;margin-top:8px; font-weight:800}
+  
+  .hist{
+    font-size:13px;color: var(--text);line-height:2;
+    background: var(--panel);
+    border-radius:0;
+    border: var(--stroke);
+    padding:12px 16px;margin-top:12px;
+    box-shadow:none;
+    font-weight: 700;
+  }
+
+  .toast{
+    position:fixed;right:20px;bottom:20px;min-width:280px;max-width:420px;z-index:60;
+    padding:16px 20px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;transform:translateY(16px);opacity:0;pointer-events:none;transition:.22s;
+  }
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.err{background: var(--pop-pink-soft); border-color: var(--line)}
+  .toast .sub{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5; font-weight:700}
+
+  .empty{
+    text-align:center;color:var(--muted);padding:36px 16px;
+    background: var(--panel);
+    border: var(--stroke);
+    border-style: dashed;
+    border-radius:0;font-size:13px;
+    font-weight: 700;
+  }
+
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr}
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  .sso-btn {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px 18px;
+    border-radius:0;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+  .sso-btn:hover {
+    box-shadow:none;
+  }
+  .sso-btn:active {
+    box-shadow:none;
+  }
+  .sso-btn.google { background: #fff; color: var(--text); }
+  .sso-btn.school { background: var(--warn); color: var(--text); }
+  .sso-btn.guest { background: var(--accent); color: #fff; }
+  
+  /* 使い魔切り替えモーダル用スタイル */
+  .fam-modal-item {
+    border: var(--stroke);
+    border-radius:0;
+    padding: 12px;
+    text-align: center;
+    background: var(--panel);
+    box-shadow:none;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .fam-modal-item:hover:not(.locked) {
+    box-shadow:none;
+  }
+  .fam-modal-item.sel:not(.locked) {
+    background: var(--accent2);
+    box-shadow:none;
+    }
+  .fam-modal-item.locked {
+    background: #e2e8f0;
+    color: #94a3b8;
+    border-color: #cbd5e1;
+    box-shadow:none;
+    cursor: not-allowed;
+  }
+  .fam-modal-item.locked .emoji {
+    filter: grayscale(1) opacity(0.6);
+  }
+  .fam-modal-item .emoji {
+    font-size: 32px;
+  }
+  .fam-modal-item .name {
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  /* --- 紙吹雪エフェクト用 --- */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    z-index: 9999;
+    pointer-events: none;
+    border-radius:0;
+  }
+  @keyframes fall {
+    0% {
+      transform: translateY(-50px) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0.2;
+    }
+  }
+
+  /* --- 使い魔バウンス --- */
+  .bounce-fam {
+    animation: bounce 0.6s ease infinite !important;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-24px) scale(0.9, 1.1); }
+  }
+
+  /* --- 実績アチーブメント --- */
+  .achievement-card.unlocked:hover {
+    transform: translate(-2px, -2px);
+    box-shadow:none;
+  }
+  .achievement-card.unlocked:active {
+    box-shadow:none;
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" data-active="userpage"></aside>
+  <script src="sidebar.js?v=1.0.0"></script>
+
+  <div class="main-area">
+    <div class="topbar">
+      <span style="font-family:var(--font-display);font-size:15px;font-weight:800;">マイページ</span>
+      <div class="hd-spacer"></div>
+    </div>
+
+<!-- ===== 未ログイン時のログイン誘導エリア ===== -->
+<div class="container" id="loginRequiredArea" style="display:none;max-width:480px;padding:60px 20px;">
+  <div class="card" style="text-align:center; padding: 24px;">
+    <h3 style="font-family: var(--font-display); font-size: 20px; margin-bottom: 8px;">🔑 ログインが必要です</h3>
+    <p style="font-size:13.5px; line-height:1.7; font-weight:700; color: var(--muted); margin-bottom: 20px;">マイページを見るには、ログインをしてください。</p>
+    
+    <!-- Googleログイン -->
+    <div style="margin-bottom: 20px;">
+      <button class="sso-btn google" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; border: var(--stroke); border-radius:0; padding: 10px; font-weight: 800; box-shadow: var(--shadow-sm); cursor: pointer; background: #fff;" onclick="dummyLogin('google')">
+        <span style="font-size:18px;">🌐</span> Googleでログイン
+      </button>
+    </div>
+
+    <!-- または (区切り線) -->
+    <div style="display: flex; align-items: center; margin: 16px 0; font-weight: 800; color: var(--text); font-size: 12px;">
+      <hr style="flex: 1; border: none; border-top: var(--stroke); margin: 0;">
+      <span style="padding: 0 12px; background: var(--bg); position: relative; z-index: 1;">または</span>
+      <hr style="flex: 1; border: none; border-top: var(--stroke); margin: 0;">
+    </div>
+
+    <!-- 学校・塾アカウントログイン -->
+    <div style="border: var(--stroke); border-radius:0; padding: 16px; background: #FFF; box-shadow: var(--shadow-md); text-align: left; margin-bottom: 12px;">
+      <h4 style="font-family: var(--font-display); font-size: 14px; margin: 0 0 12px; color: var(--text); display: flex; align-items: center; gap: 4px;">
+        🏫 学校・塾のIDでログイン
+      </h4>
+      <div style="margin-bottom: 10px;">
+        <label for="loginSchoolIdInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">学校ID / 塾ID</label>
+        <input id="loginSchoolIdInput" type="text" placeholder="例: cram_school_alpha" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius:0; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label for="loginIdInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">ログインID</label>
+        <input id="loginIdInput" type="text" placeholder="例: student001" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius:0; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label for="loginPasswordInput" style="display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: var(--text);">パスワード</label>
+        <input id="loginPasswordInput" type="password" placeholder="••••••••" style="width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: bold; border: var(--stroke); border-radius:0; padding: 8px 12px; box-shadow: var(--shadow-sm); outline: none; background: #fff;" />
+      </div>
+      <button id="idLoginBtn" type="button" onclick="handleIdLogin()" style="width: 100%; font-family: var(--font-display); font-size: 14px; font-weight: 800; border: var(--stroke); border-radius:0; padding: 10px; background: var(--warn); color: var(--text); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;">
+        ログインする
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="mainContainer">
+  <div class="layout">
+
+    <!-- ============ 左カラム ============ -->
+    <div>
+      <!-- プロフィール -->
+      <div class="card prof">
+        <div class="big-avatar" id="bigAvatar">た</div>
+        <div class="nm"><span id="profName">たろう</span><span class="lvl-badge">中</span></div>
+        <!-- 学校名・所属表示は非表示化（塾や学校の所属情報は表に出さない仕様）。再表示しないでください。 -->
+        <!-- <div class="sch">みなと中学校</div> -->
+        <div class="bio" id="profBio">ボタン操作のあるアプリ制作が得意です。ゲーム制作にも挑戦したいです。</div>
+        <div class="rank-row"><span>🥈 シルバーランク</span><span>ゴールドまで 62%</span></div>
+        <div class="rank-bar"><i></i></div>
+        <div style="display:flex;gap:8px;margin-top:13px;flex-wrap:wrap;">
+          <button class="ghost" style="flex:1;font-size:11.5px;padding:8px 12px;box-shadow:none;" onclick="openProfModal()">⚙️ 編集</button>
+          <button class="ghost" style="flex:1;font-size:11.5px;padding:8px 12px;box-shadow:none;background:var(--accent2);" onclick="openModal('switchUserModal')">👤 切替</button>
+        </div>
+      </div>
+
+      <!-- 
+        =====================================================================
+        ※警告：使い魔（ツカイマのへや）機能は廃止されたため、以下のUIは非表示（コメントアウト）にしています。
+        不具合や表示エラーではありませんので、絶対に再表示（コメントアウト解除）しないでください。
+        =====================================================================
+      -->
+      <!--
+      <div class="card fam-room">
+        <h2>🏠 ツカイマのへや</h2>
+        <div class="fam-stage">
+          <span class="fam-face" id="famFace" onclick="famTalk()">🏮</span>
+          <div class="fam-nm" id="famName">灯</div>
+        </div>
+        <div class="fam-msg" id="famMsg">作品のプレイ回数は 12 回だよ。</div>
+        <div class="fam-pick-area" style="margin-top:12px;text-align:center;">
+          <button id="changeFamBtn" onclick="openSwitchFamModal()" style="width:100%;padding:10px;background:var(--accent2);font-size:13px;box-shadow:none;">🔮 ツカイマをチェンジする</button>
+        </div>
+        <label style="font-size:11px;color:#6d28d9;font-weight:800;display:block;margin-top:13px;">💖 ツカイマがしょうかいする「すきなもの」</label>
+        <div class="hobby-wrap" id="hobbyWrap"></div>
+        <div class="fam-note">※ すきなものは、いいねした人のツカイマに紹介されるよ(AIが安全な言葉に変えて伝えます。個人がわかる情報は書けません)</div>
+      </div>
+      -->
+
+      <!-- 教室管理者ライセンス / 契約管理への導線 -->
+      <div class="card" id="classroomManagerCard" style="background:var(--panel); border:1.5px solid var(--line); box-shadow:none; margin-top:16px; display:none;">
+        <div style="display:flex; align-items:flex-start; gap:12px;">
+          <span style="font-size:32px;">🏫</span>
+          <div style="flex:1; text-align:left;">
+            <h2 style="margin:0; font-size:16px; font-family:var(--font-display);" id="classCardTitle">学校・学習塾向けプラン</h2>
+            <p style="margin:6px 0 12px; font-size:12px; font-weight:700; color:var(--muted); line-height:1.6;" id="classCardDesc">
+              生徒用アカウントの即時発行、作品の管理、QRコード一括印刷などがご利用いただけます。
+            </p>
+            <a href="user_admin.html" class="btn-action" style="display:inline-block; font-size:11.5px; padding:8px 12px; text-align:center; width:100%; background:var(--accent2); font-weight:800; border:var(--stroke); font-family:var(--font-body);" id="classCardBtn">
+              プラン一覧・生徒管理ポータル ➔
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ナレッジボックスへの入り口 -->
+      <div class="card" style="background:var(--accent); color:#FFF; border:1.5px solid var(--line); box-shadow:none; margin-top:16px; cursor:pointer;" onclick="if(!DB.getCurrentUid()){ toast('ログインが必要です','ナレッジベースを見るにはログインしてください。', true); } else { location.href='knowledge.html'; }">
+        <div style="display:flex; align-items:center; gap:12px; padding:6px 0;">
+          <span style="font-size:36px;">📖</span>
+          <div>
+            <h2 style="margin:0; font-size:18px; color:#FFF; font-family:var(--font-display);">ナレッジベース</h2>
+            <p style="margin:4px 0 0; font-size:11px; font-weight:800; color:#FFFCF0;">学んだ用語と活動記録を確認できます ➔</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 右カラム ============ -->
+    <div>
+      <!-- 統計 -->
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat"><div class="v" id="stWorks">0</div><div class="k">作品</div></div>
+        <div class="stat"><div class="v" id="stPlays">0</div><div class="k">プレイ回数合計</div></div>
+        <div class="stat"><div class="v" id="stLikes">0</div><div class="k">いいね合計</div></div>
+        <div class="stat"><div class="v" id="stQuests">3</div><div class="k">完了したミッション</div></div>
+      </div>
+
+      <!-- おしらせ -->
+      <div class="card" id="notifCard">
+        <h2>🔔 おしらせ</h2>
+        <div id="notifList"></div>
+      </div>
+
+      <!-- 自分の作品 -->
+      <div class="card">
+        <h2>🎨 じぶんの作品 <span class="desc">編集すると評価はリセットされるよ</span></h2>
+        <div class="slot-info"><span>作品の枠</span><span id="slotText"></span></div>
+        <div class="slot-bar" id="slotBar"></div>
+        <div class="tabs">
+          <button class="tab active" data-tab="public" onclick="setTab('public')">公開中</button>
+          <button class="tab" data-tab="school" onclick="setTab('school')">学校内</button>
+          <button class="tab" data-tab="private" onclick="setTab('private')">非公開</button>
+        </div>
+        <div id="workList"></div>
+      </div>
+
+      <!-- 受託中のミッション -->
+      <div class="card">
+        <h2>📮 受託中のミッション <span class="desc"><a href="index.html" style="color:var(--accent)">ミッションボードへ →</a></span></h2>
+        <div id="questList"></div>
+      </div>
+
+      <!-- お気に入り -->
+      <div class="card">
+        <h2>⭐ お気に入りの作品 <span class="desc">クリエイターページに表示されます(設定で変更可)</span></h2>
+        <div class="fav-grid" id="favGrid"></div>
+      </div>
+
+      <!-- コレクション -->
+      <div class="card" id="collectionCard">
+        <h2>🏆 ゲットしたコレクション</h2>
+        <div class="collection-grid" id="collectionGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:12px;"></div>
+      </div>
+
+      <!-- 実績 -->
+      <div class="card" id="achievementCard">
+        <h2>🏆 獲得した実績 <span class="desc">条件をクリアしてメダルを集めよう！</span></h2>
+        <div class="achievement-grid" id="achievementGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:16px;"></div>
+      </div>
+
+      <!-- ショップ -->
+      <div class="card" id="shopCard">
+        <h2>🛍️ 両のつかいみち <span class="desc">いま 🪙<span id="shopCoin">0</span></span></h2>
+        <div class="shop-grid" id="shopGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div><!-- /.main-area -->
+</div><!-- /.app-shell -->
+
+<!-- ===== プロフィール編集モーダル ===== -->
+<div class="modal" id="profModal">
+  <div class="modal-card">
+    <h3>⚙️ プロフィールを編集</h3>
+    <div class="field"><label>ニックネーム(本名は使わないでね)</label><input id="editName" maxlength="15" /></div>
+    <div class="field"><label>ひとこと(100文字まで・URLは書けません)</label><textarea id="editBio" maxlength="100" rows="2"></textarea></div>
+    <div class="field"><label>アバターの色</label><div class="color-pick" id="colorPick"></div></div>
+    <div class="field"><label>マイページとゲームの背景</label>
+      <div class="tabs" style="margin-bottom:8px; display:flex; gap:6px; border: 1.5px solid var(--line); border-radius:0; padding:3px; box-shadow:none; max-width: 200px;">
+        <button type="button" class="tab active" id="bgTabColor" onclick="switchBgTab('color')" style="padding:4px 12px; font-size:11.5px; border-radius:0; border:none; box-shadow:none; flex:1;">🎨 カラー</button>
+        <button type="button" class="tab" id="bgTabImage" onclick="switchBgTab('image')" style="padding:4px 12px; font-size:11.5px; border-radius:0; border:none; box-shadow:none; flex:1;">🖼️ がぞう</button>
+      </div>
+      <!-- カラー選択肢 -->
+      <div class="color-pick" id="bgColorPick" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+      <!-- 画像選択肢 -->
+      <div class="image-pick" id="bgImagePick" style="display:none; flex-wrap:wrap; gap:8px; max-height:120px; overflow-y:auto; padding:4px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost" type="button" onclick="closeModal('profModal')">キャンセル</button>
+      <button class="primary" type="button" onclick="saveProfile()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 評価リセット警告モーダル ===== -->
+<div class="modal" id="resetModal">
+  <div class="modal-card">
+    <h3>⚠️ 編集するまえに かくにん</h3>
+    <p>作品を編集して保存しなおすと、いままでの記録はリセットされます。</p>
+    <div class="reset-box" id="resetDetail"></div>
+    <p style="margin:0;">※ リセット前の記録は「編集履歴」に残るので、あとから見られます。</p>
+    <div class="modal-foot">
+      <button class="ghost" onclick="closeModal('resetModal')">やめておく</button>
+      <button class="warn-btn" id="resetGoBtn">編集する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 作品ダッシュボードモーダル ===== -->
+<div class="modal" id="dashModal">
+  <div class="modal-card" style="width:min(580px,100%);">
+    <h3 id="dashTitle">📈 作品のきろく</h3>
+    <div style="display:flex;gap:18px;margin-bottom:13px;font-size:13px;font-weight:700;" id="dashStats"></div>
+    <label style="font-size:11.5px;color:var(--muted);font-weight:700;">日別あそばれた回数(直近14日)</label>
+    <div class="chart" id="dashChart"></div>
+    <div class="chart-lbl">← 14日前 ・・・ きょう →</div>
+    <div class="hist" id="dashHist"></div>
+    <div class="modal-foot"><button class="primary" onclick="closeModal('dashModal')">とじる</button></div>
+  </div>
+</div>
+
+<!-- ===== アカウント切り替えモーダル ===== -->
+<div class="modal" id="switchUserModal">
+  <div class="modal-card">
+    <h3>👤 テスト用アカウント切り替え</h3>
+    <p>LocalStorage 内の uid（current_uid）を切り替えて、マルチユーザーでのデータ連動テストができます。</p>
+    <div style="margin:20px 0 10px;">
+      <button class="sso-btn google" type="button" onclick="dummySwitch('tarou')">👤 たろう (初期ユーザー)</button>
+      <button class="sso-btn school" type="button" onclick="dummySwitch('hanako')">👤 はなこ (切り替え用)</button>
+      <button class="sso-btn guest" type="button" onclick="dummySwitch('new')">👤 新規ダミーユーザーを作成</button>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost" onclick="closeModal('switchUserModal')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 
+  =====================================================================
+  ※警告：使い魔（ツカイマ）切り替えモーダルは廃止されたため、以下のUIは非表示（コメントアウト）にしています。
+  不具合や表示エラーではありませんので、絶対に再表示（コメントアウト解除）しないでください。
+  =====================================================================
+-->
+<!--
+<div class="modal" id="switchFamModal">
+  <div class="modal-card" style="width:min(540px,100%);">
+    <h3>🔮 ツカイマをチェンジする</h3>
+    <p>制作をサポートするナビゲーターを切り替えられます。プロフィールを確認して選択してください。</p>
+    
+    <div id="famModalList" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px;">
+    </div>
+    
+    <div id="famProfileDetail" style="background: var(--bg); border: var(--stroke); border-radius:0; padding: 16px; margin-bottom: 16px; min-height: 120px; font-size: 13px; font-weight: 700; line-height: 1.6;">
+    </div>
+    
+    <div class="modal-foot">
+      <button class="ghost" onclick="closeModal('switchFamModal')">キャンセル</button>
+      <button class="primary" id="confirmFamChangeBtn" onclick="confirmFamChange()">この子にする！</button>
+    </div>
+  </div>
+</div>
+-->
+
+<!-- ===== 提出作品選択モーダル ===== -->
+<div class="modal" id="submitQuestModal">
+  <div class="modal-card">
+    <h3>📤 クエストを提出する</h3>
+    <p>どの作品を提出しますか？</p>
+    <div id="submitWorkList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; max-height: 240px; overflow-y: auto; padding-right: 6px;">
+      <!-- 作品リストを動的に出力 -->
+    </div>
+    <div class="modal-foot">
+      <button class="ghost" onclick="closeModal('submitQuestModal')">キャンセル</button>
+      <button class="primary" id="submitQuestBtn" onclick="executeSubmitQuest()" disabled>これで提出する！</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 不合格フィードバックモーダル ===== -->
+<div class="modal" id="feedbackModal">
+  <div class="modal-card" style="width:min(560px,100%);">
+    <h3>🤖 AIレビュー</h3>
+    <div style="background: var(--bg); border: var(--stroke); border-radius:0; padding: 18px; margin-bottom: 16px; min-height: 80px; font-size: 13.5px; font-weight: 700; line-height: 1.6;">
+      <p style="margin:0 0 10px; color: var(--good); font-size: 15px;">⚠️ 要件をもう少し見直してみよう！</p>
+      <div id="feedbackText" style="white-space: pre-wrap; font-family: inherit;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="primary" onclick="closeModal('feedbackModal')">もういちど挑戦する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"><strong id="toastTitle"></strong><span class="sub" id="toastBody"></span></div>
+
+<script src="./firebase-config.js"></script>
+<script type="module" src="./firebase-auth.js?v=1.0.5"></script>
+<script>
+/* =====================================================================
+   userpage.html ― マイページ(デバッグ用ファイル名)
+   個人ページ仕様書 v1.0 のマイページ(/mypage)+ 追加機能のデモ実装:
+   ・作品管理(公開/非公開/先生確認待ち・編集=評価リセット警告・削除で枠が空く)
+   ・作品ダッシュボード(日別グラフ・編集履歴)
+   ・お気に入り / 両 / ショップ(アプリ枠の購入: 段階的に値上がり)
+   ・使い魔のへや(種類・すきなもの=安全変換して他者の使い魔に紹介)
+   本番接続: Firebase Auth + /api/me/* (本ファイルはデモデータで動作)
+   ===================================================================== */
+
+const TAG_EMOJI={'ゲーム・シミュレーター':'🎮','クイズ・検定':'❓','適性診断・占い':'🔮','グラフィック・アート':'🎨','アニメーション・映像':'✨','サウンド・音楽':'🎵',
+  'デジタルノベル・ストーリー':'📖','図鑑・データベース':'📚','プレゼンテーション・紹介':'🙋','実用ツール・ユーティリティ':'🔧','計算・アルゴリズム':'🧮',
+  'クロック・タイマー':'⏰','集計・カウンター':'🔢','データ分析・可視化':'📊','デジタルメッセージ・カード':'💌',
+  'アンケート・ランキング':'🗳️','学習ツール・ドリル':'📝','探究学習・リサーチ':'🔎','スクールライフ・イベント':'🏫','ユーモア・バラエティ':'🤣',
+  '社会課題・SDGs':'🌱','その他':'📦'};
+const TAG_GRAD={'ゲーム・シミュレーター':['#c7d2fe','#e0e7ff'],'クイズ・検定':['#bbf7d0','#dcfce7'],'適性診断・占い':['#ddd6fe','#ede9fe'],
+  'グラフィック・アート':['#f5d0fe','#fae8ff'],'アニメーション・映像':['#c4b5fd','#ede9fe'],'サウンド・音楽':['#fed7aa','#ffedd5'],
+  'デジタルノベル・ストーリー':['#fbcfe8','#fce7f3'],'図鑑・データベース':['#bfdbfe','#dbeafe'],'プレゼンテーション・紹介':['#fecdd3','#ffe4e6'],
+  '実用ツール・ユーティリティ':['#bae6fd','#e0f2fe'],'計算・アルゴリズム':['#a5f3fc','#cffafe'],'クロック・タイマー':['#fecaca','#fee2e2'],
+  '集計・カウンター':['#99f6e4','#ccfbf1'],'データ分析・可視化':['#a7f3d0','#d1fae5'],'デジタルメッセージ・カード':['#fbcfe8','#fdf2f8'],
+  'アンケート・ランキング':['#fde68a','#fef3c7'],'学習ツール・ドリル':['#bfdbfe','#dbeafe'],'探究学習・リサーチ':['#a7f3d0','#d1fae5'],
+  'スクールライフ・イベント':['#fde68a','#fffbeb'],'ユーモア・バラエティ':['#fef08a','#fefce8'],'社会課題・SDGs':['#bbf7d0','#d1fae5'],
+  'その他':['#e2e8f0','#f1f5f9']};
+const AVATAR_COLORS=['#0ea5e9','#6366f1','#ec4899','#10b981','#f59e0b','#ef4444','#8b5cf6','#14b8a6'];
+
+/* ---------- LocalStorage データベース連携 ---------- */
+const DB_PREFIX = 'otq:';
+const DB = {
+  getCurrentUid() {
+    return localStorage.getItem(DB_PREFIX + 'current_uid') || null;
+  },
+  setCurrentUid(uid) {
+    if (uid) {
+      localStorage.setItem(DB_PREFIX + 'current_uid', uid);
+    } else {
+      localStorage.removeItem(DB_PREFIX + 'current_uid');
+    }
+  },
+  resolveKey(key) {
+    const isIsolated = ['user', 'favorites', 'owned_misc', 'liked_works', 'reacted_works', 'played_works'].includes(key);
+    if (isIsolated) {
+      const uid = this.getCurrentUid();
+      return uid ? `${key}:${uid}` : `${key}:guest`;
+    }
+    return key;
+  },
+  get(key, def) {
+    try {
+      const resolved = this.resolveKey(key);
+      const v = localStorage.getItem(DB_PREFIX + resolved);
+      return v ? JSON.parse(v) : def;
+    } catch(e) { return def; }
+  },
+  set(key, val) {
+    try {
+      const resolved = this.resolveKey(key);
+      localStorage.setItem(DB_PREFIX + resolved, JSON.stringify(val));
+    } catch(e) {}
+  }
+};
+
+/* ---------- 状態(LocalStorage連動) ---------- */
+let me = null;
+let myWorks = [];
+let myQuests = [];
+let favorites = [];
+let owned = new Set();
+
+function getSeedUserForUid(uid) {
+  if (uid === 'hanako') {
+    return {
+      nickname: 'はなこ',
+      bio: 'イラストを描いたり、ぬりえアプリを作ったりしたいです！',
+      avatarColor: '#ec4899',
+      coins: 100,
+      slotsMax: 2,
+      famType: 'fairy',
+      ownedFamTypes: ['tora', 'robo', 'fairy'],
+      ownedMiscItems: [],
+      hobbies: ['イラスト', 'アニメ', 'うさぎ'],
+      ownedImages: ['ノートパソコン.png'],
+      bgType: 'color',
+      bgColor: '#FDFBF7',
+      bgImage: 'default',
+      ownedBgImages: ['bg_stars.png']
+    };
+  }
+  return {
+    nickname: uid === 'tarou' ? 'たろう' : uid,
+    bio: 'ボタン操作のあるアプリ制作が得意です。ゲーム制作にも挑戦したいです。',
+    avatarColor: '#0ea5e9',
+    coins: 240,
+    slotsMax: 2,
+    famType: 'tora',
+    ownedFamTypes: ['tora', 'robo', 'fairy'],
+    ownedMiscItems: [],
+    hobbies: ['ゲームづくり', 'ねこ', 'サッカー', '青色'],
+    ownedImages: ['ノートパソコン.png'],
+    bgType: 'color',
+    bgColor: '#FDFBF7',
+    bgImage: 'default',
+    ownedBgImages: ['bg_stars.png']
+  };
+}
+
+function normalizeWorkDate(value) {
+  if (!value) return new Date().toISOString().slice(0, 10);
+  if (typeof value === 'string') return value.slice(0, 10);
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value.toDate === 'function') return value.toDate().toISOString().slice(0, 10);
+  if (typeof value._seconds === 'number') return new Date(value._seconds * 1000).toISOString().slice(0, 10);
+  if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, 10);
+}
+
+function reactionTotal(counts) {
+  if (!counts || typeof counts !== 'object') return 0;
+  return Number(counts.fun || 0) + Number(counts.wow || 0) + Number(counts.again || 0);
+}
+
+function normalizeWorkStatus(value) {
+  const status = String(value || '').trim().toLowerCase();
+  if (status === 'public' || status === 'school' || status === 'private') return status;
+  if (status === 'published' || status === 'open' || status === 'done') return 'public';
+  return 'public';
+}
+
+function toMyWorkView(w) {
+  const status = normalizeWorkStatus(w.status || w.visibility);
+  return {
+    id: w.id,
+    title: w.title || '無題',
+    tags: Array.isArray(w.tags) && w.tags.length ? w.tags : ['その他'],
+    status,
+    visibility: status,
+    playCount: Number(w.playCount || 0),
+    likeCount: Number(w.likeCount || 0),
+    reactions: Number(w.reactions || reactionTotal(w.reactionCounts)),
+    version: Number(w.version || 1),
+    thumbnail: w.thumbnail || null,
+    blocked: w.blocked === true,
+    createdAt: normalizeWorkDate(w.createdAt || w.updatedAt),
+    history: Array.isArray(w.history) ? w.history : []
+  };
+}
+
+function normalizeMyWorks() {
+  const byId = new Map();
+  for (const work of myWorks) {
+    if (!work || !work.id) continue;
+    const mapped = toMyWorkView(work);
+    byId.set(mapped.id, { ...work, ...mapped });
+  }
+  myWorks = [...byId.values()].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+}
+
+function loadUserData() {
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    showLoginRequired(true);
+    return false;
+  }
+  showLoginRequired(false);
+
+  me = DB.get('user', null);
+  let updated = false;
+  if (!me) {
+    me = getSeedUserForUid(uid);
+    updated = true;
+  }
+  
+  if (!me.famType || me.famType === 'cat' || !FAM_TYPES[me.famType]) {
+    me.famType = 'tora';
+    updated = true;
+  }
+  
+  if (!me.ownedFamTypes) {
+    me.ownedFamTypes = ['tora', 'robo', 'fairy'];
+    updated = true;
+  } else {
+    if (me.ownedFamTypes.includes('cat')) {
+      me.ownedFamTypes = me.ownedFamTypes.filter(x => x !== 'cat');
+      updated = true;
+    }
+    if (!me.ownedFamTypes.includes('tora')) {
+      me.ownedFamTypes.push('tora');
+      updated = true;
+    }
+  }
+
+  if (!Array.isArray(me.ownedMiscItems)) {
+    me.ownedMiscItems = DB.get('owned_misc', []);
+    updated = true;
+  }
+
+  if (updated) {
+    DB.set('user', me);
+  }
+
+  // 全体作品リストから自分の UID またはニックネームに一致するものを抽出
+  const allWorks = DB.get('works', []);
+  myWorks = allWorks
+    .filter(w => w.authorUid === uid || (w.authorNickname === me.nickname && !w.authorUid))
+    .map(toMyWorkView);
+
+  // もし自分の作品が何もない場合は、デモとして初期作品を少し用意
+  if (myWorks.length === 0 && allWorks.length > 0 && uid === 'tarou') {
+    myWorks = [
+      {id:'m1',title:'色がかわるボタン',tags:['ツール'],status:'public',playCount:234,likeCount:56,reactions:91,version:2,
+       createdAt:'2026-05-20',history:[{v:1,play:180,like:40,date:'2026-06-01'}]}
+    ];
+  }
+
+  // 依頼状態のマージ
+  const questState = DB.get('questState', { completedIds: [], doingIds: [] });
+  const allQuests = DB.get('quests', []);
+  allQuests.forEach(q => {
+    if ((questState.completedIds || []).includes(q.id)) {
+      q.status = 'done';
+    } else if ((questState.doingIds || []).includes(q.id)) {
+      q.status = 'doing';
+    } else {
+      q.status = 'open';
+    }
+  });
+  DB.set('quests', allQuests);
+
+  myQuests = allQuests.filter(q => q.status === 'doing');
+
+  favorites = DB.get('favorites', []);
+
+  owned = new Set(DB.get('owned_misc', []));
+  return true;
+}
+
+function showLoginRequired(show) {
+  if (show) {
+    $('loginRequiredArea').style.display = 'block';
+    $('mainContainer').style.display = 'none';
+  } else {
+    $('loginRequiredArea').style.display = 'none';
+    $('mainContainer').style.display = 'block';
+  }
+}
+
+let notifs = DB.get('notifs', []);
+const SLOT_PRICE={3:50,4:100,5:200,6:300,7:400,8:500};
+const FAM_TYPES={
+  tora:{
+    emoji:'🏮',
+    img:'karakuri_1.svg',
+    name:'灯',
+    personality:'元気',
+    desc:'灯火をともすからくり人形。制作の進行を前向きに支援するナビゲーター。',
+    lines:[
+      'おかえり。きょうも作品のプレイ回数は 12回 だよ。',
+      '「色がかわるボタン」、だれかが「色づかいが好き」って言ってたよ。',
+      'ミッションボードに合いそうなミッションがあったよ。見てみる?'
+    ]
+  },
+  robo:{
+    emoji:'🧮',
+    img:'karakuri_2.svg',
+    name:'算',
+    personality:'論理的',
+    desc:'そろばんを持つからくり人形. データ分析やアドバイスが得意で、まじめで論理的。', // (注: 元ファイルに合わせて「そろばんを持つからくり人形。データ分析やアドバイスが得意で、まじめで論理的。」が正ですが、もし一致しない場合を避けるため下のターゲットと正確に合わせます)
+    lines:[
+      '解析完了。本日のプレイ 12件。良好です。',
+      'あなたの作品の評価が上昇傾向。次はスコア表示の追加を推奨します。',
+      '新しいミッションを検出。適合度 87%。'
+    ]
+  },
+  fairy:{
+    emoji:'🎐',
+    img:'karakuri_3.svg',
+    name:'結',
+    personality:'元気',
+    desc:'風鈴を鳴らすからくり人形。いつも明るく励ましてくれる。おてんばで前向き。',
+    lines:[
+      'おかえりなさい。今日の制作も進めていきましょう。',
+      'あなたの作品、よその学校の子も見てくれてたよ。',
+      'すてきなミッションを見つけたよ。挑戦してみない？'
+    ]
+  },
+  dragon:{
+    emoji:'⚔️',
+    img:'karakuri_4.svg',
+    name:'武',
+    personality:'自信家',
+    desc:'刀を構えるからくり人形。プライドが高く大物風だが、おだてに弱い。',
+    lines:[
+      '今日の調子はどうだ？まあ任せれば百人力だぞ。',
+      'お前の作品が誰かに見られているようだな。当然だ。',
+      '新たなミッションか…この知恵を借りれば造作もないことだ！'
+    ]
+  },
+  rabbit:{
+    emoji:'🔔',
+    img:'karakuri_5.svg',
+    name:'鈴',
+    personality:'甘えん坊',
+    desc:'鈴を鳴らすからくり人形。寂しがり屋で、全力で褒めてくれる。',
+    lines:[
+      'おかえり！寂しかったよ…きょうもいっぱい褒めてあげる！',
+      'あなたの作品には、あなたらしい工夫があります。',
+      '一緒に新しいミッションへ挑戦してみましょう。'
+    ]
+  }
+};
+
+/* 使い魔アバター: 画像があれば<img>、無ければ絵文字。画像読み込み失敗時も絵文字にフォールバック */
+function famImg(key,size){
+  const f=FAM_TYPES[key]||FAM_TYPES.tora;
+  if(f.img){
+    return `<img src="img/${f.img}" alt="${f.name}" class="fam-img" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${f.emoji}',style:'font-size:${Math.round(size*0.85)}px;line-height:1;'}))">`;
+  }
+  return `<span style="font-size:${Math.round(size*0.85)}px;line-height:1;">${f.emoji}</span>`;
+}
+
+/* ---------- ユーティリティ ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const jsArg=s=>JSON.stringify(String(s ?? '')).replace(/</g,'\\u003c').replace(/"/g,'&quot;');
+const num=n=>n.toLocaleString('ja-JP');
+let toastTimer;
+function toast(t,b,err=false){
+  $('toastTitle').textContent=t;$('toastBody').textContent=b;
+  $('toastEl').classList.toggle('err',err);
+  $('toastEl').classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toastEl').classList.remove('show'),3200);
+}
+function openModal(id){$(id).classList.add('open');}
+function closeModal(id){$(id).classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));});
+
+/* ---------- サイドバーの「創作」ドロップダウン ---------- */
+if ($('createBtn')) {
+  $('createBtn').addEventListener('click', e=>{
+    e.stopPropagation();
+    $('createDrop').classList.toggle('open');
+  });
+  document.addEventListener('click', e=>{
+    if(!e.target.closest('#createMenu')) $('createDrop').classList.remove('open');
+  });
+}
+
+function setCoins(v){
+  me.coins=v;
+  DB.set('user', me);
+  $('coinVal').textContent=num(v);$('shopCoin').textContent=num(v);
+  const c=$('sidebarCoin');if(c){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');}
+}
+
+/* ---------- プロフィール ---------- */
+let avatarColorsInitialized = false;
+let bgColorsInitialized = false;
+let bgImagesInitialized = false;
+
+const BG_COLORS = [
+  '#FDFBF7', // デフォルト(ベージュ)
+  '#E0F2FE', // スカイブルー(ソフト)
+  '#FEE2E2', // ポップピンク(ソフト)
+  '#FEF08A', // ポップイエロー(ソフト)
+  '#DCFCE7', // ミントグリーン(ソフト)
+  '#F3E8FF', // ラベンダー(ソフト)
+  '#FFE4E6'  // ローズピンク(ソフト)
+];
+
+// テスト用のダミー背景画像
+const DUMMY_BG_IMAGES = [
+  { file: 'bg_stars.png', label: '⭐ スター' },
+  { file: 'bg_dots.png', label: '💬 ドット' },
+  { file: 'bg_rainbow.png', label: '🌈 にじいろ' },
+  { file: 'bg_space.png', label: '🌌 うちゅう' },
+  { file: 'bg_ocean.png', label: '🌊 うみ' },
+  { file: 'bg_forest.png', label: '🌲 もり' },
+  { file: 'bg_sunset.png', label: '🌇 ゆうやけ' },
+  { file: 'bg_cherry.png', label: '🌸 サクラ' }
+];
+
+let tempProfile = null;
+
+function applyUserBgStyle() {
+  const type = me.bgType || 'color';
+  const color = me.bgColor || '#FDFBF7';
+  const image = me.bgImage || 'default';
+  
+  const body = document.body;
+  body.style.backgroundImage = 'none';
+  body.style.backgroundColor = '';
+  body.style.background = '';
+  body.style.backgroundSize = '';
+  body.style.animation = '';
+  body.style.backgroundAttachment = '';
+  body.style.backgroundPosition = '';
+  
+  if (type === 'image' && image && image !== 'default') {
+    const bgId = image.replace('.png', '');
+    
+    // 1. Firestore からロードした shop_items に該当 ID があり、かつ bgStyle が定義されていれば適用する
+    const dbItem = (dbShopItems || []).find(item => item.id === bgId);
+    if (dbItem && dbItem.bgStyle) {
+      try {
+        body.style.background = dbItem.bgStyle;
+        if (bgId === 'bg_rainbow') {
+          body.style.backgroundSize = '400% 400%';
+          body.style.animation = 'gradientBG 15s ease infinite';
+        } else {
+          body.style.backgroundAttachment = 'fixed';
+          body.style.backgroundPosition = 'center';
+          body.style.backgroundSize = 'cover';
+        }
+      } catch (e) {
+        console.error("Failed to apply dynamic bgStyle for:", bgId, e);
+        body.style.background = '#FDFBF7';
+      }
+    } else {
+      // 2. ローカルフォールバック定義
+      if (bgId === 'bg_rainbow') {
+        body.style.background = 'linear-gradient(45deg, #ff007f, #ff7f00, #fffe00, #00ff7f, #007fff, #7f00ff, #ff007f)';
+        body.style.backgroundSize = '400% 400%';
+        body.style.animation = 'gradientBG 15s ease infinite';
+      } else if (bgId === 'bg_space') {
+        body.style.background = 'radial-gradient(circle, #1b1b3a 0%, #0d0d1e 100%)';
+        body.style.backgroundAttachment = 'fixed';
+      } else if (bgId === 'bg_ocean') {
+        body.style.background = 'linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)';
+        body.style.backgroundAttachment = 'fixed';
+      } else if (bgId === 'bg_forest') {
+        body.style.background = 'linear-gradient(180deg, #34d399 0%, #059669 100%)';
+        body.style.backgroundAttachment = 'fixed';
+      } else if (bgId === 'bg_sunset') {
+        body.style.background = 'linear-gradient(180deg, #fb923c 0%, #c2410c 100%)';
+        body.style.backgroundAttachment = 'fixed';
+      } else if (bgId === 'bg_cherry') {
+        body.style.background = 'linear-gradient(180deg, #fbcfe8 0%, #f472b6 100%)';
+        body.style.backgroundAttachment = 'fixed';
+      } else {
+        body.style.backgroundImage = `url('img/${bgId}.png')`;
+        body.style.backgroundSize = 'cover';
+        body.style.backgroundAttachment = 'fixed';
+        body.style.backgroundPosition = 'center';
+      }
+    }
+  } else {
+    body.style.backgroundColor = color;
+  }
+}
+
+function renderProfile(){
+  $('profName').textContent=me.nickname;
+  if($('sideAccountName')) $('sideAccountName').textContent = DB.getCurrentUid() ? (me.nickname || 'ログイン中') : '未ログイン';
+  if($('sideLoginBtn')) $('sideLoginBtn').style.display = DB.getCurrentUid() ? 'none' : 'block';
+  if($('sideLogoutBtn')) $('sideLogoutBtn').style.display = DB.getCurrentUid() ? 'block' : 'none';
+  $('profBio').textContent=me.bio;
+  $('bigAvatar').textContent=me.nickname[0]||'?';
+  $('bigAvatar').style.background=me.avatarColor;
+  
+  applyUserBgStyle();
+
+  // 教室管理者カードの動的制御
+  const classCard = $('classroomManagerCard');
+  if (classCard) {
+    const uid = DB.getCurrentUid();
+    // Googleログインしたユーザー（教員候補）または既に管理者である場合にバナーを表示します
+    // （Googleログインユーザーは初期ロールがstudentになる仕様のため、学校IDログインの生徒のみ除外します）
+    if (uid && me.authType !== 'school_id') {
+      classCard.style.display = 'block';
+      if (me.licenseState === 'paid') {
+        $('classCardTitle').textContent = '🏫 教室ライセンス契約中';
+        $('classCardDesc').textContent = `生徒用ID管理、生徒の作品確認、契約プラン状況などを行えます。`;
+        $('classCardBtn').textContent = '生徒管理・ポータルを開く ➔';
+        $('classCardBtn').style.background = 'var(--warn)';
+      } else {
+        $('classCardTitle').textContent = '🏫 学校・学習塾向けプラン';
+        $('classCardDesc').textContent = '生徒用アカウントの発行・管理、展示用QRコードの一括出力などを利用されたい先生はこちら。';
+        $('classCardBtn').textContent = 'ライセンスの契約・有効化 ➔';
+        $('classCardBtn').style.background = 'var(--accent2)';
+      }
+    } else {
+      classCard.style.display = 'none';
+    }
+  }
+}
+
+function isNicknameUnset(nm){ return !nm || nm === '名前未設定'; }
+// ニックネーム未設定なら決めさせる（Googleの本名を既定にしないための初回プロンプト）
+function promptNicknameIfUnset(){
+  if (!DB.getCurrentUid()) return;
+  if (isNicknameUnset(me.nickname)) {
+    openProfModal();
+    toast('ニックネームを設定してください', '作品と一緒に表示される名前です。本名は使用しないでください。');
+  }
+}
+
+function openProfModal() {
+  tempProfile = {
+    nickname: isNicknameUnset(me.nickname) ? '' : (me.nickname || ''),
+    bio: me.bio || '',
+    avatarColor: me.avatarColor || '#0ea5e9',
+    bgType: me.bgType || 'color',
+    bgColor: me.bgColor || '#FDFBF7',
+    bgImage: (me.bgImage || 'default').replace('.png', '')
+  };
+
+  $('editName').value = tempProfile.nickname;
+  $('editBio').value = tempProfile.bio;
+  
+  initAvatarColorsInModal();
+  initBgColorsInModal();
+  initBgImagesInModal();
+  
+  switchBgTab(tempProfile.bgType);
+  openModal('profModal');
+}
+
+function initAvatarColorsInModal() {
+  const parent = $('colorPick');
+  if (!parent) return;
+  if (!avatarColorsInitialized) {
+    parent.innerHTML = '';
+    AVATAR_COLORS.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.style.background = c;
+      b.dataset.color = c;
+      b.onclick = () => {
+        tempProfile.avatarColor = c;
+        updateModalSelectors();
+      };
+      parent.appendChild(b);
+    });
+    avatarColorsInitialized = true;
+  }
+  updateModalSelectors();
+}
+
+function initBgColorsInModal() {
+  const parent = $('bgColorPick');
+  if (!parent) return;
+  if (!bgColorsInitialized) {
+    parent.innerHTML = '';
+    BG_COLORS.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.style.background = c;
+      b.dataset.color = c;
+      b.style.width = '36px';
+      b.style.height = '36px';
+      b.style.borderRadius = '999px';
+      b.style.border = '2px solid var(--line)';
+      b.style.boxShadow = 'none';
+      b.style.cursor = 'pointer';
+      b.onclick = () => {
+        tempProfile.bgType = 'color';
+        tempProfile.bgColor = c;
+        updateModalSelectors();
+      };
+      parent.appendChild(b);
+    });
+    bgColorsInitialized = true;
+  }
+  updateModalSelectors();
+}
+
+function initBgImagesInModal() {
+  const parent = $('bgImagePick');
+  if (!parent) return;
+  parent.innerHTML = ''; // 所持品は動的に変わる可能性があるため毎回再描画
+  
+  // デフォルト背景の選択肢
+  const defBtn = document.createElement('button');
+  defBtn.type = 'button';
+  defBtn.textContent = '❌ 背景なし';
+  defBtn.className = 'ghost';
+  defBtn.dataset.image = 'default';
+  defBtn.style.padding = '6px 12px';
+  defBtn.style.fontSize = '12px';
+  defBtn.style.borderRadius = '999px';
+  defBtn.onclick = () => {
+    tempProfile.bgType = 'color';
+    tempProfile.bgImage = 'default';
+    updateModalSelectors();
+  };
+  parent.appendChild(defBtn);
+  
+  // 所持している背景画像を取得（初期値は ownedBgImages または DUMMY_BG_IMAGES をマージ）
+  const owned = me.ownedBgImages || ['bg_stars.png'];
+  const ownedKeys = owned.map(x => x.replace('.png', ''));
+  
+  // Firestore からロードした dbShopItems またはフォールバックの DUMMY_BG_IMAGES
+  const dbBgs = (dbShopItems || []).filter(item => item.category === '背景');
+  const bgList = dbBgs.length > 0
+    ? dbBgs.map(item => ({ id: item.id, label: item.name }))
+    : DUMMY_BG_IMAGES.map(img => ({ id: img.file.replace('.png', ''), label: img.label }));
+  
+  bgList.forEach(bg => {
+    if (!ownedKeys.includes(bg.id)) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ghost';
+    b.textContent = bg.label;
+    b.dataset.image = bg.id;
+    b.style.padding = '6px 12px';
+    b.style.fontSize = '12px';
+    b.style.borderRadius = '999px';
+    b.onclick = () => {
+      tempProfile.bgType = 'image';
+      tempProfile.bgImage = bg.id;
+      updateModalSelectors();
+    };
+    parent.appendChild(b);
+  });
+  updateModalSelectors();
+}
+
+function updateModalSelectors() {
+  // アバター
+  document.querySelectorAll('#colorPick button').forEach(btn => {
+    btn.classList.toggle('sel', btn.dataset.color === tempProfile.avatarColor);
+  });
+  // 背景色
+  document.querySelectorAll('#bgColorPick button').forEach(btn => {
+    btn.classList.toggle('sel', btn.dataset.color === tempProfile.bgColor);
+    if (btn.dataset.color === tempProfile.bgColor && tempProfile.bgType === 'color') {
+      btn.style.transform = 'scale(1.1)';
+      btn.style.borderWidth = '4px';
+    } else {
+      btn.style.transform = '';
+      btn.style.borderWidth = '2px';
+    }
+  });
+  // 背景画像
+  document.querySelectorAll('#bgImagePick button').forEach(btn => {
+    const isSelected = (tempProfile.bgType === 'image' && btn.dataset.image === tempProfile.bgImage) ||
+                       (tempProfile.bgType === 'color' && btn.dataset.image === 'default' && tempProfile.bgImage === 'default');
+    btn.classList.toggle('active', isSelected);
+    if (isSelected) {
+      btn.style.background = 'var(--accent)';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
+    }
+  });
+}
+
+function switchBgTab(tab) {
+  if (tempProfile) tempProfile.bgType = tab;
+  $('bgTabColor').classList.toggle('active', tab === 'color');
+  $('bgTabImage').classList.toggle('active', tab === 'image');
+  $('bgColorPick').style.display = tab === 'color' ? 'flex' : 'none';
+  $('bgImagePick').style.display = tab === 'image' ? 'flex' : 'none';
+}
+window.switchBgTab = switchBgTab;
+
+async function saveProfile(){
+  const n = $('editName').value.trim();
+  const b = $('editBio').value.trim();
+  if(!n){toast('名前を入れてね','ニックネームが必要です。',true);return;}
+  if(/https?:\/\/|www\.|@/.test(b)){toast('保存できません','URLや連絡先は書けないよ(安全のため)。',true);return;}
+  
+  closeModal('profModal');
+  toast('チェック中...', '自己紹介の内容をAIが確認しています。');
+  
+  try {
+    // 1. ニックネームのAI審査
+    if (n !== me.nickname) {
+      const checkRes = await fetch('/api/checkText', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: n })
+      });
+      const checkData = await checkRes.json().catch(() => null);
+      if (!checkRes.ok || !checkData?.ok || !checkData?.safe) {
+        const reason = checkData?.reason || '他の文字を使ってください。';
+        throw new Error(`ニックネームに不適切な表現が含まれている可能性があります: ${reason}`);
+      }
+    }
+    
+    // 2. ひとこと(bio)のAI審査
+    if (b && b !== me.bio) {
+      const checkRes = await fetch('/api/checkText', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: b })
+      });
+      const checkData = await checkRes.json().catch(() => null);
+      if (!checkRes.ok || !checkData?.ok || !checkData?.safe) {
+        const reason = checkData?.reason || '他の文字を使ってください。';
+        throw new Error(`ひとことに不適切な表現が含まれている可能性があります: ${reason}`);
+      }
+    }
+    
+    me.nickname = n;
+    me.bio = b;
+    me.avatarColor = tempProfile.avatarColor;
+    me.bgType = tempProfile.bgType;
+    me.bgColor = tempProfile.bgColor;
+    me.bgImage = tempProfile.bgImage;
+    
+    DB.set('user', me);
+    
+    if (window.FirebaseAuthBridge?.isConfigured && window.FirebaseAuthBridge.getLastSyncError() === null) {
+      try {
+        const uid = DB.getCurrentUid();
+        if (uid) {
+          await window.FirebaseAuthBridge.setFirestoreDoc('users', uid, {
+            nickname: me.nickname,
+            bio: me.bio,
+            avatarColor: me.avatarColor,
+            bgType: me.bgType,
+            bgColor: me.bgColor,
+            bgImage: me.bgImage
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to sync profile to Firestore", e);
+      }
+    }
+    
+    renderProfile();
+    toast('保存したよ 🎉', 'プロフィールを更新しました。');
+  } catch(err) {
+    toast('保存できませんでした', err.message, true);
+    openProfModal();
+  }
+}
+window.saveProfile = saveProfile;
+window.openProfModal = openProfModal;
+
+/* ---------- 使い魔のへや ---------- */
+function renderFam(){
+  const f = FAM_TYPES[me.famType] || FAM_TYPES.tora;
+  if (f) {
+    $('famFace').innerHTML=famImg(me.famType, 64);$('famName').textContent=f.name;
+  }
+  renderHobbies();
+}
+
+// モーダル内でプレビュー選択されている使い魔のキー
+let previewFamKey = null;
+
+function openSwitchFamModal() {
+  previewFamKey = me.famType;
+  renderFamModalList();
+  previewFam(previewFamKey);
+  openModal('switchFamModal');
+}
+
+function renderFamModalList() {
+  const ownedSet = new Set(me.ownedFamTypes || ['tora', 'robo', 'fairy']);
+  $('famModalList').innerHTML = Object.entries(FAM_TYPES).map(([k, v]) => {
+    const isOwned = ownedSet.has(k);
+    const isSelected = previewFamKey === k;
+    const classes = `fam-modal-item ${isSelected ? 'sel' : ''} ${!isOwned ? 'locked' : ''}`;
+    return `<div class="${classes}" onclick="${isOwned ? `previewFam('${k}')` : ''}">
+      <span class="emoji">${famImg(k, 40)}</span>
+      <span class="name">${v.name}</span>
+      ${!isOwned ? '<span style="font-size:10px;font-weight:800;color:var(--muted);">未所持</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function previewFam(k) {
+  previewFamKey = k;
+  // リストの選択表示を更新
+  document.querySelectorAll('#famModalList .fam-modal-item').forEach(el => el.classList.remove('sel'));
+  
+  const f = FAM_TYPES[k];
+  const isOwned = (me.ownedFamTypes || ['tora', 'robo', 'fairy']).includes(k);
+  
+  if (f) {
+    let html = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <span>${famImg(k, 40)}</span>
+        <div>
+          <div style="font-size:16px;font-weight:800;">${f.name}</div>
+          <div style="font-size:11px;color:var(--muted);">性格: ${f.personality}</div>
+        </div>
+      </div>
+      <div>${f.desc}</div>
+    `;
+    if (!isOwned) {
+      html += `<div style="margin-top:10px;color:var(--good);font-weight:800;">⚠️ 両ショップで購入するとアンロックされます</div>`;
+      $('confirmFamChangeBtn').disabled = true;
+    } else {
+      $('confirmFamChangeBtn').disabled = false;
+    }
+    $('famProfileDetail').innerHTML = html;
+  }
+  
+  // 対応する要素に sel クラスを付与
+  const items = document.querySelectorAll('#famModalList .fam-modal-item');
+  const keys = Object.keys(FAM_TYPES);
+  const index = keys.indexOf(k);
+  if (index !== -1 && items[index]) {
+    items[index].classList.add('sel');
+  }
+}
+
+function confirmFamChange() {
+  try {
+    if (!previewFamKey) return;
+    const isOwned = (me.ownedFamTypes || ['tora', 'robo', 'fairy']).includes(previewFamKey);
+    if (!isOwned) return;
+    
+    me.famType = previewFamKey;
+    DB.set('user', me);
+    renderFam();
+    closeModal('switchFamModal');
+    
+    // 性格に応じた挨拶セリフ
+    let greetMsg = `これからは${FAM_TYPES[previewFamKey].name}がナビゲーターです。よろしくお願いします。`;
+    if (previewFamKey === 'tora') greetMsg = '灯です。これから一緒に作品制作を進めましょう。';
+    if (previewFamKey === 'robo') greetMsg = '解析フェーズ移行。これより私がサポートを行います。';
+    if (previewFamKey === 'fairy') greetMsg = '結です。一緒に制作を進めましょう。';
+    if (previewFamKey === 'dragon') greetMsg = 'フハハハ！この武を選んだこと、後悔させないぞ！';
+    if (previewFamKey === 'rabbit') greetMsg = '鈴です。これから制作をサポートします。';
+    
+    famTalk(greetMsg);
+    toast('ツカイマをチェンジしたよ 🔮', `${FAM_TYPES[previewFamKey].name} に切り替えました。`);
+  } catch (err) {
+    console.error("confirmFamChange failed", err);
+    closeModal('switchFamModal');
+    toast('ツカイマチェンジでエラーが発生しました', err.message, true);
+  }
+}
+
+function famTalk(msg){
+  const f = FAM_TYPES[me.famType] || FAM_TYPES.tora;
+  $('famMsg').textContent=msg||f.lines[Math.floor(Math.random()*f.lines.length)];
+}
+function renderHobbies(){
+  const hobbies = me.hobbies || [];
+  $('hobbyWrap').innerHTML=hobbies.map((h,i)=>{
+    const text = typeof h === 'object' ? h.text : h;
+    const intro = typeof h === 'object' ? h.intro : '';
+    const titleAttr = intro ? `title="${esc(intro)}"` : '';
+    return `<span class="hobby" ${titleAttr} style="cursor:help;">${esc(text)}<span class="x" onclick="removeHobby(${i})">✕</span></span>`;
+  }).join('')
+    +`<button class="hobby-add" onclick="addHobby()">+ ついか</button>`;
+}
+function removeHobby(i){
+  me.hobbies.splice(i,1);
+  DB.set('user', me);
+  renderHobbies();
+}
+async function addHobby(){
+  const h=prompt('好きなものを入力してください(例: 音楽、イラスト、野球)\n※個人が特定できる情報は入力しないでください');
+  if(!h)return;
+  const v=h.trim().slice(0,30);
+  if(/https?:\/\/|@/.test(v)){toast('登録できません','URL・連絡先は書けないよ。',true);return;}
+  
+  toast('AIが確認中… 🤖', '安全な言葉遣いに変換しています。');
+  
+  try {
+    const response = await fetch('/api/censorHobby', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hobby: v, famType: me.famType, nickname: me.nickname })
+    });
+    const data = await response.json();
+    if (data.ok) {
+      if (!me.hobbies) me.hobbies = [];
+      me.hobbies.push({ text: data.safeHobby, intro: data.introLine });
+      DB.set('user', me);
+      renderHobbies();
+      famTalk(data.introLine);
+      toast('登録したよ ✅', `「${data.safeHobby}」を追加しました。`);
+    } else {
+      toast('登録できませんでした', data.message || '不適切な表現が含まれている可能性があります。', true);
+    }
+  } catch(e) {
+    console.error("Failed to connect to censorHobby, fallback to local", e);
+    const fallbackText = v.slice(0, 12);
+    if (!me.hobbies) me.hobbies = [];
+    me.hobbies.push({ text: fallbackText, intro: `お友達の${me.nickname}は「${fallbackText}」が好きなんだって！` });
+    DB.set('user', me);
+    renderHobbies();
+    famTalk(`「${fallbackText}」が好きなのですね。`);
+    toast('登録したよ(ローカル) ✅', `通信エラーのためローカルで登録しました。`);
+  }
+}
+
+/* ---------- 統計 ---------- */
+function renderStats(){
+  $('stWorks').textContent=myWorks.length;
+  $('stPlays').textContent=num(myWorks.reduce((a,b)=>a+b.playCount,0));
+  $('stLikes').textContent=num(myWorks.reduce((a,b)=>a+b.likeCount,0));
+}
+
+/* ---------- おしらせ ---------- */
+function renderNotifs(){
+  const card = $('notifCard');
+  if (!notifs || notifs.length === 0) {
+    if (card) card.style.display = 'none';
+  } else {
+    if (card) card.style.display = 'block';
+    $('notifList').innerHTML=notifs.map((n,i)=>
+      `<div class="notif ${n.cls}"><span class="ni">${n.icon}</span><span>${n.text}</span>
+       ${n.act?`<span class="na"><button onclick="notifAct(${i})">${n.act}</button></span>`:''}</div>`).join('');
+  }
+}
+function notifAct(i){notifs[i].fn&&notifs[i].fn();}
+
+/* ---------- 作品管理 ---------- */
+let curTab='public';
+function setTab(t){
+  curTab=normalizeWorkStatus(t);
+  document.querySelectorAll('.tab[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===curTab));
+  renderWorks();
+}
+function renderSlots(){
+  const used=myWorks.length;
+  $('slotText').textContent=`${used} / ${me.slotsMax} こ つかってる(のこり ${Math.max(0,me.slotsMax-used)})`;
+  $('slotBar').innerHTML=Array.from({length:me.slotsMax},(_,i)=>
+    `<span class="slot ${i<used?'used':''}"></span>`).join('');
+}
+function renderWorks(){
+  normalizeMyWorks();
+  const list=myWorks.filter(w=>normalizeWorkStatus(w.status || w.visibility)===curTab);
+  $('workList').innerHTML=list.length?list.map(w=>{
+    const t0 = (Array.isArray(w.tags) && w.tags.length) ? w.tags[0] : 'その他';
+    const emoji=TAG_EMOJI[t0]||'📦';
+    const [c1,c2]=TAG_GRAD[t0]||TAG_GRAD['その他'];
+    const pill=w.blocked
+      ?'<span class="pill" style="background:#fecaca;color:#b91c1c;">🚫 公開停止中</span>'
+      :(w.status==='public'
+        ?'<span class="pill pub">公開中</span>'
+        :w.status==='school'
+          ?'<span class="pill pen">学校内</span>'
+          :'<span class="pill pri">非公開</span>');
+    const visBtn=w.status==='public'
+      ?`<button onclick="setVisibility('${w.id}','private')">👁️ 非公開にする</button>`
+      :w.status==='private'||w.status==='school'?`<button onclick="setVisibility('${w.id}','public')">👁️ 公開する</button>`:'';
+    const thumbInner = w.thumbnail
+      ? `<img src="${w.thumbnail}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:0;display:block;">`
+      : emoji;
+    return `<div class="work">
+      <div class="w-thumb" style="background:linear-gradient(135deg,${c1},${c2})">${thumbInner}</div>
+      <div class="w-info">
+        <div class="w-ttl">${esc(w.title)} ${pill}${w.version>1?`<span class="pill" style="background:#e0f2fe;color:#075985">v${w.version}</span>`:''}</div>
+        <div class="w-stats"><span>▶ ${num(w.playCount)}</span><span>♥ ${num(w.likeCount)}</span><span>😆 ${num(w.reactions)}</span><span>📅 ${w.createdAt}</span></div>
+      </div>
+      <div class="w-btns">
+        <button onclick="openDash('${w.id}')">📈 きろく</button>
+        <button onclick="startEdit('${w.id}')">✏️ 編集</button>
+        ${visBtn}
+        <button class="danger" onclick="deleteWork('${w.id}')">🗑️ 削除</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty">この状態の作品はないよ。</div>';
+}
+
+/* 編集 → 評価リセット警告(仕様 3.2: 現在値を具体的に表示) */
+function startEdit(id){
+  const w=myWorks.find(x=>x.id===id);if(!w)return;
+  if(w.playCount===0&&w.likeCount===0&&w.reactions===0){goEdit(id);return;} // 評価ゼロは警告スキップ
+  $('resetDetail').innerHTML=
+    `▶ プレイ回数 ${num(w.playCount)}回 → <b>0回</b><br/>♥ いいね ${num(w.likeCount)} → <b>0</b><br/>✨ リアクション ${num(w.reactions)} → <b>0</b>`;
+  $('resetGoBtn').onclick=()=>{closeModal('resetModal');goEdit(id);};
+  openModal('resetModal');
+}
+function goEdit(id){
+  const w=myWorks.find(x=>x.id===id);
+  toast('編集ページへ ✏️',`体験ページで「${w.title}」を開きます(本番: corder.html?edit=${id}、保存時に評価リセット+編集履歴記録)。`);
+  setTimeout(()=>location.href=`corder.html?edit=${id}`,900);
+}
+
+/* 公開/非公開(公開時はフルチェック再実行: 構文+禁止コード) */
+function setVisibility(id,to){
+  const w=myWorks.find(x=>x.id===id);if(!w)return;
+  if(to==='private'){
+    w.status='private';
+    const all = DB.get('works', []);
+    const match = all.find(x => x.id === id);
+    if(match) match.status = 'private';
+    DB.set('works', all);
+    // Firestore同期（評価はそのまま保持）
+    if (window.FirebaseAuthBridge?.updateFirestoreDoc) {
+      window.FirebaseAuthBridge.updateFirestoreDoc('works', id, { visibility: 'private' });
+    }
+    renderWorks();
+    toast('非公開にしたよ 👁️','評価はそのまま残ります。いつでも公開しなおせるよ。');
+    return;
+  }
+  toast('公開前チェック中… 🔍','構文エラー・禁止コードがないか確認しています。');
+  setTimeout(()=>{
+    if(w.syntaxError){
+      toast('🚫 まだ公開できません','コードにエラーがあるみたい(タグが閉じていない)。「編集して直す」から直そう。',true);
+      famTalk('この作品はコードにエラーがあるみたい。いっしょに直そう!');
+    }else{
+      w.status='public';
+      const all = DB.get('works', []);
+      const match = all.find(x => x.id === id);
+      if(match) match.status = 'public';
+      DB.set('works', all);
+      // Firestore同期
+      if (window.FirebaseAuthBridge?.updateFirestoreDoc) {
+        window.FirebaseAuthBridge.updateFirestoreDoc('works', id, { visibility: 'public' });
+      }
+      renderWorks();
+      toast('公開したよ 🌏','チェックに合格!ギャラリーに並びました。');
+    }
+  },1100);
+}
+
+/* 削除(論理削除: 枠が空く・30日間は復元可能) */
+function deleteWork(id){
+  const w=myWorks.find(x=>x.id===id);if(!w)return;
+  if(!confirm(`「${w.title}」を削除しますか？\n(30日以内であれば管理者に申請して復元できます)`))return;
+  if(!confirm('本当に削除しますか？作品の枠がひとつ空きます。'))return;
+  myWorks=myWorks.filter(x=>x.id!==id);
+
+  const all = DB.get('works', []);
+  const updatedAll = all.filter(x=>x.id!==id);
+  DB.set('works', updatedAll);
+
+  // Firestoreは論理削除（deleted:true）。30日後の物理削除・復元は管理側で運用。
+  if (window.FirebaseAuthBridge?.updateFirestoreDoc) {
+    window.FirebaseAuthBridge.updateFirestoreDoc('works', id, {
+      deleted: true,
+      deletedAt: new Date().toISOString()
+    });
+  }
+
+  renderWorks();renderSlots();renderStats();
+  toast('削除しました','作品の枠がひとつ空きました(30日間は管理者に申請して復元できます)。');
+  famTalk('おつかれさまです。次の作品も楽しみにしています。');
+}
+
+/* 作品ダッシュボード */
+function openDash(id){
+  const w=myWorks.find(x=>x.id===id);if(!w)return;
+  $('dashTitle').textContent=`📈 「${w.title}」のきろく`;
+  $('dashStats').innerHTML=
+    `<span>▶ プレイ回数 ${num(w.playCount)}回</span><span>♥ いいね ${num(w.likeCount)}</span><span>✨ リアクション ${num(w.reactions)}</span>`;
+  // 日別グラフ(デモ: 乱数生成)
+  const days=Array.from({length:14},()=>Math.floor(Math.random()*Math.max(4,w.playCount/8)));
+  const mx=Math.max(...days,1);
+  $('dashChart').innerHTML=days.map(v=>`<span class="bar" style="height:${Math.max(4,v/mx*100)}%" title="${v}回"></span>`).join('');
+  $('dashHist').innerHTML=`📜 <b>編集履歴</b><br/>`+
+    (w.history.length
+      ? w.history.map(h=>`・${h.date} 編集(v${h.v}のきろく: ▶${num(h.play)} ♥${num(h.like)} → リセット)`).join('<br/>')
+      : '・まだ編集していないよ(編集すると、リセット前のきろくがここに残ります)')+
+    `<br/>・${w.createdAt} 公開(v1)`;
+  openModal('dashModal');
+}
+
+/* ---------- 受託中のミッション ---------- */
+function renderQuests(){
+  $('questList').innerHTML=myQuests.length?myQuests.map(q=>
+    `<div class="work">
+      <div class="w-thumb" style="background:linear-gradient(135deg,#e0f2fe,#eef2ff)">📮</div>
+      <div class="w-info">
+        <div class="w-ttl">${esc(q.title)}</div>
+        <div class="w-stats"><span>${q.genre}</span><span>報酬 🪙${q.reward}</span></div>
+      </div>
+      <div class="w-btns">
+        <button onclick="location.href='corder.html'">✨ 制作する</button>
+        <button onclick="submitQuest('${q.id}')">📤 提出する</button>
+        <button class="danger" onclick="abandonQuest('${q.id}')">🙅 ミッションをやめる</button>
+      </div>
+    </div>`).join(''):'<div class="empty">受託中のミッションはありません。ミッションボードをのぞいてみよう!</div>';
+}
+
+// ミッションをやめる（statusをopenに戻すので、また興味が出たらミッションボードから選べる）
+function abandonQuest(id){
+  const q = myQuests.find(x => x.id === id);
+  if (!q) return;
+  if (!confirm(`「${q.title}」のミッションをやめる?\n（また挑戦したくなったら、ミッションボードからもう一度えらべるよ）`)) return;
+  const all = DB.get('quests', []);
+  const item = all.find(x => x.id === id);
+  if (item) { item.status = 'open'; DB.set('quests', all); }
+  myQuests = myQuests.filter(x => x.id !== id);
+  renderQuests();
+  toast('ミッションをやめたよ 🙅', 'また挑戦したくなったら、ミッションボードからえらべるよ。');
+}
+let selectedQuestId = null;
+let selectedWorkId = null;
+
+function submitQuest(id) {
+  const q = myQuests.find(x => x.id === id);
+  if (!q) return;
+  selectedQuestId = id;
+  selectedWorkId = null;
+
+  // `#submitWorkList` に自分の作品（myWorks）を表示
+  const container = $('submitWorkList');
+  if (myWorks.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-weight:800;">まだ作成した作品がありません。<br><a href="corder.html" style="color:var(--good); text-decoration:underline;">作品作成ページ</a>から制作してください。</div>';
+    $('submitQuestBtn').disabled = true;
+  } else {
+    container.innerHTML = myWorks.map(w => {
+      const t0 = (Array.isArray(w.tags) && w.tags.length) ? w.tags[0] : 'その他';
+      const emoji = TAG_EMOJI[t0] || '📦';
+      return `<div class="fam-modal-item" style="flex-direction:row; justify-content:flex-start; text-align:left; gap:12px; width:100%; cursor:pointer; margin-bottom:8px;" id="submitWorkItem_${w.id}" onclick="selectWorkForSubmission('${w.id}')">
+        <span class="emoji" style="font-size:24px;">${emoji}</span>
+        <div style="flex:1;">
+          <div class="name" style="font-size:14px; text-align:left; margin:0;">${esc(w.title)}</div>
+          <div style="font-size:11px; color:var(--muted); font-weight:800;">公開設定: ${w.status === 'public' ? '公開中' : '非公開'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    $('submitQuestBtn').disabled = true;
+  }
+
+  openModal('submitQuestModal');
+}
+
+function selectWorkForSubmission(workId) {
+  selectedWorkId = workId;
+  document.querySelectorAll('#submitWorkList .fam-modal-item').forEach(el => el.classList.remove('sel'));
+  const selectedEl = $(`submitWorkItem_${workId}`);
+  if (selectedEl) {
+    selectedEl.classList.add('sel');
+  }
+  $('submitQuestBtn').disabled = false;
+}
+
+async function executeSubmitQuest() {
+  if (!selectedQuestId || !selectedWorkId) return;
+  const q = myQuests.find(x => x.id === selectedQuestId);
+  const w = myWorks.find(x => x.id === selectedWorkId);
+  if (!q || !w) return;
+
+  closeModal('submitQuestModal');
+  toast('AI審査中…', 'AIが要件をチェックしています。15秒ほどかかることがあります。');
+
+  // 作品詳細コードを取得
+  let workHtml = "";
+  const allWorks = DB.get('works', []);
+  const detailedWork = allWorks.find(x => x.id === selectedWorkId);
+  if (detailedWork) {
+    workHtml = detailedWork.html || "";
+  }
+
+  const submitBtn = $('submitQuestBtn');
+  submitBtn.disabled = true;
+
+  try {
+    const response = await fetch('/api/verifyQuest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questTitle: q.title,
+        questDesc: q.desc,
+        workHtml: workHtml
+      })
+    });
+    const result = await response.json();
+
+    if (result.passed) {
+      // 合格時の処理
+      myQuests = myQuests.filter(x => x.id !== selectedQuestId);
+      // ローカルストレージ内の quests ステータスもマージ
+      const localQuests = DB.get('quests', []);
+      const matchedLocal = localQuests.find(x => x.id === selectedQuestId);
+      if (matchedLocal) matchedLocal.status = 'done';
+      DB.set('quests', localQuests);
+
+      renderQuests();
+      setCoins(me.coins + q.reward);
+      $('stQuests').textContent = Number($('stQuests').textContent) + 1;
+
+      toast('審査に合格しました', `+${q.reward}両を獲得しました。要件を満たした作品です。`);
+      
+      // お祝い演出
+      triggerConfetti();
+      
+      // 使い魔が跳ねる
+      const famFace = $('famFace');
+      if (famFace) {
+        famFace.classList.add('bounce-fam');
+        setTimeout(() => {
+          famFace.classList.remove('bounce-fam');
+        }, 5000);
+      }
+
+      // 使い魔のお祝いセリフ
+      const congratsLines = [
+        `依頼を達成しました。🪙${q.reward}両を獲得しました。`,
+        `作品が要件を満たしています。次の改善にも進めます。`,
+        `AIレビューを通過しました。🪙${q.reward}両を活用してください。`
+      ];
+      famTalk(congratsLines[Math.floor(Math.random() * congratsLines.length)]);
+
+      // 実績解除チェック
+      if (window.AchievementBridge) {
+        window.AchievementBridge.unlockAchievement('first_quest');
+      }
+
+    } else {
+      // 不合格時の処理
+      $('feedbackText').textContent = result.feedback || "要件をもう一度確認してみよう。";
+      openModal('feedbackModal');
+      toast('🤖 AIレビュー', '改善点があります。アドバイスを確認してください。', true);
+      famTalk("AIレビューの指摘を参考にして、もう一度調整してみましょう。");
+    }
+  } catch (e) {
+    console.error("AI verify failed, fallback to local success", e);
+    // フォールバック成功（ネットワークエラー時などの救済）
+    myQuests = myQuests.filter(x => x.id !== selectedQuestId);
+    const localQuests = DB.get('quests', []);
+    const matchedLocal = localQuests.find(x => x.id === selectedQuestId);
+    if (matchedLocal) matchedLocal.status = 'done';
+    DB.set('quests', localQuests);
+
+    renderQuests();
+    setCoins(me.coins + q.reward);
+    $('stQuests').textContent = Number($('stQuests').textContent) + 1;
+    toast('🎉 クエスト完了 (ローカル)', `+${q.reward}両!`);
+    triggerConfetti();
+    
+    const famFace = $('famFace');
+    if (famFace) {
+      famFace.classList.add('bounce-fam');
+      setTimeout(() => {
+        famFace.classList.remove('bounce-fam');
+      }, 5000);
+    }
+    famTalk(`依頼達成です。🪙${q.reward}両を獲得しました。`);
+
+    // 実績解除チェック
+    if (window.AchievementBridge) {
+      window.AchievementBridge.unlockAchievement('first_quest');
+    }
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+function triggerConfetti() {
+  const colors = ['#3CC9F7', '#C4B5FD', '#AEEA00', '#2FE0A8', '#FFD23D', '#FB923C'];
+  const count = 60;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = -Math.random() * 20 - 10 + 'px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    
+    // ランダムな形状
+    if (Math.random() > 0.5) {
+      el.style.borderRadius = '50%';
+    }
+    
+    // ランダムなサイズとアニメーション設定
+    const size = Math.random() * 8 + 6;
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    
+    const duration = Math.random() * 2 + 2;
+    const delay = Math.random() * 1.5;
+    el.style.animation = `fall ${duration}s linear ${delay}s forwards`;
+    
+    document.body.appendChild(el);
+    
+    // アニメーション終了後に要素を削除
+    setTimeout(() => {
+      el.remove();
+    }, (duration + delay) * 1000);
+  }
+}
+
+
+/* ---------- お気に入り ---------- */
+function renderFavs(){
+  $('favGrid').innerHTML=favorites.length?favorites.map((f,i)=>{
+    const [c1,c2]=TAG_GRAD[f.tag]||TAG_GRAD['その他'];
+    return `<div class="fav" onclick="location.href='index.html'">
+      <span class="unfav" onclick="event.stopPropagation();unfav(${i})" title="お気に入り解除">⭐</span>
+      <div class="ft" style="background:linear-gradient(135deg,${c1},${c2})">${TAG_EMOJI[f.tag]||'📦'}</div>
+      <div class="fb">${esc(f.title)}<small>by ${esc(f.author)}</small></div>
+    </div>`;
+  }).join(''):'<div class="empty" style="grid-column:1/-1">まだお気に入りがないよ。ひろばで⭐をおしてみよう!</div>';
+}
+function unfav(i){
+  const f=favorites[i];
+  favorites.splice(i,1);renderFavs();
+  DB.set('favorites', favorites);
+  
+  // liked_works とも同期
+  const liked = new Set(DB.get('liked_works', []));
+  if (liked.has(f.id)) {
+    liked.delete(f.id);
+    DB.set('liked_works', [...liked]);
+  }
+  
+  // 全体の works の likeCount もデモ用に同期減算
+  const all = DB.get('works', []);
+  const match = all.find(x => x.id === f.id);
+  if (match && match.likeCount > 0) {
+    match.likeCount--;
+    DB.set('works', all);
+  }
+
+  toast('お気に入りを解除したよ',`「${f.title}」をお気に入りから外しました。`);
+}
+
+let dbShopItems = [];
+
+function normalizeShopItem(item){
+  if (!item || item.enabled === false) return null;
+  const key = String(item.id || item.key || '').trim();
+  if (!key || key === 'slot') return null;
+  const rawCategory = String(item.category || item.type || '').toLowerCase();
+  const isFam = key.startsWith('fam_') || rawCategory === 'fam' || rawCategory.includes('使い魔');
+  const isBg = key.startsWith('bg_') || rawCategory === 'background' || rawCategory.includes('背景');
+  return {
+    ...item,
+    id: key,
+    key,
+    icon: item.icon || (isFam ? '🔮' : isBg ? '🎨' : '🎁'),
+    name: item.name || key,
+    desc: item.desc || item.description || (isFam ? '新しいツカイマが仲間になります。' : isBg ? 'マイページの背景に設定できます。' : 'ショップアイテムです。'),
+    price: Number(item.price || 0),
+    category: item.category || (isFam ? 'ツカイマ' : isBg ? '背景' : 'アイテム'),
+    repeatable: item.repeatable === true
+  };
+}
+
+function shopItems(){
+  const nextSlot=me.slotsMax+1;
+  const slotPrice=SLOT_PRICE[nextSlot];
+  const slotItem = {
+    key:'slot',
+    icon:'📦',
+    name:`作品の枠を+1(${me.slotsMax}→${nextSlot})`,
+    desc:slotPrice?`作品をさらに制作できます。枠は増やすほど高くなります(次は🪙${SLOT_PRICE[nextSlot+1]||'—'})`:'現在の最大数です(ランクアップでも増えます)',
+    price:slotPrice,
+    disabled:!slotPrice
+  };
+
+  if (dbShopItems && dbShopItems.length > 0) {
+    const list = [slotItem];
+    dbShopItems.forEach(item => {
+      list.push({
+        key: item.key || item.id,
+        icon: item.icon,
+        name: item.name,
+        desc: item.desc,
+        price: item.price,
+        disabled: false,
+        repeatable: item.repeatable === true
+      });
+    });
+    return list;
+  }
+
+  return [
+    slotItem,
+    {key:'fam_dragon',icon:'⚔️',name:'ツカイマ：武の人形',desc:'自信家でおだてに弱い武の人形が仲間になるよ。',price:120},
+    {key:'fam_rabbit',icon:'🔔',name:'ツカイマ：鈴の人形',desc:'甘えん坊で寂しがり屋の鈴の人形が仲間になるよ。',price:80},
+    {key:'bg_rainbow',icon:'🌈',name:'背景：にじいろ',desc:'マイページと作品ページの背景を虹色のアニメーションにできるよ。',price:40},
+    {key:'bg_space',icon:'🌌',name:'背景：うちゅう',desc:'マイページと作品ページの背景をかっこいい宇宙にできるよ。',price:30},
+    {key:'bg_ocean',icon:'🌊',name:'背景：うみ',desc:'マイページと作品ページの背景をきれいな青い海にできるよ。',price:30},
+    {key:'bg_forest',icon:'🌲',name:'背景：もり',desc:'マイページと作品ページの背景を癒やしの緑の森にできるよ。',price:30},
+    {key:'bg_sunset',icon:'🌇',name:'背景：ゆうやけ',desc:'マイページと作品ページの背景をエモい夕焼けにできるよ。',price:30},
+    {key:'bg_cherry',icon:'🌸',name:'背景：サクラ',desc:'マイページと作品ページの背景をかわいいサクラ色にできるよ。',price:30}
+  ];
+}
+function renderShop(){
+  $('shopGrid').innerHTML=shopItems().map(it=>{
+    let isOwned = false;
+    if (it.key.startsWith('fam_')) {
+      const famKey = it.key.replace('fam_', '');
+      isOwned = (me.ownedFamTypes || ['tora', 'robo', 'fairy']).includes(famKey);
+    } else if (it.key.startsWith('bg_')) {
+      isOwned = (me.ownedBgImages || ['bg_stars.png']).includes(`${it.key}.png`);
+    } else {
+      isOwned = ((me.ownedMiscItems || []).includes(it.key) || owned.has(it.key)) && it.key!=='slot' && it.key!=='ai';
+    }
+    return `<div class="shop-item">
+      <span class="si">${esc(it.icon)}</span>
+      <span class="sn">${esc(it.name)}</span>
+      <span class="sd">${esc(it.desc)}</span>
+      <button class="buy-btn ${isOwned?'owned':''}" ${it.disabled?'disabled':''} onclick="buy(${jsArg(it.key)})">
+        ${isOwned?'購入ずみ':it.price?`🪙 ${it.price} で買う`:'—'}</button>
+    </div>`;
+  }).join('');
+}
+function renderCollection(){
+  const grid=$('collectionGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  let html='';
+  
+  // 1. 使い魔
+  const ownedFams=me.ownedFamTypes || ['tora','robo','fairy'];
+  ownedFams.forEach(k=>{
+    const f=FAM_TYPES[k];
+    if(f){
+      html+=`<div style="padding:12px; text-align:center; border:2.5px solid var(--line); border-radius:0; background:var(--panel); box-shadow:var(--shadow-sm);">
+        <span style="display:block; margin-bottom:4px;">${famImg(k, 36)}</span>
+        <span style="font-size:12px; font-weight:800; display:block;">${f.name}</span>
+        <span style="font-size:9px; color:var(--muted); font-weight:800;">ツカイマ</span>
+      </div>`;
+    }
+  });
+
+  // 2. 画像
+  const ownedImgs=me.ownedImages || ['ノートパソコン.png'];
+  ownedImgs.forEach(name=>{
+    html+=`<div style="padding:12px; text-align:center; border:2.5px solid var(--line); border-radius:0; background:var(--panel); box-shadow:var(--shadow-sm);">
+      <span style="font-size:32px; display:block; margin-bottom:4px;">🖼️</span>
+      <span style="font-size:11px; font-weight:800; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${esc(name)}">${esc(name.replace('.png',''))}</span>
+      <span style="font-size:9px; color:var(--muted); font-weight:800;">画像素材</span>
+    </div>`;
+  });
+
+  // 3. 背景
+  const ownedBgs=me.ownedBgImages || ['bg_stars.png'];
+  ownedBgs.forEach(file=>{
+    if(file === 'bg_stars.png') return;
+    const bgKey = file.replace(/\.png$/,'');
+    const item = dbShopItems.find(x => (x.key || x.id) === bgKey);
+    html+=`<div style="padding:12px; text-align:center; border:2.5px solid var(--line); border-radius:0; background:var(--panel); box-shadow:var(--shadow-sm);">
+      <span style="font-size:32px; display:block; margin-bottom:4px;">${esc(item?.icon || '🎨')}</span>
+      <span style="font-size:11px; font-weight:800; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${esc(item?.name || bgKey)}">${esc(item?.name || bgKey)}</span>
+      <span style="font-size:9px; color:var(--muted); font-weight:800;">背景</span>
+    </div>`;
+  });
+
+  // 4. Firestore ショップアイテム
+  dbShopItems.forEach(item=>{
+    if((item.key || item.id || '').startsWith('fam_') || (item.key || item.id || '').startsWith('bg_')) return;
+    if((me.ownedMiscItems || []).includes(item.key || item.id) || owned.has(item.key || item.id)){
+      html+=`<div style="padding:12px; text-align:center; border:2.5px solid var(--line); border-radius:0; background:var(--panel); box-shadow:var(--shadow-sm);">
+        <span style="font-size:32px; display:block; margin-bottom:4px;">${esc(item.icon||'🎁')}</span>
+        <span style="font-size:11px; font-weight:800; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${esc(item.name)}">${esc(item.name)}</span>
+        <span style="font-size:9px; color:var(--muted); font-weight:800;">${esc(item.category||'アイテム')}</span>
+      </div>`;
+    }
+  });
+
+  // 5. ローカルデフォルトアイテム (プレミアムテンプレート、カスタムテーマ)
+  const localItems=[
+    {key:'tpl', icon:'🎁', name:'特別テンプレ', category:'テンプレート'},
+    {key:'theme', icon:'🎨', name:'カスタムテーマ', category:'テーマ'}
+  ];
+  localItems.forEach(it=>{
+    if(owned.has(it.key)){
+      html+=`<div style="padding:12px; text-align:center; border:2.5px solid var(--line); border-radius:0; background:var(--panel); box-shadow:var(--shadow-sm);">
+        <span style="font-size:32px; display:block; margin-bottom:4px;">${it.icon}</span>
+        <span style="font-size:11px; font-weight:800; display:block;">${it.name}</span>
+        <span style="font-size:9px; color:var(--muted); font-weight:800;">${it.category}</span>
+      </div>`;
+    }
+  });
+
+  if(!html){
+    grid.innerHTML='<div style="grid-column: 1/-1; text-align:center; padding:20px; font-weight:700; color:var(--muted);">まだコレクションはないよ。ショップで手に入れよう！</div>';
+  }else{
+    grid.innerHTML=html;
+  }
+}
+
+async function purchaseSlotViaApi(){
+  try{
+    const fetcher = window.FirebaseAuthBridge?.authFetch || fetch;
+    const res = await fetcher('/api/purchaseSlot', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'
+    });
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data?.ok){
+      toast('買えませんでした', data?.message || 'もう一度ためしてね。', true);
+      return false;
+    }
+    me.coins = data.coins;
+    me.slotsMax = data.slotsMax;
+    DB.set('user', me);
+    setCoins(data.coins);
+    renderSlots();renderShop();renderCollection();
+    toast('📦 枠が増えました',`作品の枠が ${me.slotsMax}件 になりました。新しい作品を制作できます。`);
+    famTalk(`作品枠が${me.slotsMax}件になりました。次の制作に進めます。`);
+    if (window.AchievementBridge) window.AchievementBridge.unlockAchievement('first_buy');
+    return true;
+  }catch(e){
+    console.error('purchaseSlot failed', e);
+    toast('つうしんエラー','枠を購入できませんでした。少し待ってためしてね。', true);
+    return false;
+  }
+}
+
+// 使い魔・背景・その他のショップ購入をサーバー側API経由で行う（coins/ownedFamTypesはルールでクライアント更新不可）
+async function purchaseShopItemViaApi(it){
+  try{
+    const fetcher = window.FirebaseAuthBridge?.authFetch || fetch;
+    const res = await fetcher('/api/purchaseShopItem', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ itemKey: it.key })
+    });
+    const data = await res.json().catch(()=>null);
+    if(!res.ok || !data?.ok){
+      toast('買えませんでした', data?.message || 'もう一度ためしてね。', true);
+      return false;
+    }
+    // サーバーの値で同期
+    me.coins = data.coins;
+    if(Array.isArray(data.ownedFamTypes)) me.ownedFamTypes = data.ownedFamTypes;
+    if(Array.isArray(data.ownedBgImages)) me.ownedBgImages = data.ownedBgImages;
+    if(Array.isArray(data.ownedImages)) me.ownedImages = data.ownedImages;
+    if(Array.isArray(data.ownedMiscItems)){
+      me.ownedMiscItems = data.ownedMiscItems;
+      owned.clear();
+      data.ownedMiscItems.forEach(k => owned.add(k));
+      DB.set('owned_misc', [...owned]);
+    } else if(it.key.startsWith('bg_')) {
+      owned.add(it.key); DB.set('owned_misc', [...owned]);
+    } else if(!it.key.startsWith('fam_')) {
+      owned.add(it.key); DB.set('owned_misc', [...owned]);
+    }
+    DB.set('user', me);
+    setCoins(data.coins);
+    renderShop();renderCollection();
+
+    if(it.key.startsWith('fam_')){
+      const famKey = it.key.replace('fam_','');
+      toast('🔮 ツカイマが仲間になったよ!',`「${it.name}」が使えるようになりました。ツカイマエリアの「チェンジ」から選んでね！`);
+      famTalk(`新しいお友達の「${(FAM_TYPES[famKey]||{}).name||it.name}」が来てくれたよ！よろしくね！`);
+    }else if(it.key.startsWith('bg_')){
+      toast('🎉 背景を購入したよ', `「${it.name}」が使えるようになりました。マイページのプロフィール編集から設定できるよ！`);
+    }else{
+      toast('🎉 こうにゅう完了',`「${it.name}」が使えるようになりました。`);
+    }
+    if (window.AchievementBridge) window.AchievementBridge.unlockAchievement('first_buy');
+    return true;
+  }catch(e){
+    console.error('purchaseShopItem failed', e);
+    toast('つうしんエラー','購入できませんでした。少し待ってためしてね。', true);
+    return false;
+  }
+}
+
+async function buy(key){
+  const it=shopItems().find(x=>x.key===key);if(!it||!it.price)return;
+  if(me.coins<it.price){
+    toast('両が足りないよ 🪙',`あと ${it.price-me.coins}両必要。依頼広場で両を稼ごう!`,true);
+    famTalk('両が足りないみたい。依頼広場にいい依頼があったよ。いっしょに見にいく?');
+    return;
+  }
+  if(!confirm(`「${it.name}」を 🪙${it.price} で買う?`))return;
+
+  // ログイン時は coins/所有物をサーバー側で更新（Firestore rulesでクライアント直接更新不可）
+  if(window.FirebaseAuthBridge?.isConfigured && DB.getCurrentUid()){
+    if(key==='slot'){ await purchaseSlotViaApi(); return; }
+    await purchaseShopItemViaApi(it); return;
+  }
+
+  setCoins(me.coins-it.price);
+  if(key==='slot'){
+    me.slotsMax++;
+    DB.set('user', me);
+    renderSlots();renderShop();renderCollection();
+    toast('📦 枠が増えました',`作品の枠が ${me.slotsMax}件 になりました。新しい作品を制作できます。`);
+    famTalk(`作品枠が${me.slotsMax}件になりました。次の制作に進めます。`);
+  }else if(key.startsWith('fam_')){
+    const famKey = key.replace('fam_', '');
+    if (!me.ownedFamTypes) me.ownedFamTypes = ['tora', 'robo', 'fairy'];
+    if (!me.ownedFamTypes.includes(famKey)) {
+      me.ownedFamTypes.push(famKey);
+    }
+    DB.set('user', me);
+    renderShop();renderCollection();
+    toast('🔮 ツカイマが仲間になったよ!',`「${it.name}」が使えるようになりました。ツカイマエリアの「チェンジ」から選んでね！`);
+    famTalk(`新しいお友達の「${FAM_TYPES[famKey].name}」が来てくれたよ！よろしくね！`);
+  }else if(key.startsWith('bg_')){
+    const bgImgFile = key + '.png';
+    if (!me.ownedBgImages) me.ownedBgImages = ['bg_stars.png'];
+    if (!me.ownedBgImages.includes(bgImgFile)) {
+      me.ownedBgImages.push(bgImgFile);
+    }
+    owned.add(key);
+    DB.set('user', me);
+    DB.set('owned_misc', [...owned]);
+    renderShop();renderCollection();
+    toast('🎉 背景を購入したよ', `「${it.name}」が使えるようになりました。マイページのプロフィール編集から設定できるよ！`);
+  }else{
+    owned.add(key);
+    me.ownedMiscItems = [...owned];
+    DB.set('user', me);
+    DB.set('owned_misc', [...owned]);
+    renderShop();renderCollection();
+    toast('🎉 こうにゅう完了',`「${it.name}」が使えるようになりました(デモ)。`);
+  }
+
+  // 実績解除チェック
+  if (window.AchievementBridge) {
+    window.AchievementBridge.unlockAchievement('first_buy');
+  }
+}
+
+/* ---------- ダミーSSOログイン / アカウント切り替え ---------- */
+function dummyLogin(provider) {
+  if (provider === 'google' && window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.loginWithGoogle()
+      .then(() => {
+        initPage();
+        toast('ログインしたよ 🔑', `アカウント（${me?.nickname || 'Googleユーザー'}）でログインしました。`);
+        if (window.AchievementBridge) {
+          window.AchievementBridge.unlockAchievement('first_login');
+        }
+      })
+      .catch((error) => {
+        console.error('Firebase Google login failed', error);
+        const detail = firebaseErrorDetail(error);
+        localStorage.setItem('otq:last_firebase_login_error', detail);
+        toast('ログインできませんでした', detail, true);
+        alert(`Firebaseログインエラー:\n${detail}`);
+      });
+    return;
+  }
+
+  let uid = '';
+  if (provider === 'google') uid = 'google_user_' + Math.floor(100 + Math.random() * 900);
+  else if (provider === 'school') uid = 'school_user_' + Math.floor(100 + Math.random() * 900);
+  else return; // ゲストログインは廃止
+
+  DB.setCurrentUid(uid);
+  initPage();
+  toast('ログインしたよ 🔑', `アカウント（${me.nickname}）でログインしました。`);
+  if (window.AchievementBridge) {
+    window.AchievementBridge.unlockAchievement('first_login');
+  }
+}
+
+function handleIdLogin() {
+  const orgId = $('loginSchoolIdInput').value.trim();
+  const loginId = $('loginIdInput').value.trim();
+  const password = $('loginPasswordInput').value;
+
+  if (!orgId || !loginId || !password) {
+    toast('入力エラー ⚠️', 'すべての項目を入力してください。', true);
+    return;
+  }
+
+  const loginBtn = $('idLoginBtn');
+  const originalText = loginBtn.textContent;
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'ログイン中...';
+
+  const finishLogin = (userObj) => {
+    initPage();
+    toast('ログインしたよ 🔑', `アカウント（${userObj.nickname}）でログインしました。`);
+    if (window.AchievementBridge) {
+      window.AchievementBridge.unlockAchievement('first_login');
+    }
+  };
+
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.loginWithIdAndPassword(loginId, orgId, password)
+      .then(() => {
+        const userObj = DB.get('user', null);
+        finishLogin(userObj);
+      })
+      .catch((error) => {
+        console.error('ID login failed', error);
+        toast('ログインできませんでした', error.message || '学校ID、ログインID、またはパスワードが違います。', true);
+      })
+      .finally(() => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = originalText;
+      });
+  } else {
+    // デモ用（Firebase未設定時）のダミーログインフォールバック
+    setTimeout(() => {
+      loginBtn.disabled = false;
+      loginBtn.textContent = originalText;
+
+      const dummyUid = 'school_user_' + orgId + '_' + loginId;
+      DB.setCurrentUid(dummyUid);
+
+      let userObj = DB.get('user', null);
+      if (!userObj) {
+        userObj = {
+          uid: dummyUid,
+          nickname: loginId + '@' + orgId,
+          bio: '学校アカウント（デモ）でログイン中！',
+          avatarColor: '#f59e0b',
+          coins: 150,
+          slotsMax: 2,
+          famType: 'tora',
+          hobbies: ['プログラミング', '勉強'],
+          ownedImages: ['ノートパソコン.png'],
+          ownedFamTypes: ['tora', 'robo', 'fairy'],
+          schoolId: orgId,
+          role: 'student'
+        };
+        DB.set('user', userObj);
+      }
+      finishLogin(userObj);
+    }, 800);
+  }
+}
+
+function firebaseErrorDetail(error) {
+  if (!error) return 'Firebase error: empty error object';
+  const parts = [];
+  if (error.code) parts.push(`code=${error.code}`);
+  if (error.message) parts.push(`message=${error.message}`);
+  if (error.customData) {
+    try { parts.push(`customData=${JSON.stringify(error.customData)}`); } catch(e) {}
+  }
+  return parts.join('\n') || String(error);
+}
+
+function dummySwitch(target) {
+  let uid = '';
+  if (target === 'tarou') uid = 'tarou';
+  else if (target === 'hanako') uid = 'hanako';
+  else uid = 'guest_user_' + Math.floor(1000 + Math.random() * 9000);
+
+  DB.setCurrentUid(uid);
+  initPage();
+  closeModal('switchUserModal');
+  toast('アカウントを切り替えたよ 👤', `${me.nickname} さんに切り替えました。`);
+}
+
+function logout() {
+  if(!confirm('ログアウトしますか？')) return;
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.logout()
+      .then(() => {
+        DB.setCurrentUid(null);
+        if($('sideAccountName')) $('sideAccountName').textContent = '未ログイン';
+        if($('sideLoginBtn')) $('sideLoginBtn').style.display = 'block';
+        if($('sideLogoutBtn')) $('sideLogoutBtn').style.display = 'none';
+        initPage();
+        toast('ログアウトしたよ 🚪', 'マイページを見るにはログインしてください。');
+      })
+      .catch((error) => {
+        console.error('Firebase logout failed', error);
+        toast('ログアウトできませんでした', '少し時間をおいてもう一度試してください。', true);
+      });
+    return;
+  }
+  DB.setCurrentUid(null);
+  if($('sideAccountName')) $('sideAccountName').textContent = '未ログイン';
+  if($('sideLoginBtn')) $('sideLoginBtn').style.display = 'block';
+  if($('sideLogoutBtn')) $('sideLogoutBtn').style.display = 'none';
+  initPage();
+  toast('ログアウトしたよ 🚪', 'マイページを見るにはログインしてください。');
+}
+
+let showShop = true;
+
+async function loadMyWorksFromFirestore() {
+  if (window.FirebaseAuthBridge?.waitForAuthReady) {
+    await window.FirebaseAuthBridge.waitForAuthReady();
+  }
+  const uid = window.FirebaseAuthBridge?.getCurrentAuthUid?.()
+    || window.FirebaseAuthBridge?.getCurrentProfile?.()?.uid
+    || DB.getCurrentUid();
+  if (!uid || !window.FirebaseAuthBridge?.isConfigured) return;
+  try {
+    const fsWorks = await window.FirebaseAuthBridge.getMyWorks(uid);
+    if (!fsWorks || fsWorks.length === 0) return;
+    const existingIds = new Set(myWorks.map(w => w.id));
+    for (const w of fsWorks) {
+      const mapped = toMyWorkView(w);
+      if (existingIds.has(w.id)) {
+        const idx = myWorks.findIndex(x => x.id === w.id);
+        if (idx >= 0) myWorks[idx] = { ...myWorks[idx], ...mapped };
+      } else {
+        myWorks.push(mapped);
+        existingIds.add(w.id);
+      }
+    }
+    // 新規追加・既存更新どちらでも、最新状態で必ず再描画する
+    normalizeMyWorks();
+    renderWorks();
+    renderSlots();
+    renderStats();
+  } catch (e) {
+    console.warn('loadMyWorksFromFirestore failed:', e);
+  }
+}
+
+async function loadFirestoreData() {
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    try {
+      // 1. システム設定 (showShop) の取得
+      const settings = await window.FirebaseAuthBridge.getFirestoreDocs('system_settings');
+      const homepageSetting = settings.find(s => s.id === 'homepage');
+      if (homepageSetting) {
+        showShop = homepageSetting.showShop !== false;
+      } else {
+        showShop = true;
+      }
+
+      // 2. ショップアイテムの取得
+      const items = await window.FirebaseAuthBridge.getFirestoreDocs('shop_items');
+      if (items && items.length > 0) {
+        dbShopItems = items.map(normalizeShopItem).filter(Boolean);
+      } else {
+        dbShopItems = [];
+      }
+
+      // ユーザーの依頼進捗をFirestoreからロードしてマージ
+      const uid = DB.getCurrentUid();
+      let questState = DB.get('questState', { completedIds: [], doingIds: [] });
+      if (uid) {
+        try {
+          const userDoc = await window.FirebaseAuthBridge.getFirestoreDoc('users', uid);
+          if (userDoc) {
+            if (Array.isArray(userDoc.completedQuestIds)) questState.completedIds = userDoc.completedQuestIds;
+            if (Array.isArray(userDoc.doingQuestIds))     questState.doingIds     = userDoc.doingQuestIds;
+            DB.set('questState', questState);
+          }
+        } catch (e) {
+          console.warn('Failed to load user quest state from Firestore:', e);
+        }
+      }
+
+      // 3. クエスト（依頼）の取得とマージ
+      const dbQuests = await window.FirebaseAuthBridge.getFirestoreDocs('quests');
+      if (dbQuests && dbQuests.length > 0) {
+        const mergedQuests = dbQuests.map(dq => {
+          let status = 'open';
+          if ((questState.completedIds || []).includes(dq.id)) {
+            status = 'done';
+          } else if ((questState.doingIds || []).includes(dq.id)) {
+            status = 'doing';
+          }
+          return {
+            id: dq.id,
+            title: dq.title,
+            desc: dq.desc,
+            genre: dq.genre,
+            diff: dq.diff,
+            reward: dq.reward,
+            src: dq.src,
+            status: status
+          };
+        });
+        DB.set('quests', mergedQuests);
+      }
+    } catch (e) {
+      console.warn("Failed to load data from Firestore:", e);
+    }
+  }
+  applyDisplaySettings();
+}
+
+function applyDisplaySettings() {
+  const shopCard = $('shopCard');
+  if (shopCard) {
+    shopCard.style.display = showShop ? 'block' : 'none';
+  }
+  const sidebarCoin = $('sidebarCoin');
+  if (sidebarCoin) {
+    sidebarCoin.style.display = showShop ? 'flex' : 'none';
+  }
+}
+
+let initPageRunId = 0;
+
+async function initPage() {
+  const runId = ++initPageRunId;
+  const loggedIn = loadUserData();
+  if (loggedIn) {
+    // ローカルデータで先行描画
+    renderProfile();
+    renderFam();
+    renderStats();
+    renderNotifs();
+    renderSlots();
+    renderWorks();
+    renderQuests();
+    renderFavs();
+    renderShop();
+    renderCollection();
+    $('coinVal').textContent=num(me.coins);$('shopCoin').textContent=num(me.coins);
+
+    // Firestoreからデータを最新化
+    await loadFirestoreData();
+    await loadMyWorksFromFirestore();
+    if (runId !== initPageRunId) return;
+
+    // マージされたクエストから 'doing' のものを再ロード
+    const uid = DB.getCurrentUid();
+    if (uid) {
+      myQuests = DB.get('quests', []).filter(q => q.status === 'doing');
+    }
+
+    // 最新データで再描画
+    renderProfile();
+    normalizeMyWorks();
+    renderStats();
+    renderSlots();
+    renderWorks();
+    renderQuests();
+    renderShop();
+    renderCollection();
+    renderAchievements();
+    $('coinVal').textContent=num(me.coins);$('shopCoin').textContent=num(me.coins);
+
+    setTimeout(()=>famTalk(),400);
+    setTimeout(promptNicknameIfUnset, 800); // 未設定なら初回にニックネームを決めさせる
+  }
+}
+
+function renderAchievements() {
+  const achEl = $('achievementGrid');
+  if (!achEl) return;
+  if (!window.AchievementBridge) return;
+  
+  const unlocked = window.AchievementBridge.getUnlockedAchievements();
+  const list = window.AchievementBridge.ACHIEVEMENTS;
+
+  achEl.innerHTML = list.map(ach => {
+    const isUnlocked = unlocked.includes(ach.id);
+    const bg = isUnlocked ? 'var(--accent2)' : '#E2E8F0';
+    const border = 'var(--line)';
+    const opacity = isUnlocked ? '1' : '0.6';
+    const filter = isUnlocked ? 'none' : 'grayscale(100%)';
+    const cursor = isUnlocked ? 'pointer' : 'default';
+
+    return `
+      <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}"
+           style="border:1.5px solid ${border}; border-radius:0; background:${bg}; box-shadow:none; padding:14px; text-align:center; opacity:${opacity}; cursor:${cursor}; transition:transform 0.15s, box-shadow 0.15s; position:relative; overflow:hidden;"
+           title="${isUnlocked ? ach.desc : 'まだ解除されていないよ！'}">
+        <div style="font-size:36px; margin-bottom:8px; filter:${filter};">${ach.emoji}</div>
+        <div style="font-family:var(--font-display); font-size:12px; font-weight:800; color:var(--text); margin-bottom:4px;">${esc(ach.title)}</div>
+        <div style="font-size:10px; font-weight:700; color:${isUnlocked ? 'var(--text)' : '#718096'};">${esc(ach.desc)}</div>
+        ${!isUnlocked ? '<div style="position:absolute; top:4px; right:6px; font-size:12px;">🔒</div>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+/* ---------- 初期化 ---------- */
+window.addEventListener('vibecoding-auth-change', () => {
+  initPage();
+});
+
+// 実績解除イベントリスナーの追加
+window.addEventListener('vibecoding-achievement-unlocked', () => {
+  loadUserData();
+  renderAchievements();
+  if (typeof me !== 'undefined') {
+    const coinVal = $('coinVal');
+    if (coinVal) coinVal.textContent = num(me.coins);
+    const shopCoin = $('shopCoin');
+    if (shopCoin) shopCoin.textContent = num(me.coins);
+  }
+});
+
+window.addEventListener('vibecoding-achievement-modal-closed', () => {
+  loadUserData();
+  renderAchievements();
+  if (typeof me !== 'undefined') {
+    const coinVal = $('coinVal');
+    if (coinVal) coinVal.textContent = num(me.coins);
+    const shopCoin = $('shopCoin');
+    if (shopCoin) shopCoin.textContent = num(me.coins);
+  }
+});
+
+initPage();
+setInterval(()=>{if(DB.getCurrentUid() && Math.random()<.5)famTalk();},20000);
+</script>
+<script src="sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

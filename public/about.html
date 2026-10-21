@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>このサイトについて | じさくや</title>
+<meta property="og:title" content="このサイトについて | じさくや" />
+<meta property="og:description" content="AIと一緒にWebアプリを制作する学習サービス。じさくや。" />
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root {
+    --bg: #F4EDE0; --panel: #FFFCF5; --line: #2A2620; --text: #22201C; --muted: #6B5C4B;
+    --accent: #1B3A5C; --accent2: #C9A646; --pink: #C1440E; --good: #1B3A5C; --warn: #C9A646; --bad: #A6321B;
+    --stroke: 1.5px solid var(--line);
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+  }
+  body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background:
+      radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+      radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+    margin: 0;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+  .card {
+    background: var(--panel);
+    border: var(--stroke);
+    padding: 40px;
+    margin-bottom: 24px;
+  }
+  .card h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: var(--stroke);
+    padding-bottom: 12px;
+    color: var(--text);
+  }
+  .card h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    margin-top: 36px;
+    margin-bottom: 14px;
+    border-left: 4px solid var(--accent2);
+    padding-left: 12px;
+    color: var(--text);
+  }
+  .card p {
+    font-size: 15px;
+    line-height: 1.85;
+    color: var(--text);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  .card ul {
+    margin-bottom: 18px;
+    padding-left: 20px;
+  }
+  .card li {
+    font-size: 14.5px;
+    line-height: 1.85;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    border-top: var(--stroke);
+  }
+</style>
+</head>
+<body>
+
+<!-- じさくや icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-house" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_562)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L23 10.7L22.1 11.9L20.5 10.6V21.5H19V9.4L12 4L5 9.4V21.5H3.5V10.6L1.9 11.9L1 10.7L12 2ZM16.5 10.5V19.5H7.5V10.5H16.5ZM11.2 15.8H9V18H11.2V15.8ZM12.8 15.8V18H15V15.8H12.8ZM12.8 14.3H15V12H12.8V14.3ZM11.3 14.2V12H9V14.2H11.3Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_177)">
+<path d="M21 20.5L15 14.5C16.2 13.2 16.9 11.4 16.9 9.5C17 5.4 13.6 2 9.5 2C5.4 2 2 5.4 2 9.5C2 13.6 5.3 17 9.5 17C11.2 17 12.7 16.4 14 15.5L20 21.5L21 20.5ZM3.5 9.5C3.5 6.2 6.2 3.5 9.5 3.5C12.8 3.5 15.5 6.2 15.5 9.5C15.5 12.8 12.8 15.5 9.5 15.5C6.2 15.5 3.5 12.8 3.5 9.5Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-mailing" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_367)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M15.5 2.5C19.1 2.6 22 5.6 22 9.2V17H13V22H11V17H8.6H2V8.9C2 5.4 4.9 2.5 8.5 2.5H15.5ZM3.5 8.9V15.5H8.6V9.2C8.6 7.1 9.5 5.2 11 4H8.4C5.7 4 3.5 6.2 3.5 8.9ZM11.1 15.5H20.4V9.2C20.4 6.3 18.1 4 15.2 4C12.3 4 10 6.3 10 9.2V15.5H11.1ZM12.3008 9.3999H18.6008V10.8999H12.3008V9.3999Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-application" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_355)">
+<path d="M18.8 2.5L21.5 5.2L19.7 7L17 4.3L18.8 2.5ZM16.1 5.2L4 17.3V20H6.7L18.8 7.9L16.1 5.2ZM2.5 21.5V16.7L17.5 1.7C18.2 1 19.3 1 20 1.7L22.3 4C23 4.7 23 5.8 22.3 6.5L7.3 21.5H2.5Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-documents" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_411)">
+<path d="M11.6 6L9.6 4H2V21H22V6H11.6ZM9 5.5L11 7.5H20.5V10.5H3.5V5.5H9ZM3.5 19.5V12H20.5V19.5H3.5Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-me" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_522)">
+<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM3.5 12C3.5 7.3 7.3 3.5 12 3.5C16.7 3.5 20.5 7.3 20.5 12C20.5 14.1 19.7 16 18.4 17.5C17.5 15.4 15.1 14 12 14C8.9 14 6.5 15.4 5.6 17.5C4.3 16 3.5 14.1 3.5 12ZM12 12.5C10.1 12.5 8.5 10.9 8.5 9C8.5 7.1 10.1 5.5 12 5.5C13.9 5.5 15.5 7.1 15.5 9C15.5 10.9 13.9 12.5 12 12.5ZM12 7C10.9 7 10 7.9 10 9C10 10.1 10.9 11 12 11C13.1 11 14 10.1 14 9C14 7.9 13.1 7 12 7ZM12 15.5C14.7 15.5 16.9 16.7 17.7 18.5C16.2 19.8 14.2 20.5 12 20.5C9.8 20.5 7.8 19.8 6.3 18.5C7.1 16.7 9.3 15.5 12 15.5Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-money" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_490)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12ZM3.5 12C3.5 7.3 7.3 3.5 12 3.5C16.7 3.5 20.5 7.3 20.5 12C20.5 16.7 16.7 20.5 12 20.5C7.3 20.5 3.5 16.7 3.5 12ZM12.0016 11.7L14.7016 7H16.4016L13.6016 12H16.0016V13H12.7016V14.5H16.0016V15.5H12.7016V18H11.2016V15.5H8.00156V14.5H11.2016V13H8.00156V12H10.4016L7.60156 7H9.30156L12.0016 11.7Z" fill="currentColor"/>
+</g></symbol>
+  <symbol id="i-information" viewBox="0 0 24 24"><g clip-path="url(#clip0_320_118)">
+<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM3.5 12C3.5 7.3 7.3 3.5 12 3.5C16.7 3.5 20.5 7.3 20.5 12C20.5 16.7 16.7 20.5 12 20.5C7.3 20.5 3.5 16.7 3.5 12ZM11.25 15.5V11H12.75V15.5H11.25ZM11.25 9.5V8H12.75V9.5H11.25Z" fill="currentColor"/>
+</g></symbol>
+</svg>
+
+<div class="app-shell">
+  <!-- 共通サイドバー -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img class="logo-mark" src="img/logo_shikiai.svg" alt="じさくや" />
+        <span>じさくや</span>
+      </div>
+      <button class="sidebar-menu-btn" id="sidebarMenuBtn" type="button" aria-label="メニュー開閉">☰</button>
+    </div>
+    
+    <div class="sidebar-body" id="sidebarBody">
+      <a class="sidebar-coin" id="sidebarCoin" href="market.html" title="両: 作品の閲覧やミッション達成で獲得できます" style="display:none">
+        <svg class="ic"><use href="#i-money"></use></svg> <span id="coinVal">0</span> 両
+      </a>
+      
+      <nav class="sidebar-nav">
+        <a class="side-link" href="index.html"><svg class="ic"><use href="#i-house"></use></svg>ホーム</a>
+        <a class="side-link" href="index.html?view=quest"><svg class="ic"><use href="#i-mailing"></use></svg>ミッション</a>
+        <a class="side-link" href="corder.html"><svg class="ic"><use href="#i-application"></use></svg>じさくや コーダー</a>
+        <a class="side-link" href="knowledge.html"><svg class="ic"><use href="#i-documents"></use></svg>ナレッジベース</a>
+        <a class="side-link" href="knowledge_history.html"><svg class="ic"><use href="#i-documents"></use></svg>学習履歴</a>
+        <a class="side-link" href="market.html"><svg class="ic"><use href="#i-money"></use></svg>マーケット</a>
+        <a class="side-link side-link-classroom" href="user_admin.html"><svg class="ic"><use href="#i-information"></use></svg>教室での利用はこちら</a>
+        <a class="side-link" href="userpage.html"><svg class="ic"><use href="#i-me"></use></svg>マイページ</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <!-- ログイン・アカウント管理領域 -->
+      <div class="sidebar-account"></div>
+    </div>
+  </aside>
+
+  <!-- メインエリア -->
+  <div class="main-area" style="display:flex; flex-direction:column; min-height:100vh;">
+    <div class="container" style="flex:1;">
+      <main class="card">
+        <h1>このサイトについて</h1>
+        
+        <p>「じさくや」は、AI（人工知能）の力を借りながら、自分だけのオリジナルWebページや簡単なアプリを楽しく作成し、公開できる中学生・高校生向けの学習サービスです。</p>
+        
+        <h2>創造のからくりを、自ら紐解く</h2>
+        <p>プログラミングは難しそう、コードの書き方がわからない。そんな悩みを持つ方でも心配ありません。じさくやでは、AIに「作りたいもの」を簡単な言葉（プロンプト）で伝えるだけで、AIが瞬時にプログラムの基本構造を組み立ててくれます。</p>
+        <p>しかし、じさくやは単にAIにすべての作業を丸投げするだけのツールではありません。出力された「からくり（コード）」がなぜそのように動作しているのかを、自らの目で見て、手動で書き換え、試行錯誤するためのエディタが用意されています。AIをあなたの相棒として活用しながら、自分自身のプログラミングスキルを高めていくことができます。</p>
+        
+        <h2>主な特徴と機能</h2>
+        <ul>
+          <li><strong>AIアシスタント機能</strong>: 作りたいページのアイデアや要件を記述すると、AIがHTML/CSS/JavaScriptコードを生成します。</li>
+          <li><strong>手動編集モード</strong>: AIが作成したコードを自分で直接書き換え、リアルタイムでプレビューを確認できます。</li>
+          <li><strong>作品の保存と公開</strong>: 制作した作品はあなたのアカウントに保存され、インターネット上に公開して友達に見せることができます。</li>
+          <li><strong>百科事典（ナレッジベース）</strong>: プログラミングの基礎用語や、からくりの仕組みをいつでも参照・学習できます。</li>
+        </ul>
+
+        <h2>学習としての「じさくや」</h2>
+        <p>「考える・試す・創造する」</p>
+        <p>この一連の体験こそがじさくやのコアです。情報社会において、テクノロジーを単に消費する側から「創造する側」へとステップアップするための土台として、本サービスは設計されています。</p>
+      </main>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+      <span id="footer-copy"></span><br/>
+      <a href="about.html" id="footer-about" style="color:var(--accent);">About</a> &#12539;
+      <a href="terms.html" id="footer-terms" style="color:var(--accent);">Terms</a> &#12539;
+      <a href="userpage.html" id="footer-kozin" style="color:var(--accent);">MyPage</a>
+    </footer>
+    <script>
+      (function() {
+        var copy = "\u3058\u3055\u304f\u3084\uff5eAI\u3067\u3072\u3089\u304f\u3001\u5275\u9020\u306e\u304b\u3089\u304f\u308a\uff5e";
+        var about = "\u3053\u306e\u30b5\u30a4\u30c8\u306b\u3064\u3044\u3066";
+        var terms = "\u5229\u7528\u898f\u7d04";
+        var kozin = "\u30de\u30a4\u30da\u30fc\u30b8";
+        var elCopy = document.getElementById("footer-copy");
+        var elAbout = document.getElementById("footer-about");
+        var elTerms = document.getElementById("footer-terms");
+        var elKozin = document.getElementById("footer-kozin");
+        if (elCopy) elCopy.textContent = copy;
+        if (elAbout) elAbout.textContent = about;
+        if (elTerms) elTerms.textContent = terms;
+        if (elKozin) elKozin.textContent = kozin;
+      })();
+    </script>
+  </div>
+</div>
+
+<script src="./firebase-config.js"></script>
+<script type="module" src="./firebase-auth.js?v=1.0.5"></script>
+<script src="./sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

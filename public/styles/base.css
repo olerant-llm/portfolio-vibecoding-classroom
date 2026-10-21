@@ -1,0 +1,594 @@
+@import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+/* ===== じさくや 共通デザインシステム(江戸配色) ===== */
+:root{
+  --bg: #F4EDE0;         /* 生成り・和紙色 */
+  --panel: #FFFCF5;      /* カード背景 */
+  --line: #2A2620;       /* 墨色(境界線・影) */
+  --text: #22201C;       /* 本文テキスト(墨色) */
+  --muted: #6B5C4B;      /* サブテキスト */
+
+  --accent: #1B3A5C;     /* 藍色 */
+  --accent2: #C9A646;    /* 金 */
+  --pink: #C1440E;       /* 朱色(アクセント) */
+  --good: #1B3A5C;       /* 藍色(成功・確定) */
+  --warn: #C9A646;       /* 金(ハイライト) */
+  --bad: #A6321B;        /* 濃い朱(エラー) */
+
+  --coin: var(--accent2);
+  --paper: #FFFBF0;      /* 用紙色 */
+  --shadow: none;
+  --shadow-lg: none;
+  --radius: 0;
+  --radius-md: 0;
+  --stroke: 1.5px solid var(--line);
+
+  --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+  --font-body: 'Noto Sans JP', system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family: var(--font-body);
+  color:var(--text);
+  background:
+    radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+    radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+    var(--bg);
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none}
+
+button {
+  font-family: var(--font-body);
+  cursor:pointer;
+  border: var(--stroke);
+  border-radius:0;
+  font-weight: 800;
+  box-shadow:none;
+}
+
+/* ========== レイアウト全体: 左サイドバー + メインエリア ========== */
+.app-shell{display:flex;min-height:100vh}
+
+.sidebar{
+  width:226px;flex:none;
+  display:flex;flex-direction:column;
+  padding:20px 14px;
+  background: var(--panel);
+  border-right: var(--stroke);
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  transition:width .18s ease, padding .18s ease;
+}
+.sidebar-toggle{
+  width:24px;
+  height:24px;
+  min-width:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:auto;
+  padding:0;
+  background:transparent;
+  color:var(--muted);
+  border:none;
+  border-radius:0;
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+  box-shadow:none;
+  opacity:.75;
+}
+.sidebar-toggle:hover{background:var(--bg);color:var(--text);opacity:1}
+.sidebar-toggle .toggle-label{display:none}
+.sidebar-toggle svg{
+  width:16px;
+  height:16px;
+  display:block;
+  stroke:currentColor;
+}
+body.sidebar-collapsed .sidebar{
+  width:64px;
+  padding:14px 10px;
+  overflow-x:hidden;
+}
+body.sidebar-collapsed .sidebar-toggle{
+  width:24px;
+  height:24px;
+  min-width:24px;
+  margin:8px auto 0;
+  color:var(--text);
+  border:1.5px solid var(--line);
+  background:var(--panel);
+  opacity:1;
+}
+body.sidebar-collapsed .logo > span,
+body.sidebar-collapsed .sidebar-nav,
+body.sidebar-collapsed .sidebar-coin,
+body.sidebar-collapsed .create-menu,
+body.sidebar-collapsed .sidebar-legal,
+body.sidebar-collapsed .sidebar-account,
+body.sidebar-collapsed .sidebar-spacer{
+  display:none !important;
+}
+body.sidebar-collapsed .logo{
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+  padding:0 0 14px;
+}
+body.sidebar-collapsed .logo-mark{
+  width:34px;
+  height:34px;
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;cursor:pointer;flex:none; font-family: var(--font-display); padding:0 10px 18px}
+.logo-mark{
+  width:36px;height:36px;border-radius:0;
+  border:none;
+  object-fit: cover;
+  display:block;
+}
+.logo .sub{font-size:10px;font-weight:700;color:var(--muted);display:block;letter-spacing:.03em; font-family: var(--font-body)}
+
+.sidebar-nav{display:flex;flex-direction:column;gap:2px}
+.side-link{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-align:left;
+  padding:11px 14px;
+  border-radius:0;
+  background: transparent;
+  border:none;
+  font-size:13.5px;
+  color: var(--text);
+  font-weight: 800;
+  transition: background .15s ease, color .15s ease;
+}
+.side-link:hover{ background: var(--accent); color: #fff; }
+.side-link.active{ background: var(--accent); color: #fff; }
+.sidebar-spacer{flex:1}
+.sidebar-legal{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:10px 14px 12px;
+  border-top:1px solid rgba(42,38,32,.22);
+  font-size:12px;
+  font-weight:800;
+  color:var(--muted);
+}
+.sidebar-legal a:hover{color:var(--accent)}
+
+.main-area{flex:1;min-width:0}
+.topbar{
+  position:sticky;top:0;z-index:30;
+  display:flex;align-items:center;gap:12px;
+  padding:14px 24px;
+  background: var(--panel);
+  border-bottom: var(--stroke);
+}
+.hd-spacer{flex:1}
+.hd-search{position:relative;width:260px}
+.hd-search input{
+  width:100%;
+  border:none;
+  border-bottom: 1.5px solid var(--line);
+  border-radius:0;
+  padding:9px 4px;
+  font-family: var(--font-body);
+  font-size:13px;
+  background: transparent;
+  outline:none;
+  transition: border-color .15s ease;
+}
+.hd-search input:focus{ border-color: var(--accent); }
+
+.btn-login{
+  padding:9px 18px;border-radius:0;font-size:13px;font-weight:800;
+  background: transparent;color: var(--text);border:1.5px solid var(--line);
+  transition: background .15s ease, color .15s ease;
+}
+.btn-login:hover{ background: var(--bg); }
+.btn-signup{
+  padding:9px 18px;border-radius:0;font-size:13px;font-weight:800;
+  background: var(--pink);color:#fff;border:none;
+  transition: background .15s ease;
+}
+.btn-signup:hover{ background:#A8390C; }
+
+.sidebar-coin{
+  display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:0;font-size:13.5px;font-weight:800;
+  background: var(--accent2);
+  color: var(--text);
+  margin-bottom:14px;
+  transition: background .15s ease;
+  font-variant-numeric:tabular-nums;
+}
+.sidebar-coin:hover { background:#DDBC66; }
+.sidebar-coin.bump{animation:bump .4s ease}
+@keyframes bump{30%{transform:scale(1.1)}}
+
+/* --- ユーザーメニュー(ドロップダウン) --- */
+.user-menu{position:relative}
+.user-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:0;font-size:13px;font-weight:800;
+  background: transparent;
+  border:none;
+  color: var(--text);
+  transition: background .15s ease, color .15s ease;
+}
+.user-btn:hover{ background: var(--accent); color:#fff; }
+.user-btn .uavatar{
+  width:22px;height:22px;border-radius:999px;display:grid;place-items:center;
+  background:#fff;border:1.5px solid var(--line);font-size:12px;flex:none;
+}
+.user-btn .caret{font-size:10px}
+.user-drop{
+  position:absolute;right:0;top:calc(100% + 10px);min-width:210px;z-index:45;
+  background: var(--panel);
+  border: var(--stroke);
+  border-radius:0;
+  padding:10px;display:none;
+}
+.user-drop.open{display:block;animation:rise .18s ease}
+.user-drop .ud-head{
+  font-size:12px;font-weight:800;color:var(--muted);
+  padding:6px 12px 10px;border-bottom:1.5px dashed var(--line);margin-bottom:8px;
+}
+.user-drop .ud-head b{display:block;font-size:14px;color:var(--text)}
+.user-drop .ud-item{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;
+  border:none;background:transparent;text-align:left;
+  transition: background .15s ease, color .15s ease;
+}
+.user-drop .ud-item:hover{background: var(--accent);color:#fff;}
+
+.sidebar-account-unified{
+  border-top:1.5px dashed var(--line);
+  padding-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:100%;
+}
+.sidebar-account-unified .vc-account-label{
+  padding:0 10px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.sidebar-account-unified .btn-login,
+.sidebar-account-unified .user-menu{
+  width:calc(100% - 20px);
+  margin:0 10px;
+}
+.sidebar-account-unified .btn-login{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+}
+.sidebar-account-unified .user-btn{
+  width:100%;
+  justify-content:flex-start;
+  border:1.5px solid var(--line);
+}
+.sidebar-account-unified .vc-account-name{
+  flex:1;
+  min-width:0;
+  text-align:left;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sidebar-account-unified .user-drop{
+  left:0;
+  right:auto;
+  width:100%;
+  min-width:0;
+}
+.sidebar-account-unified .vc-logout-btn{
+  border-top:1.5px dashed var(--line);
+  margin-top:6px;
+  padding-top:12px;
+}
+.sidebar-account-unified [hidden]{
+  display:none !important;
+}
+
+.create-btn{
+  width:100%;
+  padding:11px 16px;
+  border-radius:0;
+  font-size:13.5px;
+  color: #fff;
+  background: var(--pink);
+  border:none;
+  font-weight: 800;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  transition: background .15s ease;
+}
+.create-btn:hover{ background:#A8390C; }
+
+.create-menu{position:relative}
+.create-drop{
+  position:absolute;left:0;right:0;top:calc(100% + 8px);min-width:210px;z-index:45;
+  background: var(--panel);
+  border: var(--stroke);
+  border-radius:0;
+  padding:10px;display:none;
+}
+.create-drop-up{ top:auto; bottom:calc(100% + 8px); }
+.create-drop.open{display:block;animation:rise .18s ease}
+.create-drop .cd-head{
+  font-size:12px;font-weight:800;color:var(--muted);
+  padding:6px 12px 10px;border-bottom:1.5px dashed var(--line);margin-bottom:8px;
+}
+.create-drop .cd-item{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;
+  border:none;background:transparent;text-align:left;
+  text-decoration:none;color:var(--text);
+  transition: background .15s ease, color .15s ease;
+}
+.create-drop .cd-item:hover{background: var(--accent);color:#fff;}
+.create-drop .cd-item .cd-desc{
+  font-size:11px;font-weight:400;color:var(--muted);display:block;margin-top:1px;
+}
+.create-drop .cd-item:hover .cd-desc{color:#fff;}
+
+@keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+
+.container{max-width:1280px;margin:0 auto;padding:0 20px}
+
+section.block{margin:40px 0}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.sec-hd h2{margin:0;font-size:20px;display:flex;align-items:center;gap:8px; font-family: var(--font-display)}
+.sec-hd .desc{font-size:13px;color:var(--muted);font-weight:700}
+
+.more{
+  font-size:13px;
+  color: var(--text);
+  font-weight:800;
+  background: var(--panel);
+  border: var(--stroke);
+  box-shadow:none;
+  padding:8px 14px;
+  border-radius:0;
+}
+
+/* ========== カード(civitai風: サムネイルにオーバーレイ表示) ========== */
+.badge{
+  position:absolute;top:12px;left:12px;z-index:2;font-size:11px;font-weight:800;color: var(--text);
+  padding:5px 12px;border-radius:0;
+  border: var(--stroke);
+  box-shadow:none;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+
+.card{
+  background: var(--panel);
+  border:none;
+  border-radius:0;
+  overflow:hidden;
+  cursor:pointer;
+  transition: transform 0.15s ease;
+}
+.card:hover{ transform: translateY(-3px); }
+.thumb{
+  position:relative;aspect-ratio:4/3;display:grid;place-items:center;
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+
+.lvl{
+  position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:800;color:#fff;
+  width:24px;height:24px;border-radius:999px;display:grid;place-items:center;
+  border:1.5px solid rgba(255,255,255,.6);
+}
+.lvl.e{background: var(--good); color:#fff}
+.lvl.j{background: var(--accent); color:#fff}
+.lvl.h{background: var(--pink); color:#fff}
+
+.card-overlay{
+  position:absolute;left:0;right:0;bottom:0;z-index:1;
+  padding:30px 10px 8px;color:#fff;
+  background:linear-gradient(to top, rgba(20,16,10,.88), rgba(20,16,10,.5) 65%, transparent);
+}
+.cf-title{font-size:13px;font-weight:800;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.cf-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#fff;opacity:.92;font-weight:700}
+.cf-author{display:flex;align-items:center;gap:6px}
+.cf-avatar{
+  width:16px;height:16px;border-radius:999px;display:grid;place-items:center;
+  color:#fff;font-size:9px;font-weight:800;flex:none;
+}
+.cf-stats{display:flex;gap:8px}
+
+/* ========== カルーセル(4件ずつ ←→ 切り替え) ========== */
+.carousel{display:flex;align-items:center;gap:10px}
+.carousel-track{flex:1;grid-template-columns:repeat(4,1fr);min-width:0}
+@media (max-width:900px){ .carousel-track{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:560px){ .carousel-track{grid-template-columns:1fr} }
+.car-arrow{
+  flex:none;width:36px;height:36px;border-radius:0;font-size:16px;font-weight:800;
+  background: var(--panel);border:1px solid var(--line);color:var(--text);
+  transition:background .15s ease, color .15s ease;
+}
+.car-arrow:hover:not(:disabled){background:var(--accent);color:#fff}
+.car-arrow:disabled{opacity:.35;cursor:not-allowed}
+
+.toast{
+  position:fixed;right:20px;bottom:20px;min-width:260px;max-width:400px;z-index:60;
+  padding:16px 20px;border-radius:0;
+  background: var(--panel);
+  border: var(--stroke);
+  box-shadow:none;transform:translateY(16px);opacity:0;pointer-events:none;transition:.22s;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast .sub{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5; font-weight:700}
+
+footer{
+  margin-top:60px;
+  border-top: var(--stroke);
+  background: var(--panel);
+  padding:32px 20px;text-align:center;color: var(--text);font-size:13px;line-height:2.1;
+  font-weight: 700;
+}
+footer a { text-decoration: underline; }
+
+/* PC表示時 */
+.sidebar-header {
+  display: block;
+}
+.sidebar-menu-btn {
+  display: none;
+}
+.sidebar-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+@media(max-width:900px){
+  .app-shell{flex-direction:column}
+  .sidebar-toggle{display:none}
+  
+  /* サイドバーのヘッダー化 */
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px 16px !important;
+  }
+  
+  /* スマホ用ヘッダーエリア */
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .sidebar-header .logo {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* バーガーボタン */
+  .sidebar-menu-btn {
+    display: block !important;
+    background: transparent;
+    border: 1.5px solid var(--line);
+    color: var(--text);
+    font-size: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 800;
+  }
+  
+  /* アコーディオンボディ */
+  .sidebar-body {
+    display: none; /* 初期非表示 */
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 12px;
+    border-top: 1.5px dashed var(--line);
+    padding-top: 12px;
+  }
+  .sidebar-body.open {
+    display: flex !important;
+  }
+  
+  .sidebar-nav {
+    flex-direction: column !important;
+    gap: 4px !important;
+    width: 100%;
+  }
+  .sidebar-nav .side-link {
+    width: 100%;
+    padding: 10px 14px !important;
+  }
+  .sidebar-coin {
+    margin-bottom: 8px !important;
+    width: 100%;
+    justify-content: center;
+  }
+  .sidebar-spacer {
+    display: none !important;
+  }
+  
+  /* マイページ・ログイン周りの整理 */
+  .sidebar-account {
+    border-top: 1.5px dashed var(--line);
+    padding-top: 12px;
+    margin-top: 8px;
+    display: flex !important;
+    flex-direction: row !important; /* ボタンを横並びに */
+    flex-wrap: wrap;
+    gap: 8px !important;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar-account > div {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .sidebar-account .btn-login,
+  .sidebar-account .btn-signup,
+  .sidebar-account .sidebar-action {
+    width: auto !important;
+    flex: 1;
+    margin: 0 !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+    justify-content: center;
+    display: inline-flex;
+  }
+  .sidebar-account-unified {
+    flex-direction: column !important;
+  }
+  .sidebar-account-unified .btn-login,
+  .sidebar-account-unified .user-menu {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  /* collapsed関係の無効化 */
+  body.sidebar-collapsed .sidebar {
+    width: 100% !important;
+    padding: 12px 16px !important;
+  }
+  body.sidebar-collapsed .logo > span {
+    display: inline !important;
+  }
+  body.sidebar-collapsed .sidebar-body {
+    display: none !important;
+  }
+  body.sidebar-collapsed .sidebar-body.open {
+    display: flex !important;
+  }
+  .hd-search{display:none}
+}
+
+/* =====================================================================
+   共通アイコンスタイル (SVG用)
+   ===================================================================== */
+.ic{width:1.1em;height:1.1em;fill:currentColor;flex:none;vertical-align:-.16em}
+.side-link .ic{width:18px;height:18px;color:var(--muted);margin-right:0}
+.side-link:hover .ic,.side-link.active .ic{color:#fff}
+.side-link-classroom{gap:4px;padding-left:9px;padding-right:7px;font-size:13.2px;white-space:nowrap}
+.side-link-classroom .ic{width:16px;height:16px}
+@media(max-width:900px){.side-link-classroom{white-space:normal}}
+.sec-hd h2 .ic{width:22px;height:22px;color:var(--accent)}
+.hero-cta .ic{width:18px;height:18px;color:#fff}
+.sidebar-coin .ic{width:17px;height:17px;color:var(--text)}
+.user-btn .uavatar .ic{width:14px;height:14px;color:var(--text)}
+.back-btn .ic{width:16px;height:16px}
+.car-arrow .ic{width:18px;height:18px}

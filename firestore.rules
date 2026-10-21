@@ -1,0 +1,158 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function adminEmails() {
+      // 本番環境で運用する際は、Functions / public 側の ADMIN_EMAILS と同じ
+      // 管理者の Google アカウントメールアドレスをこの配列に追加する。
+      return [
+        'admin@example.com'
+      ];
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && 'email' in request.auth.token
+        && request.auth.token.email in adminEmails();
+    }
+
+    function hasAdminClaim() {
+      return request.auth != null
+        && 'role' in request.auth.token
+        && request.auth.token.role == 'admin';
+    }
+
+    function isPrivileged() {
+      return isAdmin() || hasAdminClaim();
+    }
+
+    function isClassroomManager(orgId) {
+      return request.auth != null
+        && 'role' in request.auth.token
+        && request.auth.token.role == 'classroom_manager'
+        && 'orgId' in request.auth.token
+        && request.auth.token.orgId == orgId;
+    }
+
+    match /users/{userId} {
+      allow read: if isPrivileged()
+        || (isSignedIn() && request.auth.uid == userId)
+        || (isSignedIn() && 'orgId' in resource.data && isClassroomManager(resource.data.orgId))
+        || !resource.data.keys().hasAny(['passwordHash', 'loginId', 'plainPassword', 'loginCode']);
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role == 'student'
+        && request.resource.data.coins <= 350
+        && request.resource.data.slotsMax == 2
+        && !('loginId' in request.resource.data);
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'role',
+          'orgId',
+          'organizationId',
+          'schoolId',
+          'coins',
+          'slotsMax',
+          'ownedFamTypes',
+          'ownedImages',
+          'ownedBgImages',
+          'unlockedAchievements',
+          'loginId',
+          'loginType',
+          'passwordHash',
+          'licenseState',
+          'paidUntil',
+          'seatStatus'
+        ]);
+      allow delete: if false;
+    }
+
+    match /municipalities/{muniId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /organizations/{orgId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /logs/{logId} {
+      allow read: if isPrivileged();
+      allow write: if false;
+    }
+
+    match /system_settings/{settingId} {
+      allow read: if true;
+      allow write: if isPrivileged();
+    }
+
+    match /images/{imageId} {
+      allow read: if true;
+      allow write: if isPrivileged();
+    }
+
+    match /quests/{questId} {
+      allow read: if true;
+      allow write: if isPrivileged();
+    }
+
+    match /shop_items/{itemId} {
+      allow read: if true;
+      allow write: if isPrivileged();
+    }
+
+    match /knowledge_terms/{termId} {
+      allow read: if true;
+      allow write: if isPrivileged();
+    }
+
+    match /ticket_issues/{orgId} {
+      allow read, write: if isPrivileged();
+    }
+
+    match /stripe_events/{eventId} {
+      allow read, write: if isPrivileged();
+    }
+
+    match /stripe_checkout_sessions/{sessionId} {
+      allow read, write: if isPrivileged();
+    }
+
+    match /works/{workId} {
+      allow read: if resource.data.visibility == 'public'
+        || isPrivileged()
+        || (isSignedIn() && resource.data.authorUid == request.auth.uid)
+        || (isSignedIn() && 'orgId' in resource.data && isClassroomManager(resource.data.orgId));
+      allow create: if isPrivileged()
+        || (
+          isSignedIn()
+          && request.resource.data.authorUid == request.auth.uid
+        );
+      allow update: if isPrivileged()
+        || (
+          isSignedIn()
+          && resource.data.authorUid == request.auth.uid
+          && request.resource.data.authorUid == resource.data.authorUid
+        )
+        || (
+          isSignedIn()
+          && 'orgId' in resource.data
+          && isClassroomManager(resource.data.orgId)
+        );
+      allow delete: if isPrivileged();
+    }
+
+    match /health_checks/{document} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /{document=**} {
+      allow read, write: if isPrivileged();
+    }
+  }
+}

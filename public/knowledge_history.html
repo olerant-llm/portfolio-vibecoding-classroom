@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>学習履歴 | じさくや</title>
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  body{background:#F2F6EF;color:#202122}
+  .main-area{background:#FBFCF7}
+  .topbar{background:#FBFCF7;border-bottom:1px solid #C5D1BC}
+  .history-shell{max-width:980px;margin:0 auto;padding:28px 24px 64px}
+  .history-head{border-bottom:1px solid #a2a9b1;margin-bottom:18px}
+  .history-head h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:34px;margin:0 0 6px}
+  .history-head p{margin:0 0 14px;color:#54595d;font-size:14px;line-height:1.8}
+  .history-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .history-toolbar a,.history-toolbar button{border:1px solid #a2a9b1;background:#fff;color:#0645ad;padding:8px 12px;font-size:13px;font-weight:700;text-decoration:none}
+  .history-list{border-top:1px solid #c8ccd1;background:#fff}
+  .history-entry{position:relative;padding:16px 46px 16px 0;border-bottom:1px solid #eaecf0}
+  .history-meta{color:#54595d;font-size:12px;margin-bottom:4px}
+  .history-entry h2{margin:0 0 5px;font-size:17px}
+  .history-entry p{margin:0;color:#54595d;font-size:13px;line-height:1.8}
+  .history-feats{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .history-feat{font-size:11px;background:#EEF2FF;border:1px solid #c8ccd1;padding:2px 8px}
+  .entry-del{position:absolute;top:16px;right:0;width:28px;height:28px;border-radius:999px;padding:0;background:#fff;border:1px solid #a2a9b1;color:#54595d}
+  .entry-del.arm{width:auto;border-radius:0;padding:0 10px;background:#C1440E;color:#fff}
+  .memo-area{margin-top:10px}
+  .entry-memo{display:inline-block;background:#FFF9DB;border:1px dashed #a2a9b1;padding:8px 10px;font-size:13px;line-height:1.7}
+  .memo-mini{width:24px;height:24px;border-radius:999px;padding:0;margin-left:6px;background:#fff;border:1px solid #a2a9b1}
+  .memo-add{background:#fff;border:1px solid #a2a9b1;padding:8px 12px;font-size:13px;color:#0645ad}
+  .memo-edit textarea{width:100%;min-height:78px;resize:vertical;border:1px solid #a2a9b1;padding:10px;font:inherit;font-size:13px;background:#FFF9DB}
+  .memo-actions{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .memo-actions button{border:1px solid #a2a9b1;background:#fff;padding:7px 12px;font-size:12px}
+  .memo-actions .save{background:#36c;color:#fff;border-color:#36c}
+  .memo-counter{margin-left:auto;color:#54595d;font-size:12px}
+  .empty{background:#fff;border:1px solid #c8ccd1;padding:24px;color:#54595d;line-height:1.8}
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:0;font-size:13px;font-weight:800;background:#fff;border:1px solid #a2a9b1}
+  @media(max-width:760px){
+    .history-shell{padding:20px 14px 56px}
+    .history-head h1{font-size:28px}
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" data-active="knowledge_history"></aside>
+  <script src="sidebar.js?v=1.0.0"></script>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="logo" style="padding:0;">学習履歴</div>
+      <div class="hd-spacer"></div>
+    </div>
+    <main class="history-shell">
+      <div class="history-head">
+        <h1>学習履歴</h1>
+        <p>アプリ制作、修正、公開、ふり返りメモを時系列で確認できます。</p>
+      </div>
+      <div class="history-toolbar">
+        <a href="knowledge.html">ナレッジベースへ戻る</a>
+      </div>
+      <div id="historyList"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const DB_PREFIX = 'otq:';
+const DB = {
+  getCurrentUid(){ return localStorage.getItem(DB_PREFIX+'current_uid') || null; },
+  resolveKey(key){
+    const scoped = ['user','activity_log','demo_hidden','demo_memos'].includes(key);
+    if(scoped){
+      const uid = this.getCurrentUid();
+      return uid ? `${key}:${uid}` : `${key}:guest`;
+    }
+    return key;
+  },
+  get(key,def){
+    try{
+      const v = localStorage.getItem(DB_PREFIX+this.resolveKey(key));
+      return v ? JSON.parse(v) : def;
+    }catch(e){ return def; }
+  },
+  set(key,val){
+    try{ localStorage.setItem(DB_PREFIX+this.resolveKey(key), JSON.stringify(val)); }catch(e){}
+  }
+};
+function escHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function dateKey(iso){ const d=new Date(iso); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+function dateLabel(iso){
+  const d = new Date(iso);
+  const youbi = ['日','月','火','水','木','金','土'][d.getDay()];
+  return `${d.getMonth()+1}月${d.getDate()}日(${youbi})`;
+}
+function aboutTime(iso){
+  const d = new Date(iso);
+  let h = d.getHours(); const m = d.getMinutes();
+  if(m < 15) return `${h}時ごろ`;
+  if(m < 45) return `${h}時半ごろ`;
+  return `${(h+1)%24}時ごろ`;
+}
+function loadActivityLog(){
+  const stored = DB.get('activity_log', []);
+  const log = stored.map((e,i)=>({...e, _i:i}));
+  if(log.length) return log;
+  if(DB.get('demo_hidden', false)) return [];
+  const demoMemos = DB.get('demo_memos', {});
+  const today = new Date();
+  const d1 = new Date(today); d1.setDate(d1.getDate()-1); d1.setHours(10,12,0,0);
+  const d2 = new Date(today); d2.setDate(d2.getDate()-1); d2.setHours(10,40,0,0);
+  const d3 = new Date(today); d3.setHours(14,25,0,0);
+  const demos = [
+    {at:d1.toISOString(), kind:'generate', demo:true, _i:-1, title:'おみくじアプリ', summary:'42行のコードでできたアプリ。指示:「ボタンを押すとおみくじが引けるアプリを作って」', features:['🔘 ボタン','🎲 ランダム','✨ アニメ']},
+    {at:d2.toISOString(), kind:'refine', demo:true, _i:-2, title:'おみくじアプリ(修正)', summary:'背景の色を変え、大吉のときに紙吹雪が出るようにした。', features:['🎨 キャンバス','✨ アニメ'], memo:'「大吉のときだけ」と条件を指定するのが難しかった。条件分岐の考え方が必要だった。'},
+    {at:d3.toISOString(), kind:'publish', demo:true, _i:-3, title:'うんめいのおみくじ', summary:'ギャラリー「じさくや」に公開しました。', features:['🏆 スコア']},
+  ];
+  demos.forEach(d=>{ if(demoMemos[d._i] !== undefined) d.memo = demoMemos[d._i]; });
+  return demos;
+}
+function getMemoValue(i, isDemo){
+  if(isDemo){
+    const dm = DB.get('demo_memos', {});
+    if(dm[i] !== undefined) return dm[i];
+    return i === -2 ? '「大吉のときだけ」と条件を指定するのが難しかった。条件分岐の考え方が必要だった。' : '';
+  }
+  const stored = DB.get('activity_log', []);
+  return stored[i]?.memo || '';
+}
+function render(){
+  const u = DB.get('user', {});
+  if ($('sideAccountName')) $('sideAccountName').textContent = u.nickname || 'ゲスト';
+  if ($('coinVal')) $('coinVal').textContent = u.coins || 0;
+  const log = loadActivityLog().sort((a,b)=>b.at.localeCompare(a.at));
+  $('historyList').innerHTML = log.length
+    ? `<div class="history-list">${log.map(entryHtml).join('')}</div>`
+    : `<div class="empty">まだ学習履歴がありません。アプリを作ったり公開したりすると、ここに記録されます。</div>`;
+}
+function entryHtml(e){
+  const kindLbl = {generate:'制作', refine:'修正', publish:'公開'}[e.kind] || 'メモ';
+  const demoFlag = e.demo ? 'true' : 'false';
+  const memo = getMemoValue(e._i, !!e.demo);
+  return `<article class="history-entry">
+    <button class="entry-del" type="button" onclick="armDelete(this, ${e._i}, ${demoFlag})">✕</button>
+    <div class="history-meta">${dateLabel(e.at)} ${aboutTime(e.at)} / ${kindLbl}${e.demo?' / サンプル':''}</div>
+    <h2>${escHtml(e.title || '無題')}</h2>
+    <p>${escHtml(e.summary || '')}</p>
+    ${(e.features&&e.features.length)?`<div class="history-feats">${e.features.map(f=>`<span class="history-feat">${escHtml(f)}</span>`).join('')}</div>`:''}
+    <div class="memo-area" id="memo-${e._i}">
+      ${memo
+        ? `<div class="entry-memo">📝 ${escHtml(memo)} <button class="memo-mini" type="button" onclick="editMemo(${e._i}, ${demoFlag})">✏️</button></div>`
+        : `<button class="memo-add" type="button" onclick="editMemo(${e._i}, ${demoFlag})">✏️ メモをかく</button>`}
+    </div>
+  </article>`;
+}
+let armTimer=null;
+window.armDelete = function(btn, i, isDemo){
+  if(btn.classList.contains('arm')){ doDelete(i, isDemo); return; }
+  document.querySelectorAll('.entry-del.arm').forEach(b=>{ b.classList.remove('arm'); b.textContent='✕'; });
+  btn.classList.add('arm');
+  btn.textContent = isDemo ? 'サンプルを全部消す?' : 'ほんとに消す?';
+  clearTimeout(armTimer);
+  armTimer = setTimeout(()=>{ btn.classList.remove('arm'); btn.textContent='✕'; }, 3000);
+};
+function doDelete(i, isDemo){
+  if(isDemo){
+    DB.set('demo_hidden', true);
+    DB.set('demo_memos', {});
+  }else{
+    const stored = DB.get('activity_log', []);
+    stored.splice(i, 1);
+    DB.set('activity_log', stored);
+  }
+  render();
+}
+window.editMemo = function(i, isDemo){
+  const box = $('memo-'+i);
+  if(!box) return;
+  const cur = getMemoValue(i, isDemo);
+  box.innerHTML = `<div class="memo-edit">
+      <textarea id="memoTa-${i}" maxlength="140" placeholder="きょうの気づき・くふうしたこと(140字まで)">${escHtml(cur)}</textarea>
+      <div class="memo-actions">
+        <button class="save" type="button" onclick="saveMemo(${i}, ${isDemo?'true':'false'})">保存</button>
+        <button type="button" onclick="render()">やめる</button>
+        <span class="memo-counter"><span id="memoCount-${i}">${cur.length}</span>/140</span>
+      </div>
+    </div>`;
+  const ta = $('memoTa-'+i);
+  ta.addEventListener('input', ()=>{ $('memoCount-'+i).textContent = ta.value.length; });
+  ta.focus();
+};
+window.saveMemo = function(i, isDemo){
+  const ta = $('memoTa-'+i);
+  if(!ta) return;
+  const val = ta.value.trim();
+  if(isDemo){
+    const dm = DB.get('demo_memos', {});
+    dm[i] = val;
+    DB.set('demo_memos', dm);
+  }else{
+    const stored = DB.get('activity_log', []);
+    if(!stored[i]) return;
+    stored[i].memo = val;
+    DB.set('activity_log', stored);
+  }
+  render();
+};
+(function init(){
+  const uid = DB.getCurrentUid();
+  if(!uid){ alert('未ログインだと使えません'); location.href='index.html'; return; }
+  render();
+})();
+if ($('createBtn') && $('createDrop')) {
+  $('createBtn').addEventListener('click', e=>{ e.stopPropagation(); $('createDrop').classList.toggle('open'); });
+  document.addEventListener('click', e=>{ if(!e.target.closest('#createMenu')) $('createDrop').classList.remove('open'); });
+}
+</script>
+<script src="sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

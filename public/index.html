@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>じさくや | AIと学ぶ、つくる、識る。</title>
+<!-- OGP(本番は /works/:id をサーバSSRで動的差し替え) -->
+<meta property="og:title" content="じさくや" />
+<meta property="og:description" content="AIと一緒にWebアプリをつくる学習サービス。じさくや。" />
+<meta name="twitter:card" content="summary_large_image" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root{
+    /* --- ベース配色 (じさくや・江戸の伝統色) --- */
+    --bg: #F4EDE0;         /* 生成り・和紙色 */
+    --panel: #FFFCF5;      /* カード背景 */
+    --line: #2A2620;       /* 墨色(境界線・影) */
+    --text: #22201C;       /* 本文テキスト(墨色) */
+    --muted: #6B5C4B;      /* サブテキスト */
+
+    --accent: #1B3A5C;     /* 藍色 */
+    --accent2: #C9A646;    /* 金 */
+    --pink: #C1440E;       /* 朱色(アクセント) */
+    --good: #1B3A5C;       /* 藍色(成功・確定) */
+    --warn: #C9A646;       /* 金(ハイライト) */
+    --bad: #A6321B;        /* 濃い朱(エラー) */
+
+    --coin: var(--accent2);
+    --paper: #FFFBF0;      /* 依頼状の紙色 */
+    --shadow: none;
+    --shadow-lg: none;
+    --radius: 0;
+    --radius-md: 0;
+    --stroke: 1.5px solid var(--line);
+
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family: var(--font-body);
+    color:var(--text);
+    background:
+      radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+      radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  
+  /* Neobrutalism ボタンの基本スタイル */
+  button {
+    font-family: var(--font-body);
+    cursor:pointer;
+    border: var(--stroke);
+    border-radius:0;
+    font-weight: 800;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    box-shadow:none;
+  }
+  button:hover{
+    box-shadow:none;
+  }
+  button:active{
+    box-shadow:none;
+  }
+  /* Sidebar layout is shared by styles/base.css and sidebar.js. */
+
+  .main-area{flex:1;min-width:0}
+  .topbar{
+    position:sticky;top:0;z-index:30;
+    display:flex;align-items:center;gap:12px;
+    padding:14px 24px;
+    background: var(--panel);
+    border-bottom: var(--stroke);
+  }
+  .hd-spacer{flex:1}
+  .hd-search{position:relative;width:260px}
+  .hd-search input{
+    width:100%;
+    border:none;
+    border-bottom: 1.5px solid var(--line);
+    border-radius:0;
+    padding:9px 4px;
+    font-family: var(--font-body);
+    font-size:13px;
+    background: transparent;
+    outline:none;
+    transition: border-color .15s ease;
+  }
+  .hd-search input:focus{
+    border-color: var(--accent);
+  }
+
+  .btn-login{
+    padding:9px 18px;border-radius:0;font-size:13px;font-weight:800;
+    background: transparent;color: var(--text);border:1.5px solid var(--line);
+    transition: background .15s ease, color .15s ease;
+  }
+  .btn-login:hover{ background: var(--bg); }
+  .btn-signup{
+    padding:9px 18px;border-radius:0;font-size:13px;font-weight:800;
+    background: var(--pink);color:#fff;border:none;
+    transition: background .15s ease;
+  }
+  .btn-signup:hover{ background:#A8390C; }
+}
+
+  /* --- ユーザーメニュー(ドロップダウン) --- */
+  .user-menu{position:relative}
+  .user-btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 16px;border-radius:0;font-size:13px;font-weight:800;
+    background: transparent;
+    border:none;
+    color: var(--text);
+    transition: background .15s ease, color .15s ease;
+  }
+  .user-btn:hover{ background: var(--accent); color:#fff; }
+  .user-btn .uavatar{
+    width:22px;height:22px;border-radius:999px;display:grid;place-items:center;
+    background:#fff;border:1.5px solid var(--line);font-size:12px;flex:none;
+  }
+  .user-btn .caret{font-size:10px}
+  .user-drop{
+    position:absolute;right:0;top:calc(100% + 10px);min-width:210px;z-index:45;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    padding:10px;display:none;
+  }
+  .user-drop.open{display:block;animation:rise .18s ease}
+  .user-drop .ud-head{
+    font-size:12px;font-weight:800;color:var(--muted);
+    padding:6px 12px 10px;border-bottom:1.5px dashed var(--line);margin-bottom:8px;
+  }
+  .user-drop .ud-head b{display:block;font-size:14px;color:var(--text)}
+  .user-drop .ud-item{
+    display:flex;align-items:center;gap:8px;width:100%;
+    padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;
+    border:none;background:transparent;text-align:left;
+    transition: background .15s ease, color .15s ease;
+  }
+  .user-drop .ud-item:hover{background: var(--accent);color:#fff;}
+
+  .create-btn{
+    width:100%;
+    padding:11px 16px;
+    border-radius:0;
+    font-size:13.5px;
+    color: #fff;
+    background: var(--pink);
+    border:none;
+    font-weight: 800;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;
+    transition: background .15s ease;
+  }
+  .create-btn:hover{
+    background:#A8390C;
+  }
+
+  /* --- 創作ドロップダウン(サイドバー下部から上に開く) --- */
+  .create-menu{position:relative}
+  .create-drop{
+    position:absolute;left:0;right:0;top:calc(100% + 8px);min-width:210px;z-index:45;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    padding:10px;display:none;
+  }
+  .create-drop-up{ top:auto; bottom:calc(100% + 8px); }
+  .create-drop.open{display:block;animation:rise .18s ease}
+  .create-drop .cd-head{
+    font-size:12px;font-weight:800;color:var(--muted);
+    padding:6px 12px 10px;border-bottom:1.5px dashed var(--line);margin-bottom:8px;
+  }
+  .create-drop .cd-item{
+    display:flex;align-items:center;gap:8px;width:100%;
+    padding:10px 12px;border-radius:0;font-size:13px;font-weight:800;cursor:pointer;
+    border:none;background:transparent;text-align:left;
+    text-decoration:none;color:var(--text);
+    transition: background .15s ease, color .15s ease;
+  }
+  .create-drop .cd-item:hover{background: var(--accent);color:#fff;}
+  .create-drop .cd-item .cd-desc{
+    font-size:11px;font-weight:400;color:var(--muted);display:block;margin-top:1px;
+  }
+  .create-drop .cd-item:hover .cd-desc{color:#fff;}
+
+  .container{max-width:1280px;margin:0 auto;padding:0 20px}
+
+  /* ========== Hero (Header Visual) ========== */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    border-bottom: var(--stroke);
+    margin-bottom: 24px;
+    min-height:420px;
+    background:
+      linear-gradient(90deg, rgba(244,237,224,.12) 0%, rgba(27,58,92,.12) 48%, rgba(27,58,92,.72) 70%, rgba(27,58,92,.96) 100%),
+      url('img/header.png') center/cover no-repeat;
+  }
+  .hero-inner{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(360px,440px);
+    align-items:center;
+    gap:28px;
+    max-width:1220px;
+    min-height:420px;
+    margin:0 auto;
+    padding:44px 28px;
+  }
+  .hero-content{
+    grid-column:2;
+    text-align:left;
+    background:rgba(255,252,245,.92);
+    border:var(--stroke);
+    padding:28px 30px;
+    color:var(--text);
+    box-shadow:0 16px 34px rgba(17,24,39,.2);
+    backdrop-filter: blur(5px);
+  }
+  .hero-kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin:0 0 12px;
+    padding:5px 10px;
+    background:var(--accent2);
+    border:1.5px solid var(--line);
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.08em;
+  }
+  .hero-kicker::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:999px;
+    background:var(--pink);
+    border:1px solid var(--line);
+  }
+  @media (max-width:640px){
+    .hero{
+      min-height:560px;
+      background:
+        linear-gradient(180deg, rgba(244,237,224,.08) 0%, rgba(27,58,92,.1) 46%, rgba(27,58,92,.92) 76%, rgba(27,58,92,.98) 100%),
+        url('img/header.png') 32% top/auto 100% no-repeat;
+    }
+    .hero-inner{
+      display:flex;
+      align-items:flex-end;
+      min-height:560px;
+      padding:280px 14px 18px;
+    }
+    .hero-content{
+      width:100%;
+      padding:20px 18px;
+      text-align:left;
+    }
+  }
+  .hero h1{
+    margin:0 0 12px;
+    font-size:clamp(28px,4.5vw,46px);
+    font-family: var(--font-display);
+    line-height: 1.16;
+    letter-spacing:.02em;
+  }
+  .hero h1 .line{display:block}
+  .hero h1 .grad{
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent2);
+    text-decoration-thickness: .16em;
+    text-underline-offset: .12em;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+  }
+  .hero p{
+    margin:0 0 22px;
+    color: var(--text);
+    font-size: 15.5px;
+    font-weight: 800;
+    line-height:1.75;
+  }
+  .hero-cta{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:15px 24px;margin-bottom:18px;
+    border-radius:0;font-size:15px;font-weight:900;color:#fff;
+    background: var(--pink);
+    transition: background .15s ease;
+  }
+  .hero-cta:hover{ background:#A8390C; }
+
+  .stats{display:flex;justify-content:flex-start}
+  .stat-box{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:0;
+    width:100%;
+    background: rgba(244,237,224,.72);
+    border: 1.5px solid var(--line);
+    border-radius:0;
+  }
+  .stat{padding:12px 10px}
+  .stat:not(:last-child){border-right:1px solid var(--line)}
+  .stat .num{
+    font-size:22px;
+    font-weight:800;
+    color: var(--text);
+    font-variant-numeric:tabular-nums;
+    font-family: var(--font-display);
+  }
+  .stat .lbl{font-size:11px;color:var(--muted);font-weight:900;margin-top:3px;line-height:1.25}
+  @media (max-width:840px){
+    .hero-inner{grid-template-columns:1fr minmax(320px,400px)}
+    .stat-box{grid-template-columns:repeat(2,1fr)}
+    .stat:nth-child(2){border-right:none}
+    .stat:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  }
+
+  section.block{margin:40px 0}
+  .sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+  .sec-hd h2{margin:0;font-size:20px;display:flex;align-items:center;gap:8px; font-family: var(--font-display)}
+  .sec-hd .desc{font-size:13px;color:var(--muted);font-weight:700}
+  
+  .more{
+    font-size:13px;
+    color: var(--text);
+    font-weight:800;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;
+    padding:8px 14px;
+    border-radius:0;
+  }
+
+  /* ========== Cards (Neobrutalism) ==========
+     ピックアップ/特集/新着: 4件ずつ←→で切り替えるカルーセル方式 */
+
+  .badge{
+    position:absolute;top:12px;left:12px;z-index:2;font-size:11px;font-weight:800;color: var(--text);
+    padding:5px 12px;border-radius:0;
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+
+  /* ========== カルーセル(4件ずつ ←→ 切り替え) ========== */
+  .carousel{display:flex;align-items:center;gap:10px}
+  .carousel-track{flex:1;grid-template-columns:repeat(4,1fr);min-width:0}
+  @media (max-width:900px){ .carousel-track{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:560px){ .carousel-track{grid-template-columns:1fr} }
+  .car-arrow{
+    flex:none;width:36px;height:36px;border-radius:0;font-size:16px;font-weight:800;
+    background: var(--panel);border:1px solid var(--line);color:var(--text);
+    transition:background .15s ease, color .15s ease;
+  }
+  .car-arrow:hover:not(:disabled){background:var(--accent);color:#fff}
+  .car-arrow:disabled{opacity:.35;cursor:not-allowed}
+  
+  .card{
+    background: var(--panel);
+    border:none;
+    border-radius:0;
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform 0.15s ease;
+  }
+  .card:hover{
+    transform: translateY(-3px);
+  }
+  .thumb{
+    position:relative;aspect-ratio:4/3;display:grid;place-items:center;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+
+  .lvl{
+    position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:800;color:#fff;
+    width:24px;height:24px;border-radius:999px;display:grid;place-items:center;
+    border:1.5px solid rgba(255,255,255,.6);
+  }
+  .lvl.e{background: var(--good); color:#fff}
+  .lvl.j{background: var(--accent); color:#fff}
+  .lvl.h{background: var(--pink); color:#fff}
+
+  .card-overlay{
+    position:absolute;left:0;right:0;bottom:0;z-index:1;
+    padding:30px 10px 8px;color:#fff;
+    background:linear-gradient(to top, rgba(20,16,10,.88), rgba(20,16,10,.5) 65%, transparent);
+  }
+  .cf-title{font-size:13px;font-weight:800;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+  .cf-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#fff;opacity:.92;font-weight:700}
+  .cf-author{display:flex;align-items:center;gap:6px}
+  .cf-avatar{
+    width:16px;height:16px;border-radius:999px;display:grid;place-items:center;
+    color:#fff;font-size:9px;font-weight:800;flex:none;
+  }
+  .cf-stats{display:flex;gap:8px}
+
+  .mini-tag{
+    font-size:11px;font-weight:800;color: var(--text);
+    background: #F3EAD3;
+    border-radius:0;padding:2px 10px;
+    border: 1.5px solid var(--line);
+  }
+  .card-stats{display:flex;gap:14px;margin-top:10px;font-size:13px;color:var(--muted);font-weight:700}
+
+  /* ========== タグから探す(大量タグ対応) ==========
+     ・人気順に上位だけ表示 + 「すべてのタグ」で展開
+     ・展開時はタグ検索ボックス + スクロール領域 */
+  .tagcloud{display:flex;flex-wrap:wrap;gap:10px}
+  .tagcloud.scrolly{
+    max-height:264px;overflow-y:auto;padding:14px;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+  }
+  .tag-tools{margin-bottom:12px;display:none}
+  .tag-tools.show{display:block}
+  .tag-tools input{
+    width:min(320px,100%);
+    border: var(--stroke);
+    border-radius:0;
+    padding:10px 16px;
+    font:inherit;font-size:13px;font-weight:700;
+    background: var(--panel);
+    outline:none;
+  }
+  .tag-tools input:focus{box-shadow:none;border-radius:0;background: var(--panel);
+    border: var(--stroke);
+    font-size:13px;font-weight:800;color: var(--text);
+    box-shadow:none;
+  }
+  .tagchip:hover{
+    box-shadow:none;
+  }
+  .tagchip:active{
+    box-shadow:none;
+  }
+  .tagchip.active{
+    background: var(--accent);
+    color: var(--text);
+  }
+  .tagchip.tag-more{
+    background: var(--warn);
+    border-style: dashed;
+  }
+  .tag-empty{font-size:13px;color:var(--muted);font-weight:700;padding:6px 4px}
+
+  /* ========== Search ========== */
+  .filterbar{
+    display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;padding:14px 18px;
+    box-shadow:none;
+  }
+  .filterbar select{
+    border: var(--stroke);
+    border-radius:0;padding:9px 12px;font:inherit;font-size:13px;background: var(--panel);outline:none;
+    font-weight: 700;
+  }
+  .result-count{font-size:14px;color:var(--text);font-weight:800}
+  
+  .empty{
+    text-align:center;color:var(--muted);padding:60px 20px;
+    background: var(--panel);
+    border: var(--stroke);
+    border-style: dashed;
+    border-radius:0;
+    font-weight: 700;
+  }
+
+  /* ========== Detail ========== */
+  .detail{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);gap:24px;align-items:start;margin-top:20px}
+  
+  .play-area{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;overflow:hidden;
+    box-shadow:none;
+  }
+  .play-stage{aspect-ratio:4/3;position:relative;background:#0d1426; border-bottom: var(--stroke)}
+  .play-stage iframe{width:100%;height:100%;border:0;background:#fff;display:block}
+  .play-stage:fullscreen{aspect-ratio:auto;width:100%;height:100%;background:#000;border:0}
+  .play-stage:fullscreen iframe{width:100%;height:100%}
+  .play-cover{position:absolute;inset:0;display:grid;place-items:center;cursor:pointer;}
+  .play-cover .big-emoji{font-size:72px;filter:drop-shadow(0 8px 0 var(--line))}
+  
+  .play-btn{
+    margin-top:16px;padding:14px 36px;border-radius:0;font-size:16px;color: var(--text);
+    background: var(--warn);
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .play-foot{padding:12px 18px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted); font-weight:700}
+  
+  .reactions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  
+  .react-btn{
+    display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    font-size:14px;
+    box-shadow:none;
+  }
+  .react-btn.done{
+    border-color: var(--line);
+    background: var(--warn);
+    pointer-events:none;
+  }
+
+  /* AIコメント(使い魔の3段コメント) */
+  .ai-comment{
+    margin-top:18px;
+    background: #FBF3E1;
+    border: var(--stroke);
+    border-radius:0;padding:18px;
+    box-shadow:none;
+  }
+  .ai-comment .ac-hd{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;color: var(--text);margin-bottom:12px}
+  .ai-comment .ac-hd .f{font-size:24px}
+  .ac-row{display:flex;gap:10px;margin-top:10px;font-size:13.5px;line-height:1.7;color: var(--text); font-weight: 600}
+  
+  .ac-row .k{
+    flex:none;font-size:11px;font-weight:800;border-radius:0;padding:3px 12px;height:fit-content;margin-top:2px;
+    border: 1.5px solid var(--line);
+  }
+  .ac-row .k.a{background: var(--good); color: var(--text)}
+  .ac-row .k.b{background: var(--warn); color: var(--text)}
+  .ac-row .k.c{background: var(--accent); color: var(--text)}
+
+  .side{display:flex;flex-direction:column;gap:18px}
+  
+  .side-card{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+    padding:18px 20px;
+  }
+  .work-title{margin:0;font-size:22px;line-height:1.45; font-family: var(--font-display)}
+  
+  .work-by{display:flex;align-items:center;gap:10px;margin-top:12px}
+  
+  .avatar{
+    width:36px;height:36px;border-radius:999px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;flex:none;
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .work-by .nm{font-size:14px;font-weight:800}
+  .work-by .sch{font-size:11.5px;color:var(--muted); font-weight: 700}
+  
+  .work-stats-row{display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top: var(--stroke)}
+  .ws .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums; font-family: var(--font-display)}
+  .ws .k{font-size:11px;color:var(--muted);font-weight:800}
+  
+  .like-btn{
+    width:100%;margin-top:14px;padding:12px;border-radius:0;font-size:14.5px;
+    background: var(--panel);
+    border: var(--stroke);
+    color: var(--pink);
+    box-shadow:none;
+  }
+  .like-btn.liked{
+    background: var(--pink);
+    color: #fff;
+  }
+  
+  .share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+  
+  .share-btn{
+    display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    font-size:11px;font-weight:800;color: var(--text);
+    box-shadow:none;
+  }
+  .share-btn .si{font-size:20px}
+  
+  .qr-wrap{display:none;place-items:center;padding:16px 0 4px}
+  .qr-wrap.show{display:grid}
+  
+  .qr-wrap #qrBox{
+    background:#fff;padding:12px;
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;
+  }
+  .meta-list{font-size:13px;color:var(--muted);line-height:2.1; font-weight:700}
+  .back-btn{background: var(--panel); color: var(--text); font-size:13.5px; padding:8px 16px; margin-top:6px; margin-bottom:12px;}
+  .author-link{font-size:12px;color: var(--text); text-decoration: underline; font-weight:800; cursor:pointer}
+
+  /* ========== ミッション(御用状デザイン) ==========
+     ・和紙色の用紙 + 上部に藍色の罫(letterhead band)
+     ・右上に朱印(報酬の落款)
+     ・完了すると朱の角印「済」が押される */
+  .quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+
+  .quest{
+    position:relative;
+    background:
+      linear-gradient(0deg, rgba(34,32,28,.05) 1px, transparent 1px) 0 0/100% 26px,
+      var(--paper);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--accent);
+    border-radius:0;
+    padding:20px 20px 16px;
+    display:flex;flex-direction:column;gap:10px;transition:.15s ease;
+  }
+  .quest:hover{
+    transform: translateY(-3px);
+  }
+  .q-stamp{
+    position:absolute;top:14px;right:16px;z-index:2;
+    width:46px;height:46px;border-radius:999px;
+    background: var(--pink);
+    border:1.5px solid #8E330A;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:9px;font-weight:800;color:#fff;
+    transform:rotate(6deg);
+    opacity:.94;
+  }
+  .q-stamp b{font-size:12px;color:#fff}
+  .q-top{display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative;z-index:1;padding-right:50px}
+
+  .q-src{
+    font-size:11px;font-weight:800;border-radius:0;padding:4px 12px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .q-src.ai{color: var(--accent)}
+  .q-src.user{color: var(--pink)}
+  .q-src.biz{color: var(--accent2)}
+  .q-diff{font-size:11.5px;font-weight:800;color:var(--muted)}
+  .q-title{
+    font-size:16px;font-weight:800;line-height:1.5;position:relative;z-index:1;
+    padding-bottom:8px;border-bottom:1px solid var(--line);
+    font-family: var(--font-display);
+  }
+  .q-desc{font-size:13px;color:var(--muted);line-height:1.75;flex:1;position:relative;z-index:1;font-weight:700}
+  .q-foot{display:flex;justify-content:flex-end;align-items:center;gap:8px;position:relative;z-index:1}
+
+  .q-btn{
+    padding:10px 18px;border-radius:0;font-size:13px;color: #fff;
+    background: var(--accent);
+  }
+  .q-btn.done{background:#D8D0C0;color:#8A7F6B;pointer-events:none; border-color: #C7BCA6}
+  .q-btn.doing{background: var(--pink); color:#fff}
+  /* 完了印(角印) */
+  .q-seal{
+    position:absolute;right:18px;bottom:14px;z-index:3;
+    width:50px;height:50px;border-radius:0;
+    background: var(--pink);
+    border:2px solid #8E330A;
+    color:#fff;font-family:var(--font-display);font-size:18px;
+    display:grid;place-items:center;
+    transform:rotate(-8deg);
+    opacity:.92;
+  }
+  .quest.sealed{opacity:.92}
+  .quest.sealed .q-title{text-decoration:line-through;text-decoration-color:rgba(27,27,58,.3)}
+  .q-btn.guest{background:#e2e8f0;color:#64748b;border-color:#cbd5e1;cursor:pointer}
+  
+  /* 依頼進捗バー */
+  .quest-progress{
+    background:#fff;border:var(--stroke);border-radius:0;
+    padding:16px 20px;margin-bottom:20px;box-shadow:none;
+  }
+  .qp-bar{
+    height:10px;background:#e2e8f0;border-radius:0;
+    border:1.5px solid var(--line);overflow:hidden;margin-bottom:10px;
+  }
+  .qp-fill{
+    height:100%;background:linear-gradient(90deg,var(--good),#34d399);
+    border-radius:0;transition:width .6s ease;
+  }
+  .qp-info{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:800;color:var(--muted)}
+  .qp-hint{color:var(--good);margin-left:auto}
+  /* クリア済み折りたたみ */
+  .quest-done-section{margin-top:32px}
+  .quest-done-toggle{
+    width:100%;padding:14px 20px;border-radius:0;font-size:14px;
+    background:var(--panel);color:var(--muted);border:var(--stroke);
+    box-shadow:none;text-align:left;font-weight:800;
+    display:flex;align-items:center;gap:8px;
+  }
+  .quest-done-toggle:hover{background:#f1f5f9}
+  
+  .quest-info{
+    background: #F3EAD3;
+    border: var(--stroke);
+    border-radius:0;
+    padding:16px 20px;font-size:13px;color: var(--text);line-height:1.8;margin-bottom:20px;
+    box-shadow:none;
+  }
+
+  /* ========== ツカイマ(使い魔/Familiar) - 非表示化 ========== */
+  .familiar, .fam-menu {
+    display: none !important;
+  }
+  
+  /* 新しい検索バーのフローティングレイアウト */
+  .hero-search-wrap {
+    max-width: 640px;
+    margin: -32px auto 32px;
+    position: relative;
+    z-index: 20;
+    padding: 0 20px;
+  }
+  .hero-search-box {
+    display: flex;
+    border: 3px solid var(--line);
+    background: #fff;
+    box-shadow: 6px 6px 0 var(--line);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .hero-search-box:focus-within {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--line);
+  }
+  .hero-search-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    background: var(--accent2);
+    border-right: 3px solid var(--line);
+    font-size: 20px;
+  }
+  .hero-search-input {
+    flex: 1;
+    border: none;
+    padding: 16px;
+    font-size: 16px;
+    font-family: var(--font-body);
+    font-weight: bold;
+    outline: none;
+    color: var(--text);
+  }
+  .hero-search-btn {
+    border: none;
+    border-left: 3px solid var(--line);
+    background: var(--accent);
+    color: #fff;
+    padding: 0 24px;
+    font-size: 15px;
+    font-weight: 800;
+    transition: background 0.15s ease;
+  }
+  .hero-search-btn:hover {
+    background: #254b73;
+  }
+  
+  .fam-bubble{
+    pointer-events:auto;max-width:300px;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;padding:14px 18px;font-size:13px;line-height:1.75;color: var(--text);
+    opacity:0;transform:translateY(8px);transition:.25s;margin-bottom:8px;
+    font-weight: 700;
+  }
+  .fam-bubble.show{opacity:1;transform:none}
+  .fam-bubble .fb-name{font-size:11px;font-weight:800;color: var(--good);margin-bottom:4px}
+  .fam-bubble .fb-act{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  
+  .fam-bubble .fb-act button{
+    font-size:11.5px;padding:6px 14px;border-radius:0;
+    background: #FBF3E1;
+    border: 1.5px solid var(--line);
+    color: var(--text);
+    box-shadow:none;
+  }
+  
+  .fam-menu{
+    position:fixed;left:24px;bottom:100px;z-index:56;
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    box-shadow:none;padding:16px 18px;display:none;width:240px;
+  }
+  .fam-menu.open{display:block;animation:rise .2s ease}
+  @keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  .fam-menu h4{margin:0 0 10px;font-size:13px;color: var(--good); font-family: var(--font-display)}
+  .fam-pick{display:flex;gap:8px;margin-bottom:12px}
+  
+  .fam-pick button{
+    font-size:22px;width:44px;height:44px;border-radius:0;
+    background: var(--bg);
+    border: var(--stroke);
+    box-shadow:none;
+  }
+  .fam-pick button.sel{
+    border-color: var(--line);
+    background: var(--accent2);
+  }
+  .fam-menu a, .fam-menu .fm-link{
+    display:block;font-size:12.5px;font-weight:800;color: var(--text);padding:9px 12px;border-radius:0;cursor:pointer;
+    border: 1.5px solid transparent;
+  }
+  .fam-menu a:hover, .fam-menu .fm-link:hover{
+    background: #FBF3E1;
+    border-color: var(--line);
+  }
+
+  .toast{
+    position:fixed;right:20px;bottom:20px;min-width:260px;max-width:400px;z-index:60;
+    padding:16px 20px;border-radius:0;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:none;transform:translateY(16px);opacity:0;pointer-events:none;transition:.22s;
+  }
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast .sub{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5; font-weight:700}
+
+  footer{
+    margin-top:60px;
+    border-top: var(--stroke);
+    background: var(--panel);
+    padding:32px 20px;text-align:center;color: var(--text);font-size:13px;line-height:2.1;
+    font-weight: 700;
+  }
+  footer a {
+    text-decoration: underline;
+  }
+
+  .view{display:none}
+  .view.active{display:block;animation:fadein .25s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  @media(max-width:900px){
+    .detail{grid-template-columns:1fr}
+    .hd-search{display:none}
+    .app-shell{flex-direction:column}
+    .stat{padding:14px 20px;min-width:120px}
+    .stat .num{font-size:22px}
+    .fam-bubble{max-width:240px}
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ========== アイコン(currentColorで伝統色に染まる) ========== */
+  .ic{width:1.1em;height:1.1em;fill:currentColor;flex:none;vertical-align:-.16em}
+  .sec-hd h2 .ic{width:22px;height:22px;color:var(--accent)}
+  .hero-cta .ic{width:18px;height:18px;color:#fff}
+  .back-btn .ic{width:16px;height:16px}
+  .car-arrow .ic{width:18px;height:18px}
+  .quest-info .qi-icon{width:22px;height:22px;color:var(--accent);vertical-align:-.3em;margin-right:4px}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar" data-active="home"></aside>
+  <script src="sidebar.js?v=1.0.0"></script>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="hd-spacer"></div>
+    </div>
+
+<!-- ============ TOP ============ -->
+<div class="view active" id="view-top">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-kicker">AI CREATIVE STUDIO</div>
+        <h1><span class="line">AIでひらく、</span><span class="line grad">創造のからくり。</span></h1>
+        <p>高校生のためのAI活用クリエイティブ学習サービス。</p>
+        <a class="hero-cta" href="corder.html"><svg class="ic"><use href="#i-add"></use></svg> 創作を始める</a>
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat"><div class="num" id="statWorks">0</div><div class="lbl">作品</div></div>
+            <div class="stat"><div class="num" id="statPlays">0</div><div class="lbl">プレイ回数</div></div>
+            <div class="stat"><div class="num" id="statLikes">0</div><div class="lbl">いいね</div></div>
+            <div class="stat"><div class="num" id="statQuests">0</div><div class="lbl">完了したミッション</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新しい検索バー -->
+  <div class="hero-search-wrap">
+    <div class="hero-search-box">
+      <div class="hero-search-icon">🔍</div>
+      <input type="text" id="mainSearchInput" class="hero-search-input" placeholder="作品名、作者ユーザー名、キーワードで検索..." />
+      <button type="button" id="mainSearchBtn" class="hero-search-btn">さがす</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-update"></use></svg> 新着の作品</h2><button class="more" onclick="nav('search')">もっと見る →</button></div>
+      <div class="carousel">
+        <button class="car-arrow" id="newPrev" onclick="carouselNav('new',-1)"><svg class="ic"><use href="#i-arrow_left"></use></svg></button>
+        <div class="grid carousel-track" id="newGrid"></div>
+        <button class="car-arrow" id="newNext" onclick="carouselNav('new',1)"><svg class="ic"><use href="#i-arrow_right"></use></svg></button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-notification"></use></svg> 注目の作品</h2><span class="desc">人気作品 + 注目の新顔</span></div>
+      <div class="carousel">
+        <button class="car-arrow" id="pickupPrev" onclick="carouselNav('pickup',-1)"><svg class="ic"><use href="#i-arrow_left"></use></svg></button>
+        <div class="grid carousel-track" id="pickupRow"></div>
+        <button class="car-arrow" id="pickupNext" onclick="carouselNav('pickup',1)"><svg class="ic"><use href="#i-arrow_right"></use></svg></button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-application"></use></svg> テーマ特集 — 生活に役立つ・調べる・伝える</h2><span class="desc">ゲーム以外の作品</span></div>
+      <div class="carousel">
+        <button class="car-arrow" id="featurePrev" onclick="carouselNav('feature',-1)"><svg class="ic"><use href="#i-arrow_left"></use></svg></button>
+        <div class="grid carousel-track" id="featureRow"></div>
+        <button class="car-arrow" id="featureNext" onclick="carouselNav('feature',1)"><svg class="ic"><use href="#i-arrow_right"></use></svg></button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-mailing"></use></svg> ミッションから(おすすめミッション)</h2>
+        <button class="more" onclick="nav('quest')">ミッションへ →</button></div>
+      <div class="quest-grid" id="questPreview"></div>
+    </section>
+
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-search"></use></svg> タグから探す</h2></div>
+      <div class="tag-tools" id="tagTools"><input id="tagSearchInput" placeholder="タグ名でしぼりこむ" /></div>
+      <div class="tagcloud" id="tagCloud"></div>
+    </section>
+
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-application"></use></svg> すべての作品</h2></div>
+      <div class="grid" id="allWorksGrid"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ============ SEARCH ============ -->
+<div class="view" id="view-search">
+  <div class="container" style="padding-top:26px;">
+    <div class="sec-hd"><h2><svg class="ic"><use href="#i-search"></use></svg> 作品をさがす</h2></div>
+    <div class="filterbar">
+      <div style="flex:1;min-width:240px;">
+        <div class="tag-tools" id="sTagTools" style="margin-bottom:8px;"><input id="sTagSearchInput" placeholder="タグ名でしぼりこむ" /></div>
+        <div class="tagcloud" id="searchTags"></div>
+      </div>
+      <select id="levelSelect">
+        <option value="">対象: すべて</option>
+        <option value="高">高校生</option>
+      </select>
+      <select id="sortSelect">
+        <option value="new">新着順</option>
+        <option value="popular">人気順(いいね)</option>
+        <option value="played">プレイ回数順</option>
+        <option value="trending">今週の話題順</option>
+      </select>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+    <div class="grid" id="searchGrid"></div>
+    <div class="empty" id="searchEmpty" style="display:none;">
+      <div style="font-size:36px;margin-bottom:8px;">🫥</div>
+      条件に合う作品が見つからなかったよ。<br/>タグやキーワードを変えてみてね。
+    </div>
+  </div>
+</div>
+
+<!-- ============ QUEST(ミッション) ============ -->
+<div class="view" id="view-quest">
+  <div class="container" style="padding-top:26px;">
+    <div class="sec-hd"><h2><svg class="ic"><use href="#i-mailing"></use></svg> ミッション</h2><span class="desc">ミッションを達成すると両を獲得できます</span></div>
+    <div class="quest-info">
+      <svg class="ic qi-icon"><use href="#i-information"></use></svg><b>ミッションとは?</b> 「こんなページがほしい」「こんな文章を書いてほしい」というミッションに挑戦できる場所。
+      AIが用意したミッションのほか、他の利用者のミッション(AIが内容を安全にチェック済み)もあります。
+      完成後にAIが要件を確認し、合格すると両を獲得できます。両は作品枠の追加や素材購入に利用できます(マイページ)。
+    </div>
+    <div class="tagcloud" style="margin-bottom:16px;" id="questFilter"></div>
+    <div id="questGrid"></div>
+  </div>
+</div>
+
+<!-- ============ DETAIL ============ -->
+<div class="view" id="view-detail">
+  <div class="container">
+    <button class="back-btn" onclick="nav(prevView||'top')"><svg class="ic"><use href="#i-arrow_left"></use></svg> 戻る</button>
+    <div class="detail" id="detailRoot"></div>
+    <section class="block">
+      <div class="sec-hd"><h2><svg class="ic"><use href="#i-application"></use></svg> 同じタグの作品</h2></div>
+      <div class="grid" id="relatedGrid"></div>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <span id="footer-copy"></span><br/>
+  <a href="about.html" id="footer-about" style="color:var(--accent);">About</a> &#12539;
+  <a href="terms.html" id="footer-terms" style="color:var(--accent);">Terms</a> &#12539;
+  <a href="userpage.html" id="footer-kozin" style="color:var(--accent);">MyPage</a>
+</footer>
+<script>
+  (function() {
+    var copy = "\u3058\u3055\u304f\u3084\uff5eAI\u3067\u3072\u3089\u304f\u3001\u5275\u9020\u306e\u304b\u3089\u304f\u308a\uff5e";
+    var about = "\u3053\u306e\u30b5\u30a4\u30c8\u306b\u3064\u3044\u3066";
+    var terms = "\u5229\u7528\u898f\u7d04";
+    var kozin = "\u30de\u30a4\u30da\u30fc\u30b8";
+    var elCopy = document.getElementById("footer-copy");
+    var elAbout = document.getElementById("footer-about");
+    var elTerms = document.getElementById("footer-terms");
+    var elKozin = document.getElementById("footer-kozin");
+    if (elCopy) elCopy.textContent = copy;
+    if (elAbout) elAbout.textContent = about;
+    if (elTerms) elTerms.textContent = terms;
+    if (elKozin) elKozin.textContent = kozin;
+  })();
+</script>
+  </div><!-- /.main-area -->
+</div><!-- /.app-shell -->
+
+<!-- ============ からくり人形 ============ -->
+<!-- 
+  =====================================================================
+  ※警告：使い魔（からくり人形）機能は廃止されたため、以下のUIは非表示（コメントアウト）にしています。
+  不具合や表示エラーではありませんので、絶対に再表示（コメントアウト解除）しないでください。
+  =====================================================================
+-->
+<!--
+<div class="fam-menu" id="famMenu">
+  <a href="userpage.html">👤 マイページ(からくりのへや)</a>
+  <span class="fm-link" onclick="nav('quest');closeFamMenu();">📮 依頼をさがしてもらう</span>
+  <span class="fm-link" onclick="famSay(famPick('recommend'));closeFamMenu();">🎁 おすすめ作品をきく</span>
+</div>
+<div class="familiar">
+  <div class="fam-body" id="famBody" onclick="toggleFamMenu()">😼</div>
+  <div class="fam-bubble" id="famBubble">
+    <div class="fb-name" id="famName">灯</div>
+    <div id="famText"></div>
+    <div class="fb-act" id="famAct"></div>
+  </div>
+</div>
+-->
+
+<div class="toast" id="toastEl"><strong id="toastTitle"></strong><span class="sub" id="toastBody"></span></div>
+
+<script src="./firebase-config.js"></script>
+<script type="module" src="./firebase-auth.js?v=1.0.2"></script>
+<script>
+/* =====================================================================
+   じさくや index.html ― 機能拡張版
+   対象: 高校生 / 連携: corder.html(体験), userpage.html(マイページ)
+   --------------------------------------------------------------------
+   ▼ 体験ページ(corder.html)からの作品受け取り
+   1) URLパラメータ: index.html?from=create&title=..&author=..&html=(base64)
+   2) postMessage: {type:'vibe:add-work', work:{...}}
+   3) JS API: window.OtasukeGallery.addWork(work)
+   ▼ デモ実装している追加機能(本番はサーバ側で処理)
+   ・両経済(閲覧の質評価=10分重複抑制+減衰のデモ)
+   ・ミッション(AI生成依頼/ユーザー依頼/企業依頼、受注→完了→AI審査→両)
+   ・ツカイマ(コメント代理・依頼の紹介・両報告・おすすめ)
+   ・AIコメント(承認/気づき/次のステップ の3段構成)
+   ・非ゲーム特集(テーマ特集枠)・学校段階バッジ(小/中/高)
+   ===================================================================== */
+
+const TAG_EMOJI = {
+  'ゲーム・シミュレーター':'🎮','クイズ・検定':'❓','適性診断・占い':'🔮','グラフィック・アート':'🎨','アニメーション・映像':'✨','サウンド・音楽':'🎵',
+  'デジタルノベル・ストーリー':'📖','図鑑・データベース':'📚','プレゼンテーション・紹介':'🙋','実用ツール・ユーティリティ':'🔧','計算・アルゴリズム':'🧮',
+  'クロック・タイマー':'⏰','集計・カウンター':'🔢','データ分析・可視化':'📊','デジタルメッセージ・カード':'💌',
+  'アンケート・ランキング':'🗳️','学習ツール・ドリル':'📝','探究学習・リサーチ':'🔎','スクールライフ・イベント':'🏫','ユーモア・バラエティ':'🤣',
+  '社会課題・SDGs':'🌱','その他':'📦'
+};
+const TAG_GRAD = {
+  'ゲーム・シミュレーター':['#D7DCE5','#E8EBF0'],'クイズ・検定':['#D9D2C3','#EAE3D3'],'適性診断・占い':['#D8C9D9','#EBE0EC'],
+  'グラフィック・アート':['#E3CDB8','#F0E2D2'],'アニメーション・映像':['#CBD3DD','#E2E7ED'],'サウンド・音楽':['#E0C9A8','#F0E3CC'],
+  'デジタルノベル・ストーリー':['#DEC8C2','#EFE0DD'],'図鑑・データベース':['#C9CEC0','#E1E4D9'],'プレゼンテーション・紹介':['#E2C6B0','#F1E2D3'],
+  '実用ツール・ユーティリティ':['#C7D1CE','#E0E7E4'],'計算・アルゴリズム':['#CDD6D6','#E5EAEA'],'クロック・タイマー':['#DCC2BA','#EEDCD7'],
+  '集計・カウンター':['#C7D0C5','#E1E7DD'],'データ分析・可視化':['#C9D2C2','#E2E8DC'],'デジタルメッセージ・カード':['#DECBC9','#EFE1DF'],
+  'アンケート・ランキング':['#E0CE9E','#F1E7C9'],'学習ツール・ドリル':['#CBD3DD','#E2E7ED'],'探究学習・リサーチ':['#C9D2C2','#E2E8DC'],
+  'スクールライフ・イベント':['#E0CE9E','#F1E7C9'],'ユーモア・バラエティ':['#E3D6A8','#F1EAC9'],'社会課題・SDGs':['#C2CFC0','#DEE6D9'],
+  'その他':['#DCD5C8','#EEE9DE']
+};
+const AVATAR_COLORS=['#1B3A5C','#C1440E','#C9A646','#6B5C4B','#3E5C56','#7A5C6E','#5C6B3E','#A6321B'];
+const LVL_CLASS={'小':'e','中':'j','高':'h'};
+
+const demoAppHtml=(title,emoji)=>`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:sans-serif;background:linear-gradient(135deg,#dbeafe,#fce7f3);transition:.4s}
+.c{background:rgba(255,255,255,.85);padding:30px 36px;border-radius:22px;box-shadow:0 16px 44px rgba(0,0,0,.13);text-align:center}
+button{border:none;border-radius:999px;padding:13px 22px;font-size:15px;color:#fff;background:#2563eb;cursor:pointer}
+.n{font-size:46px;margin:14px 0 10px}</style></head><body><div class="c">
+<div style="font-size:40px">${emoji}</div><h2 style="margin:8px 0">${title}</h2><div class="n" id="n">0</div>
+<button id="b">押してみよう</button></div><scr`+`ipt>
+const cs=['#dbeafe','#dcfce7','#fef3c7','#fce7f3','#ede9fe'];let i=0,n=0;
+document.getElementById('b').onclick=()=>{i=(i+1)%cs.length;n++;
+document.body.style.background='linear-gradient(135deg,'+cs[i]+',#fff)';
+document.getElementById('n').textContent=n;};</scr`+`ipt></body></html>`;
+
+/* ---------- LocalStorage データベース連携 ---------- */
+const DB_PREFIX = 'otq:';
+const DB = {
+  getCurrentUid() {
+    return localStorage.getItem(DB_PREFIX + 'current_uid') || null;
+  },
+  setCurrentUid(uid) {
+    if (uid) {
+      localStorage.setItem(DB_PREFIX + 'current_uid', uid);
+    } else {
+      localStorage.removeItem(DB_PREFIX + 'current_uid');
+    }
+  },
+  resolveKey(key) {
+    const isIsolated = ['user', 'favorites', 'owned_misc', 'liked_works', 'reacted_works', 'played_works', 'knowledge', 'hints_seen'].includes(key);
+    if (isIsolated) {
+      const uid = this.getCurrentUid();
+      return uid ? `${key}:${uid}` : `${key}:guest`;
+    }
+    return key;
+  },
+  get(key, def) {
+    try {
+      const resolved = this.resolveKey(key);
+      const v = localStorage.getItem(DB_PREFIX + resolved);
+      return v ? JSON.parse(v) : def;
+    } catch(e) { return def; }
+  },
+  set(key, val) {
+    try {
+      const resolved = this.resolveKey(key);
+      localStorage.setItem(DB_PREFIX + resolved, JSON.stringify(val));
+    } catch(e) {}
+  }
+};
+
+const D=d=>new Date(Date.now()-d*864e5).toISOString();
+// 本番: デモ作品は廃止（作品はFirestoreから読み込む）
+const defaultWorks = [];
+
+const defaultQuests = [
+  {id:'q01',src:'ai',genre:'Web制作',diff:'初級',reward:30,title:'部活紹介ページを作って',desc:'好きな部活(架空でOK)の紹介ページ。活動内容・魅力・写真の場所をわかりやすく。',status:'open'},
+  {id:'q02',src:'ai',genre:'文章',diff:'初級',reward:20,title:'推しの魅力を200字で説明して',desc:'あなたの推し(キャラ・スポーツ・趣味なんでも)の魅力が伝わる紹介文。AIの丸写しはNG、自分の言葉で。',status:'open'},
+  {id:'q03',src:'user',genre:'Web制作',diff:'中級',reward:60,title:'ゲーム「計算バトル30秒」の攻略ページを作って',desc:'けんとさんからの依頼(AIチェック済み)。ハイスコアのコツをまとめた攻略ページがほしいな!',status:'open'},
+  {id:'q04',src:'ai',genre:'文章',diff:'中級',reward:40,title:'文化祭の説明文を300字で書いて',desc:'来場する家族向けに、文化祭の見どころを伝える説明文。だれが読んでもわかる言葉で。',status:'open'},
+  {id:'q05',src:'ai',genre:'画像素材',diff:'初級',reward:25,title:'ボタン用のアイコン素材を3つ作って',desc:'みんなのアプリで使えるボタンアイコン。シンプルで見やすいデザインが◎。',status:'open'},
+  {id:'q06',src:'biz',genre:'Web制作',diff:'上級',reward:120,title:'地域の図書館イベント紹介ページ(AI仲介)',desc:'企業・団体依頼をAIが学習タスク化させたもの。読書イベントの紹介ページを作ろう。個人情報は含まれません。',status:'open'},
+  {id:'q07',src:'ai',genre:'文章',diff:'初級',reward:20,title:'自分の将来の夢を300字で書いて',desc:'文書作成ページ(コピペ禁止)で、自分の言葉で書こう。AIは構成のヒントだけくれるよ。',status:'open'},
+  {id:'q08',src:'ai',genre:'Web制作',diff:'中級',reward:50,title:'SDGs調査学習のまとめページを作る',desc:'興味のあるSDGs目標をひとつ選び、調べた内容をまとめるページ。出典も明記できると信頼性が高まります。',status:'open'}
+];
+
+const defaultUser = {
+  nickname: 'たろう',
+  bio: 'ボタン系のアプリをつくるのが好きです。ゲームも作ってみたい!',
+  avatarColor: '#0ea5e9',
+  coins: 240,
+  slotsMax: 2,
+  famType: 'tora',
+  hobbies: ['ゲームづくり', 'ねこ', 'サッカー', '青色'],
+  ownedImages: ['ノートパソコン.png'],
+  ownedFamTypes: ['tora', 'robo', 'fairy'],
+  bgType: 'color',
+  bgColor: '#FDFBF7',
+  bgImage: 'default',
+  ownedBgImages: ['bg_stars.png']
+};
+
+// 一度だけ: 旧デモ作品(w01〜w14)をローカルから除去
+if (!localStorage.getItem('otq:demo_works_cleared')) {
+  const demoIds = new Set(Array.from({length:14},(_,i)=>'w'+String(i+1).padStart(2,'0')));
+  const stored = DB.get('works', []);
+  const cleaned = stored.filter(x => !demoIds.has(x.id));
+  if (cleaned.length !== stored.length) DB.set('works', cleaned);
+  localStorage.setItem('otq:demo_works_cleared','1');
+}
+
+let isWorkRouteProcessed = false;
+let works = DB.get('works', []);
+if (works.length === 0) {
+  works = defaultWorks;
+  DB.set('works', works);
+}
+let quests = DB.get('quests', []);
+if (quests.length === 0) {
+  quests = defaultQuests;
+  DB.set('quests', quests);
+}
+// 依頼全体（order順ソート済み）
+let sortedQuests = [...quests].sort((a, b) => (a.order || 999) - (b.order || 999));
+// ユーザーごとの依頼進捗（旧形式から移行）
+let userQuestState = (() => {
+  const saved = DB.get('questState', null);
+  if (saved && Array.isArray(saved.completedIds)) return saved;
+  // 旧形式quests[].statusから移行
+  const completedIds = quests.filter(q => q.status === 'done').map(q => q.id);
+  const doingIds     = quests.filter(q => q.status === 'doing').map(q => q.id);
+  return { completedIds, doingIds };
+})();
+function getSeedUserForUid(uid) {
+  if (uid === 'hanako') {
+    return {
+      nickname: 'はなこ',
+      bio: 'イラストを描いたり、ぬりえアプリを作ったりしたいです！',
+      avatarColor: '#ec4899',
+      coins: 100,
+      slotsMax: 2,
+      famType: 'fairy',
+      hobbies: ['イラスト', 'アニメ', 'うさぎ'],
+      ownedImages: ['ノートパソコン.png'],
+      ownedFamTypes: ['tora', 'robo', 'fairy', 'dragon', 'rabbit'],
+      bgType: 'color',
+      bgColor: '#FDFBF7',
+      bgImage: 'default',
+      ownedBgImages: ['bg_stars.png']
+    };
+  }
+  return {
+    nickname: uid === 'tarou' ? 'たろう' : uid,
+    bio: 'ボタン系のアプリをつくるのが好きです。ゲームも作ってみたい!',
+    avatarColor: '#0ea5e9',
+    coins: 240,
+    slotsMax: 2,
+    famType: 'tora',
+    hobbies: ['ゲームづくり', 'ねこ', 'サッカー', '青色'],
+    ownedImages: ['ノートパソコン.png'],
+    ownedFamTypes: ['tora', 'robo', 'fairy', 'dragon', 'rabbit'],
+    bgType: 'color',
+    bgColor: '#FDFBF7',
+    bgImage: 'default',
+    ownedBgImages: ['bg_stars.png']
+  };
+}
+
+let user = DB.get('user', null);
+if (!user) {
+  user = DB.getCurrentUid() ? getSeedUserForUid(DB.getCurrentUid()) : defaultUser;
+  if (DB.getCurrentUid()) DB.set('user', user);
+}
+
+if (user) {
+  let userUpdated = false;
+  if (!user.famType || user.famType === 'cat') {
+    user.famType = 'tora';
+    userUpdated = true;
+  }
+  if (!user.ownedFamTypes) {
+    user.ownedFamTypes = ['tora', 'robo', 'fairy'];
+    userUpdated = true;
+  } else {
+    if (user.ownedFamTypes.includes('cat')) {
+      user.ownedFamTypes = user.ownedFamTypes.filter(x => x !== 'cat');
+      userUpdated = true;
+    }
+    if (!user.ownedFamTypes.includes('tora')) {
+      user.ownedFamTypes.push('tora');
+      userUpdated = true;
+    }
+  }
+  if (userUpdated && DB.getCurrentUid()) {
+    DB.set('user', user);
+  }
+}
+
+/* ---------- からくり人形 ---------- */
+const FAM_TYPES={
+  tora:{emoji:'🏮',name:'灯',suffix:'',img:'karakuri_1.svg'},
+  robo:{emoji:'🧮',name:'算',suffix:'',img:'karakuri_2.svg'},
+  fairy:{emoji:'🎐',name:'結',suffix:'',img:'karakuri_3.svg'},
+  dragon:{emoji:'⚔️',name:'武',suffix:'',img:'karakuri_4.svg'},
+  rabbit:{emoji:'🔔',name:'鈴',suffix:'',img:'karakuri_5.svg'},
+};
+/* 使い魔アバター: 画像があれば<img>、無ければ絵文字。img/ に画像が置かれるまで自動で絵文字フォールバック */
+function famImg(key,size){
+  const f=FAM_TYPES[key]||FAM_TYPES.tora;
+  if(f.img){
+    return `<img src="img/${f.img}" alt="${f.name}" class="fam-img" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${f.emoji}',style:'font-size:${Math.round(size*0.85)}px;line-height:1;'}))">`;
+  }
+  return `<span style="font-size:${Math.round(size*0.85)}px;line-height:1;">${f.emoji}</span>`;
+}
+let famTimer=null;
+function famSay(html,actions){
+  // 使い魔（からくり人形）UIは廃止・コメントアウト済み。要素が無ければ何もしない。
+  if(!$('famName')||!$('famText')||!$('famAct')||!$('famBubble')) return;
+  const f=FAM_TYPES[session.famType];
+  $('famName').textContent=f.name;
+  $('famText').innerHTML=html;
+  $('famAct').innerHTML='';
+  (actions||[]).forEach(a=>{
+    const b=document.createElement('button');
+    b.textContent=a.label;
+    b.onclick=e=>{e.stopPropagation(); a.fn(e);};
+    $('famAct').appendChild(b);
+  });
+  $('famBubble').classList.add('show');
+  clearTimeout(famTimer);
+  famTimer=setTimeout(()=>$('famBubble').classList.remove('show'), actions?9000:6000);
+}
+
+/* ---------- 状態 ---------- */
+const session={
+  coins:DB.getCurrentUid() ? user.coins : 0, questsDone:0,
+  liked:new Set(DB.get('liked_works', [])),
+  reacted:DB.get('reacted_works', {}),
+  played:DB.get('played_works', {}),
+  filterTag:null, keyword:'', sort:'new', level:'', questGenre:null,
+  famType:(user && FAM_TYPES[user.famType]) ? user.famType : 'tora',
+};
+let prevView='top', currentWorkId=null;
+
+/* 新着/ピックアップ/特集のカルーセル状態(4件ずつ←→) */
+let newAll=[], pickupAll=[], featureAll=[];
+const CAROUSEL_COUNT=4;
+const carouselPage={ new:0, pickup:0, feature:0 };
+const CAROUSEL_MAP={
+  new:    { all:()=>newAll,     grid:'newGrid',     prev:'newPrev',     next:'newNext' },
+  pickup: { all:()=>pickupAll,  grid:'pickupRow',   prev:'pickupPrev',  next:'pickupNext' },
+  feature:{ all:()=>featureAll, grid:'featureRow',  prev:'featurePrev', next:'featureNext' },
+};
+function renderCarousel(key){
+  const cfg = CAROUSEL_MAP[key];
+  const all = cfg.all();
+  const totalPages = Math.max(1, Math.ceil(all.length / CAROUSEL_COUNT));
+  if (carouselPage[key] >= totalPages) carouselPage[key] = totalPages - 1;
+  if (carouselPage[key] < 0) carouselPage[key] = 0;
+  const start = carouselPage[key] * CAROUSEL_COUNT;
+  const pageItems = all.slice(start, start + CAROUSEL_COUNT);
+  $(cfg.grid).innerHTML = all.length ? pageItems.join('') : EMPTY_MSG;
+  $(cfg.prev).disabled = carouselPage[key] <= 0;
+  $(cfg.next).disabled = carouselPage[key] >= totalPages - 1;
+}
+function carouselNav(key, dir){
+  carouselPage[key] += dir;
+  renderCarousel(key);
+}
+function renderAllCarousels(){ Object.keys(CAROUSEL_MAP).forEach(renderCarousel); }
+
+/* タグUIの状態(トップ/検索 それぞれ) */
+const tagUI = {
+  top:    { open:false, q:'' },
+  search: { open:false, q:'' },
+};
+const TAG_LIMIT = 12; // 折りたたみ時に見せるタグ数
+
+/* ---------- ユーティリティ ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let toastTimer;
+function toast(t,b){
+  $('toastTitle').textContent=t;$('toastBody').textContent=b;
+  $('toastEl').classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toastEl').classList.remove('show'),3000);
+}
+
+function refreshCurrentUserState() {
+  const uid = DB.getCurrentUid();
+  user = uid ? DB.get('user', getSeedUserForUid(uid)) : defaultUser;
+  session.coins = uid ? (user.coins || 0) : 0;
+  session.famType = user.famType || 'tora';
+  $('coinVal').textContent = num(session.coins);
+  updateFamBodyEmoji();
+  updateHeaderAuth();
+}
+
+function updateHeaderAuth() {
+  const uid = DB.getCurrentUid();
+  const signedIn = Boolean(uid);
+  const nick = signedIn ? (user.nickname || uid) : '未ログイン';
+  if ($('userBtnNick')) $('userBtnNick').textContent = nick;
+  if ($('udNick')) $('udNick').textContent = nick;
+  if ($('udLogout')) $('udLogout').style.display = signedIn ? 'flex' : 'none';
+  if ($('btnLogin')) $('btnLogin').style.display = signedIn ? 'none' : 'inline-flex';
+  if ($('btnSignup')) $('btnSignup').style.display = signedIn ? 'none' : 'inline-flex';
+  if ($('sidebarCoin')) $('sidebarCoin').style.display = signedIn ? 'flex' : 'none';
+  if ($('userMenu')) $('userMenu').style.display = signedIn ? 'flex' : 'none';
+}
+
+/* ユーザーメニューの開閉 */
+if ($('userBtn')) {
+  $('userBtn').addEventListener('click', e=>{
+    e.stopPropagation();
+    $('userDrop').classList.toggle('open');
+    // 作品メニューは閉じる
+    if ($('createDrop')) $('createDrop').classList.remove('open');
+  });
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#userMenu') && $('userDrop')) $('userDrop').classList.remove('open');
+  if(!e.target.closest('#createMenu') && $('createDrop')) $('createDrop').classList.remove('open');
+});
+
+/* 作品をつくるメニューの開閉 */
+if ($('createBtn')) {
+  $('createBtn').addEventListener('click', e=>{
+    e.stopPropagation();
+    $('createDrop').classList.toggle('open');
+    // アカウントメニューは閉じる
+    $('userDrop').classList.remove('open');
+  });
+}
+
+function loginFromHeader() {
+  $('userDrop').classList.remove('open');
+  if (!window.FirebaseAuthBridge) {
+    toast('Firebaseを読み込めませんでした', 'インターネット接続、またはFirebase SDK of 読み込みを確認してください。');
+    return;
+  }
+
+  if (window.FirebaseAuthBridge.isConfigured) {
+    window.FirebaseAuthBridge.loginWithGoogle()
+      .then(() => {
+        refreshCurrentUserState();
+        if (window.AchievementBridge) {
+          window.AchievementBridge.unlockAchievement('first_login');
+        }
+        const syncError = window.FirebaseAuthBridge.getLastSyncError?.();
+        if (syncError) {
+          toast('Googleログイン済み / Firestore同期失敗', syncError.code || syncError.message || 'Firestore error');
+          return;
+        }
+        toast('ログインしました', `${user.nickname || 'Googleユーザー'} さんとしてログイン中です。`);
+      })
+      .catch((error) => {
+        console.error('Firebase Google login failed', error);
+        const detail = firebaseErrorDetail(error);
+        localStorage.setItem('otq:last_firebase_login_error', detail);
+        toast('ログインできませんでした', detail);
+        alert(`Firebaseログインエラー:\n${detail}`);
+      });
+    return;
+  }
+
+  toast('Firebase設定が未完了です', 'firebase-config.js の設定とSDK読み込みを確認してください。');
+}
+
+function firebaseErrorDetail(error) {
+  if (!error) return 'Firebase error: empty error object';
+  const parts = [];
+  if (error.code) parts.push(`code=${error.code}`);
+  if (error.message) parts.push(`message=${error.message}`);
+  if (error.customData) {
+    try { parts.push(`customData=${JSON.stringify(error.customData)}`); } catch(e) {}
+  }
+  if (error.email) parts.push(`email=${error.email}`);
+  if (error.credential) parts.push('credential=present');
+  return parts.join('\n') || String(error);
+}
+
+function logoutFromHeader() {
+  $('userDrop').classList.remove('open');
+  const finish = () => {
+    DB.setCurrentUid(null);
+    refreshCurrentUserState();
+    toast('ログアウトしました', 'ログインボタンから再度ログインできます。');
+  };
+
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.logout()
+      .then(finish)
+      .catch((error) => {
+        console.error('Firebase logout failed', error);
+        toast('ログアウトできませんでした', '少し時間をおいてもう一度試してください。');
+      });
+    return;
+  }
+
+  finish();
+}
+
+window.addEventListener('vibecoding-auth-change', () => {
+  refreshCurrentUserState();
+  loadSystemSettingsAndQuests();
+  if (!isWorkRouteProcessed) {
+    handleWorkRouteFromQuery();
+  }
+});
+
+/* ---------- システム設定とクエストロード ---------- */
+let homepageSettings = {
+  showPickup: true,
+  showFeature: true,
+  showQuests: true,
+  showShop: true,
+  pickupMode: 'auto',
+  manualPickupIds: []
+};
+
+let dbShopItems = [];
+
+async function loadSystemSettingsAndQuests() {
+    if (window.FirebaseAuthBridge?.isConfigured) {
+      try {
+        const docs = await window.FirebaseAuthBridge.getFirestoreDocs('system_settings');
+        const homeDoc = docs.find(d => d.id === 'homepage');
+        if (homeDoc) {
+          homepageSettings = {
+            showPickup: homeDoc.showPickup !== false,
+            showFeature: homeDoc.showFeature !== false,
+            showQuests: homeDoc.showQuests !== false,
+            showShop: homeDoc.showShop !== false,
+            pickupMode: homeDoc.pickupMode || 'auto',
+            manualPickupIds: Array.isArray(homeDoc.manualPickupIds) ? homeDoc.manualPickupIds : []
+          };
+        }
+  
+        // shop_items のロード
+        const items = await window.FirebaseAuthBridge.getFirestoreDocs('shop_items');
+        if (items && items.length > 0) {
+          dbShopItems = items;
+        } else {
+          dbShopItems = [];
+        }
+  
+        const dbQuests = await window.FirebaseAuthBridge.getFirestoreDocs('quests');
+        if (dbQuests && dbQuests.length > 0) {
+          quests = dbQuests.map((dq, idx) => ({
+            id:     dq.id,
+            title:  dq.title,
+            desc:   dq.desc,
+            genre:  dq.genre,
+            diff:   dq.diff,
+            reward: dq.reward,
+            src:    dq.src,
+            order:  dq.order != null ? dq.order : idx + 1,
+          }));
+          sortedQuests = [...quests].sort((a, b) => (a.order || 999) - (b.order || 999));
+          DB.set('quests', quests);
+        }
+        // Firestoreからユーザーの依頼進捗を取得
+        await loadUserQuestState();
+      } catch (e) {
+        console.warn("Failed to load settings or quests from Firestore, fallback to local:", e);
+      }
+    }
+  
+    applyDisplaySettings();
+    renderTop();
+    // Firestoreから公開作品を非同期で追加読み込み（初回描画後に上書きしない）
+    loadFirestoreWorks();
+  }
+  
+function applyDisplaySettings() {
+  const pickupRow = $('pickupRow');
+  if (pickupRow) {
+    const parentBlock = pickupRow.closest('section.block');
+    if (parentBlock) parentBlock.style.display = homepageSettings.showPickup ? 'block' : 'none';
+  }
+
+  const featureRow = $('featureRow');
+  if (featureRow) {
+    const parentBlock = featureRow.closest('section.block');
+    if (parentBlock) parentBlock.style.display = homepageSettings.showFeature ? 'block' : 'none';
+  }
+
+  const questPreview = $('questPreview');
+  if (questPreview) {
+    const parentBlock = questPreview.closest('section.block');
+    if (parentBlock) parentBlock.style.display = homepageSettings.showQuests ? 'block' : 'none';
+  }
+  const navQuestBtn = $('navQuest');
+  if (navQuestBtn) {
+    navQuestBtn.style.display = homepageSettings.showQuests ? 'inline-flex' : 'none';
+  }
+
+  const sidebarCoin = $('sidebarCoin');
+  if (sidebarCoin && !DB.getCurrentUid()) {
+    sidebarCoin.style.display = 'none';
+  } else if (sidebarCoin) {
+    sidebarCoin.style.display = homepageSettings.showShop ? 'flex' : 'none';
+  }
+}
+function avatarColor(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
+function fmtDate(iso){const d=new Date(iso);return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;}
+function num(n){return n.toLocaleString('ja-JP');}
+
+/* ---------- 両 ---------- */
+function addCoins(n,reason){
+  session.coins+=n;
+  user.coins=session.coins;
+  DB.set('user', user);
+  $('coinVal').textContent=num(session.coins);
+  const chip=$('sidebarCoin');chip.classList.remove('bump');void chip.offsetWidth;chip.classList.add('bump');
+  if(reason)famSay(`${reason} <b>+${n}両</b>を獲得しました（現在 ${num(session.coins)}両）`);
+}
+function famPick(kind){
+  const f=FAM_TYPES[session.famType];
+  if(kind==='recommend'){
+    const w=works[Math.floor(Math.random()*works.length)];
+    setTimeout(()=>{
+      famSay(`「${esc(w.title)}」が好きそうだと思った${f.suffix}!`,[{label:'見てみる',fn:()=>openWork(w.id)}]);
+    },50);
+    return 'おすすめをさがしてくる'+f.suffix+'…';
+  }
+  return '';
+}
+function toggleFamMenu(){
+  if (!$('famBubble') || !$('famMenu')) return;
+  if ($('famBubble').classList.contains('show')) {
+    $('famBubble').classList.remove('show');
+    clearTimeout(famTimer);
+  } else {
+    $('famMenu').classList.toggle('open');
+  }
+}
+function closeFamMenu(){ if($('famMenu')) $('famMenu').classList.remove('open'); }
+function updateFamBodyEmoji(){
+  // 使い魔（からくり人形）UIは廃止・コメントアウト済みのため、要素が無い場合は何もしない。
+  // （要素チェックを外すと、ログイン直後にここで null.innerHTML となり「Firebaseログインエラー」になる）
+  const el = $('famBody');
+  if (el) el.innerHTML = famImg(session.famType, 50);
+}
+
+/* ---------- ナビゲーション ---------- */
+function nav(view){
+  prevView=document.querySelector('.view.active')?.id.replace('view-','')||'top';
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-'+view).classList.add('active');
+  ['Top','Search','Quest'].forEach(n=>$('nav'+n)?.classList.remove('active'));
+  if(view==='top')$('navTop').classList.add('active');
+  if(view==='search'){$('navSearch').classList.add('active');renderSearch();}
+  if(view==='quest'){$('navQuest').classList.add('active');renderQuests();}
+  if(view==='top')renderTop();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- カード ---------- */
+function cardHtml(w,badge=''){
+  const t0=(Array.isArray(w.tags)&&w.tags.length)?w.tags[0]:'その他';
+  const emoji=TAG_EMOJI[t0]||'📦';
+  const [c1,c2]=TAG_GRAD[t0]||TAG_GRAD['その他'];
+  const lv=w.level?`<span class="lvl ${LVL_CLASS[w.level]||'j'}">${w.level}</span>`:'';
+  const thumbInner = w.thumbnail
+    ? `<img src="${w.thumbnail}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`
+    : `<span style="font-size:48px;">${emoji}</span>`;
+  return `<div class="card" onclick="openWork('${w.id}')">
+    <div class="thumb" style="background:linear-gradient(135deg,${c1},${c2});">
+      ${badge}${lv}${thumbInner}
+      <div class="card-overlay">
+        <div class="cf-title">${esc(w.title)}</div>
+        <div class="cf-row">
+          <span class="cf-author"><span class="cf-avatar" style="background:${avatarColor(w.authorNickname)}">${esc(w.authorNickname[0]||'?')}</span>${esc(w.authorNickname)}</span>
+          <span class="cf-stats"><span>▶ ${num(w.playCount)}</span><span>♥ ${num(w.likeCount)}</span></span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+const EMPTY_MSG = '<div class="empty" style="grid-column:1/-1;text-align:center;padding:24px;color:#64748b;font-weight:700;">まだ作品がありません。最初の作品を制作してみましょう。</div>';
+
+/* ---------- ミッション ---------- */
+
+// 依頼の表示上限を計算
+// A: クリア数 + 8　B: 作品数に応じたボーナス解放
+function calcQuestRevealCount() {
+  const completedCount = userQuestState.completedIds.length;
+  const uid = DB.getCurrentUid();
+  const myWorksCount = works.filter(w =>
+    w.authorUid === uid || (!w.authorUid && w.authorNickname === (DB.get('user', {}).nickname))
+  ).length;
+  const worksBonus = myWorksCount >= 10 ? 4 : myWorksCount >= 5 ? 2 : 0;
+  return completedCount + 8 + worksBonus;
+}
+
+// 依頼進捗をFirestore + localStorageに保存
+async function saveQuestState() {
+  DB.set('questState', userQuestState);
+  session.questsDone = userQuestState.completedIds.length;
+  const uid = DB.getCurrentUid();
+  if (uid && window.FirebaseAuthBridge?.isConfigured) {
+    try {
+      await window.FirebaseAuthBridge.setFirestoreDoc('users', uid, {
+        completedQuestIds: userQuestState.completedIds,
+        doingQuestIds:     userQuestState.doingIds,
+      });
+    } catch(e) { console.warn('依頼進捗の同期失敗:', e); }
+  }
+}
+
+// Firestoreからユーザーの依頼進捗を読み込む
+async function loadUserQuestState() {
+  const uid = DB.getCurrentUid();
+  if (!uid || !window.FirebaseAuthBridge?.isConfigured) return;
+  try {
+    const userDoc = await window.FirebaseAuthBridge.getFirestoreDoc('users', uid);
+    if (userDoc) {
+      if (Array.isArray(userDoc.completedQuestIds)) userQuestState.completedIds = userDoc.completedQuestIds;
+      if (Array.isArray(userDoc.doingQuestIds))     userQuestState.doingIds     = userDoc.doingQuestIds;
+      DB.set('questState', userQuestState);
+    }
+  } catch(e) { console.warn('依頼進捗の読み込み失敗:', e); }
+}
+
+// ミッションカードHTML生成
+function questHtml(q) {
+  const { completedIds, doingIds } = userQuestState;
+  const uid    = DB.getCurrentUid();
+  const isDone  = completedIds.includes(q.id);
+  const isDoing = doingIds.includes(q.id);
+  const srcLbl  = { ai:'AI', user:'ユーザー', biz:'仕事(AI審査済)' }[q.src] || 'AI';
+
+  let btn;
+  if (isDone) {
+    btn = `<button class="q-btn done" disabled>クリア済み</button>`;
+  } else if (isDoing) {
+    btn = `<button class="q-btn doing" onclick="completeQuest('${q.id}')">完了報告(デモ)</button>`;
+  } else {
+    btn = `<button class="q-btn" onclick="${uid ? `acceptQuest('${q.id}')` : `toast('ログインが必要です','ミッションを受託するにはログインしてね',true)`}">受託</button>`;
+  }
+
+  return `<div class="quest ${isDone ? 'sealed' : ''}">
+    <div class="q-stamp"><span>報酬</span><b>+${q.reward ?? 0}</b></div>
+    <div class="q-top"><span class="q-src ${q.src||'ai'}">${srcLbl}</span><span class="q-diff">${q.genre || 'おまかせ'} / ${q.diff || 'ふつう'}</span></div>
+    <div class="q-title">「${esc(q.title)}」</div>
+    <div class="q-desc">${esc(q.desc)}</div>
+    <div class="q-foot">${btn}</div>
+    ${isDone ? '<div class="q-seal">済</div>' : ''}
+  </div>`;
+}
+
+let questDoneOpen = false;
+
+function toggleDoneQuests() {
+  questDoneOpen = !questDoneOpen;
+  const list = $('questDoneList');
+  const btn  = $('questDoneToggle');
+  if (!list || !btn) return;
+  const { completedIds } = userQuestState;
+  const genre = session.questGenre;
+  const doneVisible = sortedQuests.filter(q =>
+    completedIds.includes(q.id) && (!genre || q.genre === genre)
+  );
+  if (questDoneOpen) {
+    list.innerHTML = doneVisible.map(q => questHtml(q)).join('');
+    list.style.display = '';
+    btn.textContent = `✅ クリア済み ${doneVisible.length}件 ▲ 折りたたむ`;
+  } else {
+    list.style.display = 'none';
+    btn.textContent = `✅ クリア済み ${doneVisible.length}件 ▼ 見る`;
+  }
+}
+
+function renderQuests() {
+  const { completedIds, doingIds } = userQuestState;
+  const revealCount = calcQuestRevealCount();
+  const genre = session.questGenre;
+
+  // 表示対象: order順先頭 revealCount 件
+  const visibleAll = sortedQuests.slice(0, revealCount);
+
+  // ジャンルフィルタ
+  const filtered = genre ? visibleAll.filter(q => q.genre === genre) : visibleAll;
+  const active   = filtered.filter(q => !completedIds.includes(q.id));
+  const done     = filtered.filter(q =>  completedIds.includes(q.id));
+
+  // ジャンルフィルタボタン
+  const genres = [...new Set(sortedQuests.map(q => q.genre))];
+  $('questFilter').innerHTML = genres.map(g =>
+    `<button class="tagchip ${genre === g ? 'active' : ''}" onclick="toggleQuestGenre('${g}')">${g}</button>`
+  ).join('');
+
+  // 進捗インジケーター
+  const total     = sortedQuests.length;
+  const revealed  = Math.min(visibleAll.length, total);
+  const pct       = total > 0 ? Math.round(completedIds.length / total * 100) : 0;
+  const nextLabel = revealed < total
+    ? `<span class="qp-hint">📬 あと ${total - revealed} 件の依頼が隠れている！</span>`
+    : `<span class="qp-hint">🎉 全依頼を解放済み!</span>`;
+  const progressHtml = `
+    <div class="quest-progress">
+      <div class="qp-bar"><div class="qp-fill" style="width:${pct}%"></div></div>
+      <div class="qp-info">
+        <span>✅ ${completedIds.length}件クリア</span>
+        <span>📬 現在 ${revealed}件公開中</span>
+        ${nextLabel}
+      </div>
+    </div>`;
+
+  // アクティブ依頼グリッド
+  const activeHtml = active.length
+    ? `<div class="quest-grid">${active.map(q => questHtml(q)).join('')}</div>`
+    : `<div class="quest-grid"><div class="empty">📫 表示中の依頼はすべて達成済みです。新しい依頼の追加をお待ちください。</div></div>`;
+
+  // クリア済みセクション（折りたたみ）
+  const doneSection = done.length > 0 ? `
+    <div class="quest-done-section">
+      <button class="quest-done-toggle" id="questDoneToggle" onclick="toggleDoneQuests()">
+        ✅ クリア済み ${done.length}件 ▼ 見る
+      </button>
+      <div class="quest-grid quest-done-list" id="questDoneList" style="display:none"></div>
+    </div>` : '';
+
+  $('questGrid').innerHTML = progressHtml + activeHtml + doneSection;
+  questDoneOpen = false;
+}
+
+function toggleQuestGenre(g) { session.questGenre = session.questGenre === g ? null : g; renderQuests(); }
+
+function acceptQuest(id) {
+  if (!DB.getCurrentUid()) {
+    toast('ログインが必要です', 'ミッションを開始するにはログインしてね🔑', true); return;
+  }
+  const q = sortedQuests.find(x => x.id === id); if (!q) return;
+  if (userQuestState.doingIds.includes(id)) return;
+  userQuestState.doingIds.push(id);
+  saveQuestState();
+  renderQuests();
+  const f = FAM_TYPES[session.famType];
+  famSay(`「${esc(q.title)}」のミッションを受けました。完成したらAIレビューに提出すると、合格時に両を獲得できます。`,
+    [{ label: '✨ じさくや コード', fn: () => location.href = 'corder.html' },
+     { label: '📓 じさくや ノート', fn: () => location.href = 'create_note.html' }]);
+  toast('ミッション開始 📮', `「${q.title}」 / 報酬 💰+${q.reward}`);
+}
+
+function completeQuest(id) {
+  const q = sortedQuests.find(x => x.id === id); if (!q) return;
+  userQuestState.doingIds     = userQuestState.doingIds.filter(x => x !== id);
+  if (!userQuestState.completedIds.includes(id)) userQuestState.completedIds.push(id);
+  saveQuestState();
+  renderQuests();
+  addCoins(q.reward, `「${esc(q.title)}」がAI審査に合格!ミッションクリアおめでとう！`);
+  toast('ミッションクリア', 'AI審査に合格しました(デモ)。本番では審査後に両が付与されます。');
+}
+
+/* ---------- トップ ---------- */
+function visibleWorks(){return works.slice();}
+function renderTop(){
+  const list=visibleWorks();
+  countUp($('statWorks'),list.length);
+  countUp($('statPlays'),list.reduce((a,b)=>a+(b.playCount||0),0));
+  countUp($('statLikes'),list.reduce((a,b)=>a+(b.likeCount||0),0));
+  countUp($('statQuests'),session.questsDone); // デモの+347を廃止。実数（このセッションの完了数）
+
+  // ピックアップ: ハイブリッド選定
+  pickupAll = [];
+  if (typeof homepageSettings !== 'undefined' && homepageSettings.pickupMode === 'manual' && homepageSettings.manualPickupIds && homepageSettings.manualPickupIds.length > 0) {
+    const idSet = new Set(homepageSettings.manualPickupIds);
+    pickupAll = list.filter(w => idSet.has(w.id))
+      .map(w => cardHtml(w, `<span class="badge" style="background:var(--pink);color:#fff;">PICK UP</span>`));
+  } else {
+    // 自動選出: 人気6 + 新着ランダム2(教育的配慮: 無名作品にも光)
+    const scored=[...list].sort((a,b)=>(b.likeCount*3+(b.weekPlays||0))-(a.likeCount*3+(a.weekPlays||0)));
+    const top6=scored.slice(0,6);
+    const lucky=list.filter(w=>!top6.includes(w)).sort(()=>Math.random()-.5).slice(0,2);
+    pickupAll=[
+      ...top6.map(w=>cardHtml(w,`<span class="badge" style="background:var(--pink);color:#fff;">PICK UP</span>`)),
+      ...lucky.map(w=>cardHtml(w,`<span class="badge" style="background:var(--accent2);color:var(--text);">注目の新顔</span>`)),
+    ];
+  }
+
+  // テーマ特集: 非ゲーム作品(ゲーム偏重を防ぐ見せ方)
+  featureAll = list.filter(w=>!w.tags.includes('ゲーム・シミュレーター'))
+    .sort((a,b)=>(b.weekPlays||0)).slice(0,8)
+    .map(w=>cardHtml(w,`<span class="badge" style="background:var(--accent);color:#fff;">特集</span>`));
+
+  // 新着12件
+  newAll = list.length
+    ? [...list].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,12).map(w=>cardHtml(w))
+    : [];
+
+  renderAllCarousels();
+
+  // 依頼プレビュー(3件: 未クリアから)
+  const previewList = sortedQuests
+    .filter(q => !userQuestState.completedIds.includes(q.id))
+    .slice(0, 3);
+  $('questPreview').innerHTML = previewList.map(q => questHtml(q)).join('');
+
+  // すべての作品一覧
+  const allWorksGrid = $('allWorksGrid');
+  if (allWorksGrid) {
+    allWorksGrid.innerHTML = list.length
+      ? list.map(w => cardHtml(w)).join('')
+      : EMPTY_MSG;
+  }
+
+  // タグクラウド(大量タグ対応)
+  renderTagCloud('top');
+}
+function countUp(el,target){
+  const dur=900,t0=performance.now();
+  (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);
+    el.textContent=num(Math.round(target*e));if(p<1)requestAnimationFrame(step);})(t0);
+}
+function filterByTag(tag){session.filterTag=tag;nav('search');}
+
+/* ---------- タグクラウド(大量タグ対応の共通レンダラ) ----------
+   ・出現数の多い順に上位 TAG_LIMIT 件だけ表示
+   ・「すべてのタグ (N)」で展開 → 検索ボックス + スクロール領域
+   ・タグが数百件に増えても一覧性とパフォーマンスを保てる */
+function tagEntries(){
+  const tagCount={};
+  visibleWorks().forEach(w=>w.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
+  return Object.entries(tagCount).sort((a,b)=>b[1]-a[1]); // 人気順
+}
+function renderTagCloud(which){
+  const ui = tagUI[which];
+  const isTop = which==='top';
+  const cloudEl = $(isTop ? 'tagCloud' : 'searchTags');
+  const toolsEl = $(isTop ? 'tagTools' : 'sTagTools');
+  const inputId = isTop ? 'tagSearchInput' : 'sTagSearchInput';
+  const clickFn = isTop ? 'filterByTag' : 'toggleSearchTag';
+
+  let entries = tagEntries();
+  const total = entries.length;
+  if(ui.q){
+    const q = ui.q.toLowerCase();
+    entries = entries.filter(([t])=>t.toLowerCase().includes(q));
+  }
+  const shown = ui.open ? entries : entries.slice(0, TAG_LIMIT);
+
+  let html = shown.map(([t,c])=>{
+    const active = (!isTop && session.filterTag===t) ? 'active' : '';
+    return `<button class="tagchip ${active}" onclick="${clickFn}('${esc(t)}')">${TAG_EMOJI[t]||'🏷️'} ${esc(t)} <small style="opacity:.65">${c}</small></button>`;
+  }).join('');
+
+  if(!shown.length){
+    html += `<div class="tag-empty">「${esc(ui.q)}」に合うタグはないみたい。</div>`;
+  }
+  if(!ui.open && total > TAG_LIMIT){
+    html += `<button class="tagchip tag-more" onclick="toggleTagOpen('${which}')">… すべてのタグ (${total})</button>`;
+  }
+  if(ui.open){
+    html += `<button class="tagchip tag-more" onclick="toggleTagOpen('${which}')">▲ とじる</button>`;
+  }
+
+  cloudEl.innerHTML = html;
+  cloudEl.classList.toggle('scrolly', ui.open);
+  toolsEl.classList.toggle('show', ui.open);
+
+  // 入力ハンドラ(初回のみ)
+  const input = $(inputId);
+  if(input && !input.dataset.bound){
+    input.dataset.bound = '1';
+    input.addEventListener('input', e=>{
+      ui.q = e.target.value.trim();
+      renderTagCloud(which);
+    });
+  }
+}
+function toggleTagOpen(which){
+  tagUI[which].open = !tagUI[which].open;
+  if(!tagUI[which].open){ tagUI[which].q=''; const i=$(which==='top'?'tagSearchInput':'sTagSearchInput'); if(i)i.value=''; }
+  renderTagCloud(which);
+}
+
+/* ---------- 検索 ---------- */
+function renderSearch(){
+  renderTagCloud('search');
+  $('sortSelect').value=session.sort;
+  $('levelSelect').value=session.level;
+
+  let list=visibleWorks();
+  if(session.filterTag)list=list.filter(w=>w.tags.includes(session.filterTag));
+  if(session.level)list=list.filter(w=>w.level===session.level);
+  if(session.keyword){
+    const q=session.keyword.toLowerCase();
+    list=list.filter(w=>w.title.toLowerCase().includes(q)||w.authorNickname.toLowerCase().includes(q));
+  }
+  const sorters={
+    new:(a,b)=>b.createdAt.localeCompare(a.createdAt),
+    popular:(a,b)=>b.likeCount-a.likeCount,
+    played:(a,b)=>b.playCount-a.playCount,
+    trending:(a,b)=>(b.weekPlays||0)-(a.weekPlays||0),
+  };
+  list.sort(sorters[session.sort]);
+  $('resultCount').textContent=`${list.length} 件`;
+  $('searchGrid').innerHTML=list.map(w=>cardHtml(w)).join('');
+  $('searchEmpty').style.display=list.length?'none':'block';
+}
+function toggleSearchTag(t){session.filterTag=session.filterTag===t?null:t;renderSearch();}
+$('sortSelect').addEventListener('change',e=>{session.sort=e.target.value;renderSearch();});
+$('levelSelect').addEventListener('change',e=>{session.level=e.target.value;renderSearch();});
+// 新しいメイン検索バーのイベントハンドラ
+$('mainSearchInput').addEventListener('input', e => {
+  session.keyword = e.target.value.trim();
+  if (!$('view-search').classList.contains('active')) {
+    nav('search');
+  } else {
+    renderSearch();
+  }
+});
+$('mainSearchBtn').addEventListener('click', () => {
+  const val = $('mainSearchInput').value.trim();
+  session.keyword = val;
+  if (!$('view-search').classList.contains('active')) {
+    nav('search');
+  } else {
+    renderSearch();
+  }
+});
+
+
+
+/* ---------- 作品詳細 ---------- */
+/* AIコメント(承認/気づき/次のステップ)― デモは定型生成。本番はGeminiが作品を解析 */
+function aiComment(w){
+  const t=w.tags[0];
+  const praise={
+    'ゲーム・シミュレーター':'遊ぶ人のことを考えた操作になっていて、テンポも良好です',
+    '実用ツール・ユーティリティ':'「誰かの役に立つ」発想が良く、画面も整理されています',
+    '探究学習・リサーチ':'調べたことが自分の言葉で整理されていて、内容が伝わります',
+    '推し・紹介':'好きなものの魅力が伝わる構成です。読者に伝わりやすくまとまっています',
+  }[t]||'色づかいとレイアウトが見やすく、丁寧に作られています';
+  const tip={
+    'ゲーム・シミュレーター':'スコア表示やランキングをつけると、もっと遊びたくなるかも',
+    '実用ツール・ユーティリティ':'つかい方の説明を1行そえると、はじめての人にもやさしくなるよ',
+    '探究学習・リサーチ':'出典(どこで調べたか)を書くと、より信頼されるページになります',
+  }[t]||'見出しを少し大きくすると、さらに読みやすくなります';
+  const next={
+    'ゲーム・シミュレーター':'このゲームの「攻略ページ」や「キャラ紹介ページ」も作ってみない?ミッションにも似たお題があるよ',
+    '実用ツール・ユーティリティ':'この道具の「つかい方紹介ページ」を文章で書いてみない?',
+  }[t]||'この作品の「紹介文」を文書作成ページで書いてみると、もっと多くの人に届くよ';
+  return {praise,tip,next};
+}
+
+function openWork(id){
+  currentWorkId=id;
+  const w=works.find(x=>x.id===id);if(!w)return;
+  const t0=(Array.isArray(w.tags)&&w.tags.length)?w.tags[0]:'その他';
+  const emoji=TAG_EMOJI[t0]||'📦';
+  const [c1,c2]=TAG_GRAD[t0]||TAG_GRAD['その他'];
+  const r=w.reactionCounts, myReacts=new Set(session.reacted[id]||[]), liked=session.liked.has(id);
+  const ac=aiComment(w);
+  const f=FAM_TYPES[session.famType];
+
+  $('detailRoot').innerHTML=`
+    <div>
+      <div class="play-area">
+        ${(() => {
+          const bgStyle = getBgStyleString(w);
+          const coverStyle = w.thumbnail
+            ? `background-image:url('${w.thumbnail}'); background-size:cover; background-position:center;`
+            : `background:linear-gradient(135deg,${c1},${c2});`;
+          const coverInner = w.thumbnail
+            ? `<div style="text-align:center;"><button class="play-btn" style="box-shadow:0 4px 14px rgba(0,0,0,.4);">▶ あそぶ</button></div>`
+            : `<div style="text-align:center;color:#fff;"><div class="big-emoji">${emoji}</div><button class="play-btn">▶ あそぶ</button></div>`;
+          return `<div class="play-stage" id="playStage" style="${bgStyle}">
+            <div class="play-cover" style="${coverStyle}" onclick="playWork('${id}')">
+              ${w.thumbnail ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,.18);"></div>' : ''}
+              <div style="position:relative;z-index:1;">${coverInner}</div>
+            </div>
+          </div>`;
+        })()}
+        <div class="play-foot">
+          <span>iframe sandbox で安全に実行されます</span>
+          <button class="more" onclick="fullPlay('${id}')"><svg class="ic"><use href="#i-fullscreen"></use></svg> 全画面</button>
+        </div>
+      </div>
+      <div class="reactions">
+        ${[['fun','すごい！',r.fun,'#i-star'],['wow','勉強に使える',r.wow,'#i-book'],['again','みんなに教えたい',r.again,'#i-share']].map(([k,l,v,icon])=>
+          `<button class="react-btn ${myReacts.has(k)?'done':''}" id="react-${k}" onclick="react('${id}','${k}')"><svg class="ic" style="margin-right:4px;"><use href="${icon}"></use></svg> ${l} <b>${num(v)}</b></button>`).join('')}
+      </div>
+      <div class="ai-comment">
+        <div class="ac-hd"><span class="f">${famImg(session.famType, 22)}</span>AIからのアドバイス</div>
+        <div class="ac-row"><span class="k a">承認</span><span>${esc(ac.praise)}${f.suffix==='にゃ'?'にゃ':''}</span></div>
+        <div class="ac-row"><span class="k b">気づき</span><span>${esc(ac.tip)}</span></div>
+        <div class="ac-row"><span class="k c">次の一歩</span><span>${esc(ac.next)}</span></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="side-card">
+        <h1 class="work-title">${esc(w.title)}</h1>
+        <div class="work-by">
+          <span class="avatar" style="background:${avatarColor(w.authorNickname)}">${esc(w.authorNickname[0])}</span>
+          <span><span class="nm">${esc(w.authorNickname)}</span> <span class="lvl ${LVL_CLASS[w.level]||'j'}" style="position:static;display:inline-grid;width:20px;height:20px;font-size:9px;vertical-align:middle;">${w.level||'中'}</span><br/>
+          <span class="author-link" onclick="location.href='author.html?uid=${w.authorUid}'">作者ページ →</span></span>
+        </div>
+        <div class="work-stats-row">
+          <div class="ws"><svg class="ic" style="width:1.2em;height:1.2em;margin-right:4px;color:var(--muted);"><use href="#i-play"></use></svg><div class="v" id="dPlay">${num(w.playCount)}</div><div class="k">プレイ回数</div></div>
+          <div class="ws"><svg class="ic" style="width:1.2em;height:1.2em;margin-right:4px;color:var(--muted);"><use href="#i-heart"></use></svg><div class="v" id="dLike">${num(w.likeCount)}</div><div class="k">いいね</div></div>
+        </div>
+        <button class="like-btn ${liked?'liked':''}" id="likeBtn" onclick="toggleLike('${id}')">${liked?'♥ いいねした!':'♡ いいねする'}</button>
+        <div class="card-tags" style="margin-top:13px;">${w.tags.map(t=>`<span class="mini-tag" style="cursor:pointer" onclick="filterByTag('${esc(t)}')">#${esc(t)}</span>`).join('')}</div>
+      </div>
+      <div class="side-card">
+        <label style="font-size:12px;color:var(--muted);font-weight:700;">📤 この作品をひろめる</label>
+        <div class="share-grid">
+          <button class="share-btn" onclick="shareX('${id}')"><span class="si">𝕏</span>ポスト</button>
+          <button class="share-btn" onclick="shareLine('${id}')"><span class="si">💬</span>LINE</button>
+          <button class="share-btn" onclick="copyUrl('${id}')"><span class="si">🔗</span>URLコピー</button>
+          <button class="share-btn" onclick="toggleQr('${id}')"><span class="si">▦</span>QRコード</button>
+        </div>
+        <div class="qr-wrap" id="qrWrap"><div id="qrBox"></div></div>
+      </div>
+      <div class="side-card">
+        <div class="meta-list">📅 ${fmtDate(w.createdAt)} 作成</div>
+      </div>
+    </div>`;
+
+  const related=visibleWorks().filter(x=>x.id!==id&&x.tags.some(t=>w.tags.includes(t))).slice(0,4);
+  $('relatedGrid').innerHTML=related.length?related.map(x=>cardHtml(x)).join(''):'<div class="empty" style="grid-column:1/-1">同じタグの作品はまだないみたい。</div>';
+  nav('detail');
+}
+
+function getBgStyleString(w) {
+  if (w.bgType === 'image' && w.bgImage && w.bgImage !== 'default') {
+    const bgId = w.bgImage.replace('.png', '');
+    
+    // 1. dbShopItemsから動的bgStyleをロード
+    const dbItem = (dbShopItems || []).find(item => item.id === bgId);
+    if (dbItem && dbItem.bgStyle) {
+      if (bgId === 'bg_rainbow') {
+        return `background: ${dbItem.bgStyle}; background-size: 400% 400%; animation: gradientBG 15s ease infinite;`;
+      }
+      return `background: ${dbItem.bgStyle}; background-size: cover; background-position: center;`;
+    }
+
+    // 2. ローカルフォールバック
+    if (bgId === 'bg_rainbow') {
+      return `background: linear-gradient(45deg, #ff007f, #ff7f00, #fffe00, #00ff7f, #007fff, #7f00ff, #ff007f); background-size: 400% 400%; animation: gradientBG 15s ease infinite;`;
+    } else if (bgId === 'bg_space') {
+      return `background: radial-gradient(circle, #1b1b3a 0%, #0d0d1e 100%);`;
+    } else if (bgId === 'bg_ocean') {
+      return `background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);`;
+    } else if (bgId === 'bg_forest') {
+      return `background: linear-gradient(180deg, #34d399 0%, #059669 100%);`;
+    } else if (bgId === 'bg_sunset') {
+      return `background: linear-gradient(180deg, #fb923c 0%, #c2410c 100%);`;
+    } else if (bgId === 'bg_cherry') {
+      return `background: linear-gradient(180deg, #fbcfe8 0%, #f472b6 100%);`;
+    }
+    return `background-image: url('img/${bgId}.png'); background-size: cover; background-position: center;`;
+  }
+  if (w.bgColor) {
+    return `background-color: ${w.bgColor}; background-image: none;`;
+  }
+  // bgColorが未設定の場合はデフォルト色（クリーム）を使用
+  return `background-color: #FDFBF7; background-image: none;`;
+}
+
+function playWork(id){
+  const w=works.find(x=>x.id===id);if(!w)return;
+  const stage=$('playStage');
+  const bgStyle = getBgStyleString(w);
+  stage.setAttribute('style', bgStyle);
+  stage.innerHTML='';
+  const iframe=document.createElement('iframe');
+  iframe.setAttribute('sandbox','allow-scripts');
+  iframe.setAttribute('allowfullscreen','');
+  iframe.style.background = 'transparent';
+  const t0=(Array.isArray(w.tags)&&w.tags.length)?w.tags[0]:'その他';
+  iframe.srcdoc=w.html||demoAppHtml(w.title,TAG_EMOJI[t0]||'📦');
+  stage.appendChild(iframe);
+
+  const last=session.played[id]||0;
+  if(Date.now()-last>10*60*1000){  // 質評価デモ: 同一セッション10分1回
+    session.played[id]=Date.now();
+    w.playCount++;
+    DB.set('works', works);
+    DB.set('played_works', session.played);
+    const el=$('dPlay');if(el)el.textContent=num(w.playCount);
+    apiPost(`/api/works/${id}/play`);
+    // 本番: 作者に減衰付き両付与(滞在時間・行動・SNS流入で重み付け)。デモでは使い魔が説明
+    famSay(`作者の${esc(w.authorNickname)}さんに閲覧両が付与されました(本番では滞在時間や行動で質を評価して付与)。`);
+  }
+}
+function fullPlay(id){
+  playWork(id); // まずアプリを読み込む（再生カバーをiframeに差し替え）
+  const stage=$('playStage');
+  if(stage && stage.requestFullscreen){
+    stage.requestFullscreen().catch(()=>openWorkBlob(id));
+  } else if(stage && stage.webkitRequestFullscreen){
+    try{ stage.webkitRequestFullscreen(); }catch(e){ openWorkBlob(id); }
+  } else {
+    openWorkBlob(id); // 全画面APIが使えない端末は別タブで開く
+  }
+}
+function openWorkBlob(id){
+  const w=works.find(x=>x.id===id);
+  if(!w||!w.html){ toast('あそべません','この作品はデータがないため全画面で開けませんでした。', true); return; }
+  const blob=new Blob([w.html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+
+function toggleLike(id){
+  const w=works.find(x=>x.id===id);if(!w)return;
+  const btn=$('likeBtn');
+  if(session.liked.has(id)){
+    session.liked.delete(id);w.likeCount--;
+    btn.classList.remove('liked');btn.textContent='♡ いいねする';
+    apiPost(`/api/works/${id}/like`,'DELETE');
+    
+    // favorites からも削除する
+    let favs = DB.get('favorites', []);
+    favs = favs.filter(f => f.id !== w.id);
+    DB.set('favorites', favs);
+  }else{
+    session.liked.add(id);w.likeCount++;
+    btn.classList.add('liked');btn.textContent='♥ いいねした!';
+    apiPost(`/api/works/${id}/like`,'PUT');
+    famSay(`${esc(w.authorNickname)}さんのツカイマに「いいね」を届けてきたよ!`);
+    
+    // 実績解除チェック
+    if (window.AchievementBridge) {
+      window.AchievementBridge.unlockAchievement('first_like');
+    }
+    
+    // favorites にも追加する
+    const favs = DB.get('favorites', []);
+    if (!favs.some(f => f.id === w.id)) {
+      favs.push({
+        id: w.id,
+        title: w.title,
+        author: w.authorNickname,
+        tag: w.tags[0] || 'その他'
+      });
+      DB.set('favorites', favs);
+    }
+  }
+  DB.set('works', works);
+  DB.set('liked_works', [...session.liked]);
+  $('dLike').textContent=num(w.likeCount);
+}
+
+function react(id,type){
+  const w=works.find(x=>x.id===id);if(!w)return;
+  session.reacted[id]=session.reacted[id]||[];
+  const reactSet = new Set(session.reacted[id]);
+  if(reactSet.has(type))return;
+  reactSet.add(type);
+  session.reacted[id] = [...reactSet];
+  w.reactionCounts[type]++;
+  DB.set('works', works);
+  DB.set('reacted_works', session.reacted);
+  const btn=$('react-'+type);
+  btn.classList.add('done');
+  btn.querySelector('b').textContent=num(w.reactionCounts[type]);
+  apiPost(`/api/works/${id}/react`,'POST',{type});
+}
+
+/* シェア */
+function workUrl(id){return location.origin+'/?work='+id;}
+function shareX(id){
+  const w=works.find(x=>x.id===id);
+  const text=`作ったアプリが公開されたよ!「${w.title}」 #じさくや`;
+  window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(workUrl(id))}`,'_blank');
+}
+function shareLine(id){
+  const w=works.find(x=>x.id===id);
+  const text=`作ったアプリが公開されたよ!「${w.title}」\n${workUrl(id)}`;
+  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`,'_blank');
+}
+async function copyUrl(id){
+  try{await navigator.clipboard.writeText(workUrl(id));toast('コピーしたよ 🔗','URLをともだちに送ってひろめよう!');}
+  catch{toast('コピーできませんでした','手動でURLをコピーしてね: '+workUrl(id));}
+}
+function toggleQr(id){
+  const wrap=$('qrWrap');const show=!wrap.classList.contains('show');
+  wrap.classList.toggle('show',show);
+  if(show){$('qrBox').innerHTML='';new QRCode($('qrBox'),{text:workUrl(id),width:128,height:128,correctLevel:QRCode.CorrectLevel.M});}
+}
+
+/* ---------- API接続レイヤ(本番接続ポイント) ---------- */
+async function apiPost(path,method='POST',body){
+  try{
+    const res=await fetch(path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+    if(!res.ok) console.error(`apiPost failed: ${res.status} ${res.statusText} on ${path}`);
+  }catch(e){
+    console.error(`apiPost error on ${path}:`, e);
+  }
+}
+async function tryLoadFromApi(){
+  try{
+    const res=await fetch('/api/works?limit=100');
+    if(!res.ok)throw 0;
+    const data=await res.json();
+    if(Array.isArray(data?.works)&&data.works.length){
+      works=data.works.map(w=>({reactionCounts:{fun:0,wow:0,again:0},tags:['その他'],level:'中',playCount:0,likeCount:0,weekPlays:0,...w}));
+      renderTop();
+    }
+  }catch(e){}
+}
+
+/* ---------- 作品の受け取り(corder.html連携) ---------- */
+function normalizeIncoming(w){
+  return {
+    id:w.id||'w'+Date.now(),
+    title:w.title||'無題の作品',
+    authorNickname:w.authorNickname||w.author||'ななしさん',
+    authorUid:w.authorUid||null,
+    level:w.level||'中',
+    tags:(w.tags&&w.tags.length)?w.tags:['その他'],
+    playCount:w.playCount||0, likeCount:w.likeCount||0,
+    reactionCounts:w.reactionCounts||{fun:0,wow:0,again:0},
+    createdAt:w.createdAt||new Date().toISOString(),
+    schoolName:w.schoolName||'', weekPlays:w.weekPlays||0,
+    thumbnail:w.thumbnail||null,
+    html:w.html||null,
+  };
+}
+async function loadFirestoreWorks() {
+  if (!window.FirebaseAuthBridge?.isConfigured) return;
+  try {
+    const fsWorks = await window.FirebaseAuthBridge.getPublicWorks(50);
+    if (!fsWorks || fsWorks.length === 0) return;
+    const existingIds = new Set(works.map(w => w.id));
+    let changed = false;
+    for (const w of fsWorks) {
+      if (w.visibility === 'private' || w.visibility === 'school') continue;
+      if (existingIds.has(w.id)) {
+        // 既存エントリのカウント・サムネイルをFirestoreの値で更新
+        const ex = works.find(x => x.id === w.id);
+        if (ex) {
+          ex.playCount = w.playCount || ex.playCount;
+          ex.likeCount = w.likeCount || ex.likeCount;
+          if (w.reactionCounts) {
+            const oldFun = ex.reactionCounts?.fun || 0;
+            const oldWow = ex.reactionCounts?.wow || 0;
+            const oldAgain = ex.reactionCounts?.again || 0;
+            const newFun = w.reactionCounts.fun || 0;
+            const newWow = w.reactionCounts.wow || 0;
+            const newAgain = w.reactionCounts.again || 0;
+            if (oldFun !== newFun || oldWow !== newWow || oldAgain !== newAgain) {
+              ex.reactionCounts = { fun: newFun, wow: newWow, again: newAgain };
+              changed = true;
+            }
+          }
+          if (!ex.thumbnail && w.thumbnail) { ex.thumbnail = w.thumbnail; changed = true; }
+        }
+        continue;
+      }
+      works.push(normalizeIncoming(w));
+      existingIds.add(w.id);
+      changed = true;
+    }
+    if (changed) {
+      works.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      DB.set('works', works);
+      renderTop();
+    }
+  } catch (e) {
+    console.warn('loadFirestoreWorks failed:', e);
+  }
+}
+
+window.OtasukeGallery={
+  addWork(w){
+    const nw=normalizeIncoming(w);
+    const idx = works.findIndex(x => x.id === nw.id);
+    if (idx >= 0) {
+      works[idx] = { ...works[idx], ...nw };
+    } else {
+      works.unshift(nw);
+    }
+    DB.set('works', works);
+    renderTop();
+    return nw.id;
+  },
+  getWorks(){return works;},
+};
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='vibe:add-work'&&e.data.work){
+    const id=window.OtasukeGallery.addWork(e.data.work);
+    famSay(`新しい作品が届いたよ!ギャラリーに並べておいたからね。`);
+  }
+});
+
+/* corder.html からのURLパラメータ受け取り
+   index.html?from=create&title=..&author=..&html=(base64) */
+function ingestFromUrl(){
+  const p=new URLSearchParams(location.search);
+  if(p.get('from')!=='create')return false;
+  let html=null;
+  try{
+    const b64=p.get('html');
+    if(b64)html=decodeURIComponent(escape(atob(b64)));
+  }catch(e){}
+  const tagsParam=(p.get('tags')||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const id=window.OtasukeGallery.addWork({
+    id:p.get('id')||undefined,
+    title:p.get('title')||'無題の作品',
+    authorNickname:p.get('author')||'ななしさん',
+    authorUid:p.get('authorUid')||null,
+    tags:tagsParam.length?tagsParam:undefined,
+    html,
+  });
+  history.replaceState(null,'',location.pathname); // パラメータを消してリロード二重登録を防止
+  setTimeout(()=>{
+    openWork(id);
+    const f=FAM_TYPES[session.famType];
+    famSay(`公開が完了しました。AIコメントも届いています。SNSやQRコードで共有できます。`);
+  },300);
+  return true;
+}
+
+async function handleWorkRouteFromQuery() {
+  if (isWorkRouteProcessed) return;
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('work')?.trim();
+  if (!id) return;
+
+  // 1. ローカル配列から検索
+  const localWork = works.find(w => w.id === id);
+  if (localWork) {
+    isWorkRouteProcessed = true;
+    openWork(id);
+    history.replaceState(null, '', location.origin + location.pathname);
+    return;
+  }
+
+  // 2. ローカルになければ Firestore から直接取得
+  if (!window.FirebaseAuthBridge?.isConfigured) {
+    console.log("Waiting for FirebaseAuthBridge configuration for routing...");
+    return;
+  }
+
+  isWorkRouteProcessed = true;
+  try {
+    const work = await window.FirebaseAuthBridge.getFirestoreDoc('works', id);
+    if (work && work.html) {
+      const nw = normalizeIncoming(work);
+      works.push(nw);
+      DB.set('works', works);
+      renderTop();
+      openWork(id);
+    } else {
+      toast('作品が見つかりません 🛑', 'お探しの作品が見つかりませんでした。', true);
+    }
+  } catch (e) {
+    console.warn('Failed to fetch work from Firestore for routing:', e);
+    toast('作品が見つかりません 🛑', 'データの読み込みに失敗しました。', true);
+  } finally {
+    history.replaceState(null, '', location.origin + location.pathname);
+  }
+}
+
+/* ---------- 初期化 ---------- */
+updateFamBodyEmoji();
+$('coinVal').textContent=num(session.coins);
+updateHeaderAuth();
+loadSystemSettingsAndQuests();
+if(!ingestFromUrl()){
+  handleWorkRouteFromQuery();
+  setTimeout(()=>{
+    const f = FAM_TYPES[session.famType] || FAM_TYPES.tora;
+    famSay(`じさくやへようこそ。${f.name}が案内します。作品を見たり、ミッションで両を獲得したりできます。`,
+      [{label:'📮 依頼を見る',fn:()=>{nav('quest');}},{label:'🎁 おすすめ作品',fn:()=>famPick('recommend')}]);
+  },900);
+}
+tryLoadFromApi();
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.fam-menu')&&!e.target.closest('.fam-body'))closeFamMenu();
+});
+if ($('famBubble')) {
+  $('famBubble').addEventListener('click', () => {
+    $('famBubble').classList.remove('show');
+    clearTimeout(famTimer);
+  });
+}
+
+window.addEventListener('vibecoding-achievement-unlocked', (e) => {
+  if (e.detail && typeof e.detail.coins !== 'undefined') {
+    session.coins = e.detail.coins;
+    if (user) {
+      user.coins = e.detail.coins;
+      DB.set('user', user);
+    }
+    const coinValEl = $('coinVal');
+    if (coinValEl) {
+      coinValEl.textContent = num(e.detail.coins);
+      const chip = $('sidebarCoin');
+      if (chip) {
+        chip.classList.remove('bump');
+        void chip.offsetWidth;
+        chip.classList.add('bump');
+      }
+    }
+  }
+});
+
+window.addEventListener('vibecoding-achievement-modal-closed', () => {
+  refreshCurrentUserState();
+});
+</script>
+<script src="sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

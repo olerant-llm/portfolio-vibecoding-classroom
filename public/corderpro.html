@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>じさくや コード Pro | 制作ページ | じさくや</title>
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  /* corderpro.html — Pro版コーダー(複数ファイルのミニプロジェクト生成・修正・ZIP保存)
+     配色・線・影の流儀は corder.html / styles/base.css の江戸伝統色を踏襲。 */
+  :root{
+    --code-bg:#0d1426;
+    --pop-blue-soft:#E7ECE3;
+    --pop-mint-soft:#F3EAD3;
+    --pop-pink-soft:#F1DDD2;
+    --tree-w:220px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family: var(--font-body);
+    color: var(--text);
+    background:
+      radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+      radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+      var(--bg);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 16px;border-bottom:var(--stroke);
+    background:var(--panel);flex:none;
+  }
+  .logo{
+    display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:.02em;
+    font-family: var(--font-display);cursor:pointer;
+  }
+  .logo-mark{width:36px;height:36px;border:var(--stroke);object-fit:cover;display:block;background:var(--panel)}
+  .topbar .subttl{color:var(--muted);font-size:12px;font-weight:800}
+  .hd-spacer{flex:1}
+  .pro-badge{
+    display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:12px;font-weight:900;
+    background:var(--warn);border:var(--stroke);color:var(--text);letter-spacing:.05em;
+  }
+
+  /* ---------- Buttons ---------- */
+  button{
+    font-family: var(--font-body);border:var(--stroke);border-radius:0;
+    padding:9px 16px;font-weight:800;font-size:13.5px;cursor:pointer;color:var(--text);
+    background:var(--panel);box-shadow:none;transition:transform .1s ease, background-color .12s ease;
+  }
+  button:active{transform:translate(1px,1px)}
+  button:disabled{background:#E2E8F0;color:var(--muted);border-color:#cbd5e1;cursor:not-allowed;pointer-events:none;transform:translate(2px,2px)}
+  .primary{background:var(--accent);color:#fff}
+  .accent2{background:var(--pink);color:#fff}
+  .ghost{background:var(--panel)}
+  .small-btn{padding:5px 10px;font-size:11.5px}
+  .icon-btn{width:34px;height:34px;padding:0;display:grid;place-items:center;font-size:15px}
+
+  /* ---------- Main 3-pane layout ---------- */
+  .builder{
+    flex:1;min-height:0;display:grid;
+    grid-template-columns:var(--tree-w) minmax(0,1.05fr) minmax(0,1fr);
+    gap:0;overflow:hidden;
+  }
+  .pane{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border-right:var(--stroke)}
+  .pane:last-child{border-right:none}
+  .pane-hd{
+    padding:9px 12px;border-bottom:var(--stroke);background:var(--panel);
+    display:flex;align-items:center;gap:8px;flex:none;min-height:44px;
+  }
+  .pane-hd h2{margin:0;font-size:13.5px;font-family:var(--font-display);display:flex;align-items:center;gap:6px}
+  .pane-hd .sp{flex:1}
+  .pane-bd{flex:1;min-height:0;overflow:auto;position:relative}
+
+  /* ---------- Tree ---------- */
+  .tree-pane{background:var(--panel)}
+  .tree{padding:6px 4px;font-size:13px;user-select:none}
+  .tree-folder{padding:5px 8px;font-weight:900;color:var(--muted);font-size:11.5px;letter-spacing:.03em;margin-top:4px}
+  .tree-item{
+    display:flex;align-items:center;gap:6px;padding:5px 8px 5px 18px;cursor:pointer;
+    border:1.5px solid transparent;line-height:1.3;word-break:break-all;
+  }
+  .tree-item:hover{background:var(--pop-blue-soft)}
+  .tree-item.active{background:var(--pop-blue-soft);border-color:var(--line);font-weight:800}
+  .tree-item .fico{flex:none;font-size:13px;opacity:.8}
+  .tree-item .fname{flex:1;min-width:0}
+  .tree-item .locktag{font-size:9px;color:var(--muted)}
+  .tree-toolbar{display:flex;gap:4px;padding:6px 8px;border-bottom:var(--stroke);flex-wrap:wrap}
+  .tree-toolbar button{padding:5px 8px;font-size:11px}
+
+  /* ---------- Code pane ---------- */
+  .code-view{
+    margin:0;padding:0;height:100%;font-size:12.5px;line-height:1.6;
+    font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    background:var(--code-bg);color:#dce6ff;overflow:auto;
+  }
+  .code-view table{border-collapse:collapse;width:100%}
+  .code-view td.ln{
+    text-align:right;color:#54678f;padding:0 10px 0 12px;user-select:none;
+    border-right:1px solid #1e2b47;white-space:nowrap;vertical-align:top;width:1%;
+  }
+  .code-view td.src{padding:0 14px;white-space:pre;vertical-align:top}
+  .code-editor{
+    width:100%;height:100%;border:none;resize:none;padding:12px 14px;
+    background:var(--code-bg);color:#dce6ff;font-size:12.5px;line-height:1.6;
+    font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;outline:none;
+  }
+  .code-empty,.tree-empty{
+    padding:24px 18px;color:var(--muted);font-size:12.5px;line-height:1.9;font-weight:700;text-align:center;
+  }
+
+  /* ---------- Preview ---------- */
+  .preview-pane .pane-bd{background:#fff}
+  .preview-frame{width:100%;height:100%;border:none;display:block;background:#fff}
+  .preview-placeholder{
+    height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:30px;color:var(--text);font-weight:800;line-height:1.9;
+    background:var(--pop-mint-soft);
+  }
+  .preview-placeholder img{width:88px;height:88px;object-fit:contain;opacity:.9}
+  .preview-placeholder small{color:var(--muted);font-weight:700;font-size:12.5px}
+
+  /* ---------- Loading overlay ---------- */
+  .code-loading-overlay{
+    display:none;position:absolute;inset:0;background:rgba(255,252,245,.9);z-index:100;
+    flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(2px);
+  }
+  .code-loading-overlay.show{display:flex}
+  .big-spinner{
+    width:46px;height:46px;border-radius:50%;border:4px solid rgba(15,23,42,.1);
+    border-top-color:var(--accent);border-right-color:var(--accent2);animation:pfspin .75s linear infinite;
+  }
+  @keyframes pfspin{to{transform:rotate(360deg)}}
+  .loading-label{font-size:13px;font-weight:800;color:var(--text);letter-spacing:.04em}
+
+  /* ---------- Prompt footer ---------- */
+  .prompt-footer{flex:none;border-top:var(--stroke);background:var(--panel);padding:10px 14px}
+  .pf-inner{display:flex;gap:8px;align-items:stretch}
+  .pf-icon-btns{display:flex;gap:6px;flex:none;align-items:stretch}
+  .pf-icon-btn{
+    width:40px;height:40px;flex:none;padding:0;display:grid;place-items:center;font-size:18px;position:relative;
+    background:var(--panel);border:var(--stroke);
+  }
+  .pf-inner textarea{
+    flex:1;min-height:40px;max-height:40px;height:40px;resize:none;padding:9px 12px;line-height:1.4;
+    border:var(--stroke);background:var(--panel);color:var(--text);font:inherit;font-weight:700;outline:none;
+  }
+  .pf-inner textarea:focus{background:var(--pop-blue-soft)}
+  .pf-actions{display:flex;gap:6px;flex:none;align-items:stretch}
+  .pf-actions button{min-width:78px}
+  .pf-spinner{width:40px;height:40px;flex:none;display:none;place-items:center}
+  .pf-spinner.show{display:grid}
+  .pf-spinner::before{
+    content:"";width:18px;height:18px;border-radius:50%;
+    border:2px solid rgba(15,23,42,.18);border-top-color:var(--accent);border-right-color:var(--accent2);
+    animation:pfspin .75s linear infinite;
+  }
+
+  /* ---------- Image picker ---------- */
+  .imgbox{position:relative}
+  .imgbox-hd .sel-count{
+    position:absolute;top:-4px;right:-4px;font-size:10px;font-weight:800;color:#fff;
+    background:var(--pink);border-radius:999px;min-width:16px;height:16px;padding:0 3px;
+    display:none;place-items:center;line-height:16px;
+  }
+  .imgbox-hd .sel-count.show{display:grid}
+  .imgbox-bd{
+    display:none;position:absolute;bottom:calc(100% + 8px);left:0;z-index:30;width:280px;padding:14px 16px;
+    background:var(--pop-mint-soft);border:var(--stroke);
+  }
+  .imgbox.open .imgbox-bd{display:block}
+  .imgbox-bd label{display:block;margin:0 0 10px;color:var(--text);font-weight:800;font-size:13px}
+  .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding:2px}
+  .img-thumb{position:relative;aspect-ratio:1;overflow:hidden;cursor:pointer;border:var(--stroke);background:#fff}
+  .img-thumb img{width:100%;height:100%;object-fit:contain;display:block;
+    background:repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50%/14px 14px}
+  .img-thumb.selected{border-color:var(--line)}
+  .img-thumb.selected::after{
+    content:"✓";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--good);color:#fff;font-size:11px;font-weight:800;
+    display:grid;place-items:center;
+  }
+  .img-actions{display:flex;gap:8px;margin-top:10px}
+  .img-actions button{font-size:12px;padding:7px 12px}
+  .img-note{font-size:11.5px;color:var(--text);line-height:1.6;margin-top:10px;font-weight:700}
+  .fb-close{position:absolute;top:8px;right:8px;width:26px;height:26px;padding:0;font-size:12px;
+    display:grid;place-items:center;background:var(--bg);border:1.5px solid var(--line)}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;right:24px;bottom:24px;min-width:280px;max-width:420px;z-index:200;
+    padding:16px 20px;background:var(--panel);border:var(--stroke);
+    transform:translateY(16px);opacity:0;pointer-events:none;
+    transition:transform .2s cubic-bezier(.175,.885,.32,1.275), opacity .2s ease;
+  }
+  .toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
+  .toast strong{font-size:14px;font-family:var(--font-display)}
+  .toast .sub{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.55;font-weight:700}
+  .toast.err{background:#FFD2D2}
+  .toast.err strong{color:var(--text)}
+
+  /* ---------- Mobile: tab switch ---------- */
+  .mobile-tabs{display:none}
+  @media (max-width:980px){
+    body{overflow:auto}
+    .builder{grid-template-columns:1fr;overflow:visible}
+    .pane{border-right:none;border-bottom:var(--stroke);min-height:52vh}
+    .mobile-tabs{
+      display:flex;flex:none;border-bottom:var(--stroke);background:var(--panel);
+    }
+    .mobile-tabs button{
+      flex:1;border:none;border-right:var(--stroke);border-radius:0;padding:11px 4px;font-size:12.5px;
+      background:var(--panel);
+    }
+    .mobile-tabs button:last-child{border-right:none}
+    .mobile-tabs button.active{background:var(--pop-blue-soft);border-bottom:3px solid var(--accent)}
+    body.m-tree .pane:not(.tree-pane),
+    body.m-code .pane:not(.code-pane),
+    body.m-preview .pane:not(.preview-pane){display:none}
+    .pane{min-height:64vh}
+    .pf-inner{flex-wrap:wrap}
+    .pf-inner textarea{order:-1;width:100%;flex-basis:100%;min-height:64px;max-height:64px;height:64px}
+    .pf-actions{flex:1}
+    .pf-actions button{flex:1}
+  }
+</style>
+</head>
+<body class="m-preview">
+
+  <!-- ===== Header ===== -->
+  <header class="topbar">
+    <div class="logo" id="homeLogo" title="ホームへ戻る">
+      <img class="logo-mark" src="img/logo_shikiai.svg" alt="じさくや" onerror="this.style.display='none'" />
+      <span>じさくや</span>
+    </div>
+    <span class="subttl">コード Pro</span>
+    <span class="pro-badge">PRO</span>
+    <div class="hd-spacer"></div>
+    <input id="projName" type="text" value="my-app" maxlength="40" aria-label="プロジェクト名"
+      style="width:150px;border:var(--stroke);background:var(--panel);color:var(--text);padding:7px 10px;font-weight:800;font-size:13px;outline:none;" />
+    <button class="accent2" id="zipBtn" type="button" title="プロジェクトをZIPで保存">⬇ ZIP保存</button>
+  </header>
+
+  <!-- ===== Mobile tab switch ===== -->
+  <div class="mobile-tabs" role="tablist">
+    <button type="button" data-mtab="tree">📁 ファイル</button>
+    <button type="button" data-mtab="code">📝 コード</button>
+    <button type="button" data-mtab="preview" class="active">▶ プレビュー</button>
+  </div>
+
+  <!-- ===== 3-pane builder ===== -->
+  <div class="builder">
+
+    <!-- Left: folder tree -->
+    <section class="pane tree-pane">
+      <div class="pane-hd"><h2>📁 ファイル</h2><span class="sp"></span><small style="color:var(--muted);font-weight:700" id="fileCount">0</small></div>
+      <div class="tree-toolbar">
+        <button class="ghost small-btn" id="newFileBtn" type="button">＋ 新規</button>
+        <button class="ghost small-btn" id="renameFileBtn" type="button">名前変更</button>
+        <button class="ghost small-btn" id="deleteFileBtn" type="button">削除</button>
+      </div>
+      <div class="pane-bd"><div class="tree" id="tree"></div></div>
+    </section>
+
+    <!-- Center: code view / editor -->
+    <section class="pane code-pane">
+      <div class="pane-hd">
+        <h2>📝 <span id="curFileName">コード</span></h2>
+        <span class="sp"></span>
+        <button class="ghost small-btn" id="editToggleBtn" type="button" disabled>✏ 編集</button>
+        <button class="primary small-btn" id="saveEditBtn" type="button" style="display:none;">保存</button>
+        <button class="ghost small-btn" id="cancelEditBtn" type="button" style="display:none;">取消</button>
+      </div>
+      <div class="pane-bd" id="codeBd">
+        <div class="code-empty" id="codeEmpty">
+          左のリストからファイルをえらぶと、ここに中身が表示されます。
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: preview -->
+    <section class="pane preview-pane">
+      <div class="pane-hd">
+        <h2>▶ プレビュー</h2>
+        <span class="sp"></span>
+        <button class="ghost icon-btn" id="reloadPreviewBtn" type="button" title="プレビューを再読み込み">⟳</button>
+      </div>
+      <div class="pane-bd" id="previewBd">
+        <div class="code-loading-overlay" id="loadingOverlay">
+          <div class="big-spinner"></div>
+          <div class="loading-label" id="loadingLabel">AIが考え中です…</div>
+        </div>
+        <div class="preview-placeholder" id="previewPlaceholder">
+          <img src="img/karakuri_1.svg" alt="" onerror="this.style.display='none'" />
+          作りたいアプリをAIに指示してみよう。
+          <small>下の入力欄に「〇〇なアプリを作って」と書いて「生成」を押すと、<br/>HTML・CSS・JSがそろったミニプロジェクトができます。</small>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Prompt footer ===== -->
+  <section class="prompt-footer">
+    <div class="pf-inner">
+      <div class="pf-icon-btns">
+        <div class="imgbox" id="imgBox" style="display:none;">
+          <div class="pf-icon-btn imgbox-hd" id="imgBoxHd" title="画像素材をえらぶ" aria-label="画像素材をえらぶ">
+            🖼<span class="sel-count" id="imgSelCount"></span>
+          </div>
+          <div class="imgbox-bd">
+            <button type="button" id="imgBoxCloseBtn" class="fb-close">✕</button>
+            <label>画像素材</label>
+            <div class="img-grid" id="imgGrid"></div>
+            <div class="img-actions">
+              <button type="button" id="imgClearBtn">えらびなおす</button>
+              <button type="button" id="imgInsertBtn">指示文に入れる</button>
+            </div>
+            <div class="img-note">画像をえらぶと、AIがサイトの画像素材を使ってアプリを作ります(外部の画像は使えません)。</div>
+          </div>
+        </div>
+      </div>
+      <textarea id="prompt" maxlength="500" placeholder="例: 天気予報を表示するアプリを作って（未入力のまま生成を押すとサンプルが入ります）"></textarea>
+      <div class="pf-spinner" id="pfSpinner"></div>
+      <div class="pf-actions">
+        <button class="primary" id="generateBtn" type="button">生成</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Toast ===== -->
+  <div class="toast" id="toast"><strong id="toastTitle">通知</strong><span class="sub" id="toastBody"></span></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ================= 状態 ================= */
+const state = {
+  project: { name: "my-app", files: [] },   // files: [{path, content}]
+  currentPath: null,      // 中央に表示中のファイル
+  editing: false,
+  busy: false,
+  promptHistory: [],      // これまでの指示文(refinePro に渡す)
+};
+
+/* ================= API エンドポイント ================= */
+const API = {
+  generate: '/api/generatePro',
+  refine:   '/api/refinePro',
+};
+
+/* ================= 外部API許可リスト(プレビューCSPの connect-src) ================= */
+const ALLOWED_API_HOSTS = [
+  "api.open-meteo.com",
+  "geocoding-api.open-meteo.com",
+  "pokeapi.co",
+  "zipcloud.ibsnet.co.jp",
+  "restcountries.com",
+  "api.dictionaryapi.dev",
+  "ja.wikipedia.org",
+];
+
+/* ================= 制限値 ================= */
+const LIMITS = { maxFiles: 20, maxBytes: 200 * 1024, maxDepth: 2 };
+const ALLOWED_EXT = ["html", "css", "js", "json", "md", "txt"];
+const PATH_RE = /^[a-zA-Z0-9_\-]+(\/[a-zA-Z0-9_\-]+)*\.(html|css|js|json|md|txt)$/;
+
+/* ================= ユーティリティ ================= */
+function byteLen(str){ return new TextEncoder().encode(str).length; }
+function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function fileExt(path){ const m = /\.([a-zA-Z0-9]+)$/.exec(path); return m ? m[1].toLowerCase() : ''; }
+
+let toastTimer;
+function showToast(title, body, isErr=false){
+  $('toastTitle').textContent = title;
+  $('toastBody').textContent = body;
+  $('toast').classList.toggle('err', isErr);
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>$('toast').classList.remove('show'), 3600);
+}
+
+/* API失敗時のエラーコード→日本語メッセージ(corder.html の流儀を踏襲) */
+function apiErrorMessage(data, fallback){
+  const map = {
+    'invalid_input': '入力内容を確認してください。',
+    'safety_violation': '安全でないコードが含まれていたため作成できませんでした。指示を変えて試してください。',
+    'disallowed_api': 'このアプリでは使えない外部サービスが指定されました。使えるのは天気・郵便番号・辞書などの一部だけです。',
+    'too_many_files': 'ファイルが多すぎます。もう少しシンプルな指示にしてください。',
+    'rate_limited': '少し時間をおいてからもう一度試してください。',
+    'server_error': 'サーバー側でエラーが発生しました。もう一度試してください。',
+  };
+  if (data && data.errorCode && map[data.errorCode]) return map[data.errorCode];
+  return (data && data.message) || fallback;
+}
+
+/* ================= バリデーション(作成・リネーム・AI受入れ共通) ================= */
+// 戻り値: エラーメッセージ(問題なければ null)
+function validatePath(path, { ignorePath = null } = {}){
+  if (typeof path !== 'string' || !path) return 'ファイル名が空です。';
+  if (path.length > 200) return 'ファイル名が長すぎます。';
+  if (!PATH_RE.test(path)) {
+    return '使えるのは英数字・「_」「-」と / だけ、拡張子は .html .css .js .json .md .txt のみです。';
+  }
+  if (!ALLOWED_EXT.includes(fileExt(path))) {
+    return '拡張子は .html .css .js .json .md .txt のみ使えます。';
+  }
+  // 深さ(スラッシュ区切りの階層数)。2階層 = フォルダ1つまで(例: css/style.css)
+  const depth = path.split('/').length;
+  if (depth > LIMITS.maxDepth) return 'フォルダは1階層まで(例: css/style.css)にしてください。';
+  // 重複チェック
+  const dup = state.project.files.some(f => f.path === path && f.path !== ignorePath);
+  if (dup) return '同じ名前のファイルがすでにあります。';
+  return null;
+}
+// 1ファイルぶんの受入れ検証(内容サイズ含む)
+function validateFile(path, content, opts){
+  const pe = validatePath(path, opts);
+  if (pe) return pe;
+  if (typeof content !== 'string') return 'ファイルの中身が不正です。';
+  if (byteLen(content) > LIMITS.maxBytes) return `「${path}」が大きすぎます(1ファイル200KBまで)。`;
+  return null;
+}
+
+/* ================= ツリー描画 ================= */
+function isProtected(path){ return path === 'index.html'; }
+
+function renderTree(){
+  const tree = $('tree');
+  const files = state.project.files;
+  $('fileCount').textContent = files.length;
+  if (!files.length){
+    tree.innerHTML = '<div class="tree-empty">まだファイルがありません。<br/>下でAIに指示して生成するか、<br/>「＋ 新規」で作れます。</div>';
+    return;
+  }
+  // フォルダ単位にまとめる(ルート直下 と フォルダ)
+  const groups = new Map(); // folder名('' = ルート) -> [file...]
+  files.slice().sort((a,b)=>a.path.localeCompare(b.path)).forEach(f=>{
+    const slash = f.path.indexOf('/');
+    const folder = slash === -1 ? '' : f.path.slice(0, slash);
+    if (!groups.has(folder)) groups.set(folder, []);
+    groups.get(folder).push(f);
+  });
+  // ルートを先頭に
+  const order = [...groups.keys()].sort((a,b)=> (a===''? -1 : b===''? 1 : a.localeCompare(b)));
+  let html = '';
+  const icons = { html:'📄', css:'🎨', js:'⚙️', json:'🔧', md:'📝', txt:'📃' };
+  for (const folder of order){
+    if (folder !== '') html += `<div class="tree-folder">📁 ${escapeHtml(folder)}/</div>`;
+    for (const f of groups.get(folder)){
+      const name = folder === '' ? f.path : f.path.slice(folder.length + 1);
+      const ico = icons[fileExt(f.path)] || '📄';
+      const active = f.path === state.currentPath ? ' active' : '';
+      const lock = isProtected(f.path) ? '<span class="locktag">必須</span>' : '';
+      html += `<div class="tree-item${active}" data-path="${escapeHtml(f.path)}">`
+        + `<span class="fico">${ico}</span><span class="fname">${escapeHtml(name)}</span>${lock}</div>`;
+    }
+  }
+  tree.innerHTML = html;
+  tree.querySelectorAll('.tree-item').forEach(el=>{
+    el.addEventListener('click', ()=> selectFile(el.dataset.path));
+  });
+}
+
+/* ================= 中央: コード表示 / 編集 ================= */
+function getFile(path){ return state.project.files.find(f=>f.path===path) || null; }
+
+function selectFile(path){
+  if (state.editing && !confirm('編集中の内容は保存されていません。ほかのファイルに移動しますか？')) return;
+  state.editing = false;
+  state.currentPath = path;
+  renderTree();
+  renderCode();
+}
+
+function renderCode(){
+  const bd = $('codeBd');
+  const f = getFile(state.currentPath);
+  $('curFileName').textContent = f ? f.path : 'コード';
+  $('editToggleBtn').disabled = !f;
+  $('editToggleBtn').style.display = '';
+  $('saveEditBtn').style.display = 'none';
+  $('cancelEditBtn').style.display = 'none';
+  if (!f){
+    bd.innerHTML = '<div class="code-empty" id="codeEmpty">左のリストからファイルをえらぶと、ここに中身が表示されます。</div>';
+    return;
+  }
+  if (state.editing){
+    bd.innerHTML = '';
+    const ta = document.createElement('textarea');
+    ta.className = 'code-editor';
+    ta.id = 'codeEditor';
+    ta.spellcheck = false;
+    ta.value = f.content;
+    bd.appendChild(ta);
+    ta.focus();
+    return;
+  }
+  // 行番号付きの表示
+  const lines = f.content.split('\n');
+  let rows = '';
+  for (let i=0;i<lines.length;i++){
+    rows += `<tr><td class="ln">${i+1}</td><td class="src">${escapeHtml(lines[i]) || '&nbsp;'}</td></tr>`;
+  }
+  bd.innerHTML = `<div class="code-view"><table><tbody>${rows}</tbody></table></div>`;
+}
+
+$('editToggleBtn').addEventListener('click', ()=>{
+  if (!getFile(state.currentPath)) return;
+  state.editing = true;
+  renderCode();
+  $('editToggleBtn').style.display = 'none';
+  $('saveEditBtn').style.display = '';
+  $('cancelEditBtn').style.display = '';
+});
+$('cancelEditBtn').addEventListener('click', ()=>{
+  state.editing = false;
+  renderCode();
+});
+$('saveEditBtn').addEventListener('click', ()=>{
+  const f = getFile(state.currentPath);
+  if (!f) return;
+  const ta = $('codeEditor');
+  const newContent = ta.value;
+  const err = validateFile(f.path, newContent, { ignorePath: f.path });
+  if (err){ showToast('保存できません', err, true); return; }
+  f.content = newContent;
+  state.editing = false;
+  renderCode();
+  updatePreview();
+  showToast('保存しました', `「${f.path}」を更新し、プレビューを再描画しました。`);
+});
+
+/* ================= ツリー操作: 新規 / リネーム / 削除 ================= */
+$('newFileBtn').addEventListener('click', ()=>{
+  if (state.project.files.length >= LIMITS.maxFiles){
+    showToast('作成できません', `ファイルは最大${LIMITS.maxFiles}個までです。`, true); return;
+  }
+  const path = prompt('新しいファイル名を入力してください（例: css/style.css）', '');
+  if (path === null) return;
+  const trimmed = path.trim();
+  const err = validateFile(trimmed, '');
+  if (err){ showToast('作成できません', err, true); return; }
+  state.project.files.push({ path: trimmed, content: '' });
+  renderTree();
+  selectFile(trimmed);
+  showToast('作成しました', `「${trimmed}」を作りました。`);
+});
+
+$('renameFileBtn').addEventListener('click', ()=>{
+  const f = getFile(state.currentPath);
+  if (!f){ showToast('ファイルをえらんでね', '名前を変えるファイルを先にえらんでください。', true); return; }
+  if (isProtected(f.path)){ showToast('変更できません', 'index.html は必須ファイルなので名前を変えられません。', true); return; }
+  const next = prompt('新しいファイル名', f.path);
+  if (next === null) return;
+  const trimmed = next.trim();
+  if (trimmed === f.path) return;
+  const err = validateFile(trimmed, f.content, { ignorePath: f.path });
+  if (err){ showToast('変更できません', err, true); return; }
+  f.path = trimmed;
+  state.currentPath = trimmed;
+  renderTree();
+  renderCode();
+  updatePreview();
+  showToast('名前を変えました', `「${trimmed}」に変更しました。`);
+});
+
+$('deleteFileBtn').addEventListener('click', ()=>{
+  const f = getFile(state.currentPath);
+  if (!f){ showToast('ファイルをえらんでね', '消すファイルを先にえらんでください。', true); return; }
+  if (isProtected(f.path)){ showToast('削除できません', 'index.html は必須ファイルなので消せません。', true); return; }
+  if (!confirm(`「${f.path}」を削除します。よろしいですか？`)) return;
+  state.project.files = state.project.files.filter(x=>x.path!==f.path);
+  state.currentPath = state.project.files[0] ? state.project.files[0].path : null;
+  renderTree();
+  renderCode();
+  updatePreview();
+  showToast('削除しました', `「${f.path}」を消しました。`);
+});
+
+/* ================= プレビュー: 合体してiframe(srcdoc)へ ================= */
+// index.html を起点に css/js をインライン化し、img は絶対URL化、CSPを注入する。
+function assembleProject(){
+  const index = getFile('index.html');
+  if (!index) return null;
+  let html = index.content;
+  const origin = location.origin;
+
+  // <link rel="stylesheet" href="..."> → <style>...</style>
+  html = html.replace(/<link\b[^>]*>/gi, (tag)=>{
+    if (!/rel\s*=\s*["']?stylesheet/i.test(tag)) return tag;
+    const m = /href\s*=\s*["']([^"']+)["']/i.exec(tag);
+    if (!m) return tag;
+    const ref = normalizeRef(m[1]);
+    const css = getFile(ref);
+    if (!css) return tag; // プロジェクト内に無ければそのまま(外部は後述のCSPで遮断)
+    return `<style>\n${css.content}\n</style>`;
+  });
+
+  // <script src="..."><\/script> → インライン
+  html = html.replace(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>/gi, (tag, src)=>{
+    const ref = normalizeRef(src);
+    const js = getFile(ref);
+    if (!js) return tag;
+    // 中身に <\/script> があるとscriptが途中で閉じるためエスケープ
+    const safe = js.content.replace(/<\/script>/gi, '<\\/script>');
+    return `<script>\n${safe}\n<\/script>`;
+  });
+
+  // <img src="img/xxx.png"> → サイトの画像素材の絶対URLへ
+  html = html.replace(/(<img\b[^>]*\bsrc\s*=\s*["'])(img\/[^"']+)(["'])/gi, (all, pre, ref, post)=>{
+    return pre + origin + '/' + ref + post;
+  });
+  // CSS内 url(img/...) も絶対URL化(インライン化したstyle向け)
+  html = html.replace(/url\(\s*(['"]?)(img\/[^'")]+)\1\s*\)/gi, (all, q, ref)=>{
+    return `url(${q}${origin}/${ref}${q})`;
+  });
+
+  // CSPメタタグを <head> 先頭に注入(connect-src は許可7ホストのみ)
+  const connectHosts = ALLOWED_API_HOSTS.map(h=>'https://'+h).join(' ');
+  const csp = `<meta http-equiv="Content-Security-Policy" content="`
+    + `default-src 'none'; `
+    + `script-src 'unsafe-inline'; `
+    + `style-src 'unsafe-inline'; `
+    + `img-src ${origin} data:; `
+    + `connect-src ${connectHosts}">`;
+  if (/<head[^>]*>/i.test(html)){
+    html = html.replace(/<head[^>]*>/i, (m)=> m + '\n' + csp);
+  } else if (/<html[^>]*>/i.test(html)){
+    html = html.replace(/<html[^>]*>/i, (m)=> m + '\n<head>' + csp + '</head>');
+  } else {
+    html = csp + '\n' + html;
+  }
+  return html;
+}
+// "./css/x.css" や "/css/x.css" → "css/x.css" に正規化してプロジェクト内参照に合わせる
+function normalizeRef(ref){
+  return String(ref).replace(/^\.\//, '').replace(/^\//, '').split('?')[0].split('#')[0];
+}
+
+let previewInited = false;
+function updatePreview(){
+  const bd = $('previewBd');
+  const html = assembleProject();
+  const placeholder = $('previewPlaceholder');
+  if (!html){
+    if (placeholder) placeholder.style.display = '';
+    bd.querySelectorAll('iframe').forEach(n=>n.remove());
+    previewInited = false;
+    return;
+  }
+  if (placeholder) placeholder.style.display = 'none';
+  bd.querySelectorAll('iframe').forEach(n=>n.remove()); // 前回JSの残存防止に作り直す
+  const iframe = document.createElement('iframe');
+  iframe.className = 'preview-frame';
+  iframe.setAttribute('sandbox', 'allow-scripts'); // allow-same-origin は付けない
+  iframe.srcdoc = html;
+  bd.appendChild(iframe);
+  previewInited = true;
+}
+$('reloadPreviewBtn').addEventListener('click', ()=>{
+  updatePreview();
+  showToast('再読み込みしました', 'プレビューを最初から描き直しました。');
+});
+
+/* ================= AI受入れ: ファイル配列を検証してマージ ================= */
+// files を受け入れる際、全ファイルをバリデーション。1つでもダメなら受入れ拒否。
+function acceptFiles(incoming, { replace = false, deleted = [] } = {}){
+  if (!Array.isArray(incoming)) return 'AIの応答が正しくありませんでした。';
+  // 検証用に「マージ後の姿」を作って一括チェック
+  const base = replace ? [] : state.project.files.map(f=>({...f}));
+  const map = new Map(base.map(f=>[f.path, f]));
+  for (const p of (deleted || [])){
+    if (p === 'index.html') continue; // index.html は削除させない
+    map.delete(p);
+  }
+  for (const f of incoming){
+    if (!f || typeof f.path !== 'string'){ return 'AIの応答に不正なファイルが含まれていました。'; }
+    map.set(f.path, { path: f.path, content: typeof f.content === 'string' ? f.content : '' });
+  }
+  const merged = [...map.values()];
+  if (merged.length > LIMITS.maxFiles) return `ファイルが多すぎます(最大${LIMITS.maxFiles}個)。`;
+  for (const f of merged){
+    const err = validateFile(f.path, f.content, { ignorePath: f.path });
+    // ignorePath だけでは重複判定が誤るので、mergedは一意化済み(Mapのため)→重複は起きない
+    if (err && !/すでにあります/.test(err)) return err;
+  }
+  if (!merged.some(f=>f.path==='index.html')){
+    return 'index.html が見つかりませんでした。もう一度生成してください。';
+  }
+  state.project.files = merged;
+  if (!getFile(state.currentPath)){
+    state.currentPath = 'index.html';
+  }
+  return null;
+}
+
+/* ================= 生成 / 修正 ================= */
+const SAMPLE_PROMPT = '天気予報を表示するアプリを作って';
+
+function setBusy(busy, label){
+  state.busy = busy;
+  $('pfSpinner').classList.toggle('show', busy);
+  $('loadingOverlay').classList.toggle('show', busy);
+  if (label) $('loadingLabel').textContent = label;
+  $('generateBtn').disabled = busy;
+  $('zipBtn').disabled = busy;
+  $('prompt').disabled = busy;
+  $('newFileBtn').disabled = busy;
+  $('renameFileBtn').disabled = busy;
+  $('deleteFileBtn').disabled = busy;
+  $('generateBtn').textContent = busy ? '…' : (state.project.files.length ? '修正' : '生成');
+}
+
+$('generateBtn').addEventListener('click', ()=>{
+  if (state.project.files.length) refineProject();
+  else generateProject();
+});
+
+async function generateProject(){
+  let prompt = $('prompt').value.trim();
+  if (!prompt){ prompt = SAMPLE_PROMPT; $('prompt').value = prompt; }
+  if (prompt.length > 500){ showToast('文字数が多すぎます', '指示は500文字以内にまとめてください。', true); return; }
+  const images = [...selectedImages];
+  setBusy(true, 'AIがプロジェクトを作っています…');
+  try{
+    const res = await fetch(API.generate, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt, images })
+    });
+    const data = await res.json().catch(()=>null);
+    if (!res.ok || !data || !data.ok){
+      throw new Error(apiErrorMessage(data, 'AIがうまく答えられませんでした。もう一度試してください。'));
+    }
+    const err = acceptFiles(data.files, { replace: true });
+    if (err) throw new Error(err);
+    state.promptHistory.push(prompt);
+    renderTree();
+    selectFile('index.html');
+    updatePreview();
+    $('prompt').value = '';
+    showToast('生成が完了しました', 'ミニプロジェクトを作りました。プレビューで確認してください。');
+  }catch(e){
+    showToast('生成できませんでした', e.message, true);
+  }finally{
+    setBusy(false);
+  }
+}
+
+async function refineProject(){
+  const instruction = $('prompt').value.trim();
+  if (!instruction){ showToast('指示を入れてね', '「見出しを大きくして」のように書いてください。', true); return; }
+  if (instruction.length > 500){ showToast('文字数が多すぎます', '指示は500文字以内にまとめてください。', true); return; }
+  const prevFiles = state.project.files.map(f=>({...f})); // 失敗時に戻す
+  setBusy(true, 'AIがプロジェクトを修正しています…');
+  try{
+    const res = await fetch(API.refine, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        files: state.project.files,
+        instruction,
+        promptHistory: state.promptHistory,
+      })
+    });
+    const data = await res.json().catch(()=>null);
+    if (!res.ok || !data || !data.ok){
+      throw new Error(apiErrorMessage(data, 'うまく修正できませんでした。別の言い方で頼んでみてください。'));
+    }
+    const err = acceptFiles(data.files || [], { replace: false, deleted: data.deleted || [] });
+    if (err) throw new Error(err);
+    state.promptHistory.push(instruction);
+    renderTree();
+    renderCode();
+    updatePreview();
+    $('prompt').value = '';
+    showToast('修正しました', 'プレビューとコードを更新しました。');
+  }catch(e){
+    state.project.files = prevFiles; // 前回の状態を保持
+    showToast('修正できませんでした', e.message, true);
+  }finally{
+    setBusy(false);
+  }
+}
+
+/* ================= ZIPダウンロード(依存なし・STORED方式) ================= */
+// CRC-32 テーブル
+function makeCrcTable(){
+  const t = new Uint32Array(256);
+  for (let n=0;n<256;n++){
+    let c = n;
+    for (let k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
+    t[n] = c>>>0;
+  }
+  return t;
+}
+const CRC_TABLE = makeCrcTable();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for (let i=0;i<bytes.length;i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c>>>8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+// files: [{path, content}] → Uint8Array(ZIP)
+function buildZip(files){
+  const enc = new TextEncoder();
+  const u16 = n => [n & 0xff, (n>>>8) & 0xff];
+  const u32 = n => [n & 0xff, (n>>>8) & 0xff, (n>>>16) & 0xff, (n>>>24) & 0xff];
+  const now = new Date();
+  const dosTime = ((now.getHours() & 0x1f) << 11) | ((now.getMinutes() & 0x3f) << 5) | ((now.getSeconds()>>1) & 0x1f);
+  const dosDate = (((now.getFullYear()-1980) & 0x7f) << 9) | (((now.getMonth()+1) & 0x0f) << 5) | (now.getDate() & 0x1f);
+
+  const chunks = [];
+  const central = [];
+  let offset = 0;
+
+  for (const f of files){
+    const nameBytes = enc.encode(f.path);
+    const dataBytes = enc.encode(f.content);
+    const crc = crc32(dataBytes);
+    const size = dataBytes.length;
+    // ローカルファイルヘッダ (bit11: UTF-8 フラグ / compression 0: STORED)
+    const local = new Uint8Array([].concat(
+      u32(0x04034b50), u16(20), u16(0x0800), u16(0),
+      u16(dosTime), u16(dosDate), u32(crc), u32(size), u32(size),
+      u16(nameBytes.length), u16(0)
+    ));
+    chunks.push(local, nameBytes, dataBytes);
+    // セントラルディレクトリエントリ
+    const cen = new Uint8Array([].concat(
+      u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0),
+      u16(dosTime), u16(dosDate), u32(crc), u32(size), u32(size),
+      u16(nameBytes.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset)
+    ));
+    central.push({ header: cen, name: nameBytes });
+    offset += local.length + nameBytes.length + dataBytes.length;
+  }
+
+  const centralStart = offset;
+  let centralSize = 0;
+  for (const c of central){ chunks.push(c.header, c.name); centralSize += c.header.length + c.name.length; }
+  // 終端レコード(EOCD)
+  const eocd = new Uint8Array([].concat(
+    u32(0x06054b50), u16(0), u16(0), u16(central.length), u16(central.length),
+    u32(centralSize), u32(centralStart), u16(0)
+  ));
+  chunks.push(eocd);
+
+  let total = 0;
+  for (const c of chunks) total += c.length;
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const c of chunks){ out.set(c, p); p += c.length; }
+  return out;
+}
+
+function sanitizeName(name){
+  const n = String(name || '').trim().replace(/[^a-zA-Z0-9_\-]+/g, '-').replace(/^-+|-+$/g, '');
+  return n || 'my-app';
+}
+
+$('zipBtn').addEventListener('click', ()=>{
+  // TODO: requireClassroomTicket('download_source') をここに差し込む
+  if (!state.project.files.length){
+    showToast('保存できません', 'まだファイルがありません。先にアプリを生成してください。', true);
+    return;
+  }
+  state.project.name = sanitizeName($('projName').value);
+  $('projName').value = state.project.name;
+  const zip = buildZip(state.project.files);
+  const blob = new Blob([zip], { type: 'application/zip' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = state.project.name + '.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+  showToast('ZIPを保存しました', `「${state.project.name}.zip」をダウンロードしました。展開するとフォルダごと再現されます。`);
+});
+
+/* ================= 画像素材ピッカー(img/manifest.json) ================= */
+const IMG_DIR = 'img/';
+const selectedImages = new Set();
+
+async function loadImageList(){
+  try{
+    const res = await fetch(IMG_DIR + 'manifest.json', { cache:'no-store' });
+    if (!res.ok) return; // manifest 無し → imgbox は非表示のまま
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) return;
+    const list = data.map(name => ({ name, url: IMG_DIR + name }));
+    renderImageGrid(list);
+    $('imgBox').style.display = ''; // 素材があるときだけ表示
+  }catch(e){ /* manifest 無し: 非表示のまま(フォールバック) */ }
+}
+function renderImageGrid(list){
+  const grid = $('imgGrid');
+  grid.innerHTML = '';
+  let failed = 0; const total = list.length;
+  list.forEach(item=>{
+    const cell = document.createElement('div');
+    cell.className = 'img-thumb';
+    cell.title = item.name;
+    const img = document.createElement('img');
+    img.src = item.url; img.alt = item.name; img.loading = 'lazy';
+    img.onerror = ()=>{ cell.remove(); failed++; };
+    cell.appendChild(img);
+    cell.addEventListener('click', ()=>{
+      if (selectedImages.has(item.name)) selectedImages.delete(item.name);
+      else{
+        if (selectedImages.size >= 6){ showToast('えらべるのは6枚まで', 'まず6枚で作ってから、修正で追加してください。', true); return; }
+        selectedImages.add(item.name);
+      }
+      cell.classList.toggle('selected', selectedImages.has(item.name));
+      updateImgSelUI();
+    });
+    grid.appendChild(cell);
+  });
+}
+function updateImgSelUI(){
+  const n = selectedImages.size;
+  const c = $('imgSelCount');
+  c.textContent = n;
+  c.classList.toggle('show', n>0);
+}
+$('imgBoxHd').addEventListener('click', (e)=>{ e.stopPropagation(); $('imgBox').classList.toggle('open'); });
+$('imgBoxCloseBtn').addEventListener('click', ()=>$('imgBox').classList.remove('open'));
+document.addEventListener('click', (e)=>{ if (!e.target.closest('#imgBox')) $('imgBox').classList.remove('open'); });
+$('imgClearBtn').addEventListener('click', ()=>{
+  selectedImages.clear();
+  document.querySelectorAll('.img-thumb.selected').forEach(el=>el.classList.remove('selected'));
+  updateImgSelUI();
+});
+$('imgInsertBtn').addEventListener('click', ()=>{
+  if (!selectedImages.size){ showToast('画像をえらんでね', '先に使いたい画像をクリックしてえらんでください。', true); return; }
+  const names = [...selectedImages].join('、');
+  const add = `えらんだ画像(${names})を使って。`;
+  const cur = $('prompt').value.trim();
+  const next = cur ? `${cur}\n${add}` : add;
+  if (next.length > 500){ showToast('追加できません', '500文字を超えてしまいます。指示を短くしてください。', true); return; }
+  $('prompt').value = next;
+  $('prompt').focus();
+  $('imgBox').classList.remove('open');
+});
+
+/* ================= モバイルのタブ切替 ================= */
+document.querySelectorAll('.mobile-tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const t = btn.dataset.mtab;
+    document.body.classList.remove('m-tree','m-code','m-preview');
+    document.body.classList.add('m-' + t);
+    document.querySelectorAll('.mobile-tabs button').forEach(b=>b.classList.toggle('active', b===btn));
+  });
+});
+
+/* ================= ヘッダー ================= */
+$('homeLogo').addEventListener('click', ()=>{
+  if (!state.project.files.length || confirm('ホームへ戻ると作成中のプロジェクトが消えます。移動しますか？')){
+    location.href = 'index.html';
+  }
+});
+$('projName').addEventListener('change', ()=>{
+  state.project.name = sanitizeName($('projName').value);
+  $('projName').value = state.project.name;
+});
+
+/* ================= 初期化 ================= */
+renderTree();
+renderCode();
+loadImageList();
+</script>
+</body>
+</html>

@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>マーケット | じさくや</title>
+<meta property="og:title" content="じさくや" />
+<meta property="og:description" content="AIと一緒にWebアプリをつくる学習サービス。じさくや。" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="styles/base.css" />
+<style>
+  :root{
+    --bg:#F4EDE0;
+    --panel:#FFFCF5;
+    --panel-2:#FFF6D8;
+    --line:#2A2620;
+    --text:#22201C;
+    --muted:#6B5C4B;
+    --accent:#1B3A5C;
+    --accent2:#C9A646;
+    --pink:#C1440E;
+    --good:#1B3A5C;
+    --warn:#C9A646;
+    --bad:#A6321B;
+    --coin: var(--accent2);
+    --shadow:none;
+    --shadow-lg:none;
+    --shadow-sm:none;
+    --radius:0;
+    --radius-md:0;
+    --stroke: 1.5px solid var(--line);
+    --font-display:'Yuji Syuku','Shippori Mincho',serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family: var(--font-body);
+    color: var(--text);
+    background:
+      radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+      radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+
+  button:not(.sidebar button), .nav-btn, .buy-big, .ibtn, .mbtn {
+    font-family: var(--font-body);
+    cursor:pointer;
+    border: var(--stroke);
+    border-radius: var(--radius-md);
+    font-weight: 800;
+    transition: background .12s ease, color .12s ease;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+  }
+  button:not(.sidebar button):hover, .nav-btn:hover, .buy-big:hover, .ibtn:hover, .mbtn:hover {
+    background: var(--bg);
+  }
+  button:not(.sidebar button):active, .nav-btn:active, .buy-big:active, .ibtn:active, .mbtn:active {
+    transform:none;
+    box-shadow:none;
+  }
+  button:not(.sidebar button):disabled, .buy-big:disabled, .ibtn:disabled, .mbtn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+    transform:none !important;
+    box-shadow:none;
+  }
+  .modal{position:fixed;inset:0;background:rgba(3,7,18,.68);display:none;place-items:center;padding:20px;z-index:100}
+  .modal.open{display:grid}
+  .modal-card{background:var(--panel);border:var(--stroke);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:28px 24px;width:min(480px,100%)}
+
+  .ui-icon{width:18px;height:18px;display:inline-block;vertical-align:-3px;object-fit:contain;flex:none}
+  .ui-icon.lg{width:26px;height:26px}
+  .side-link{display:flex;align-items:center;gap:8px}
+  .side-link:hover .ui-icon,
+  .side-link.active .ui-icon{filter:brightness(0) invert(1)}
+  .sidebar-menu-btn .ui-icon{width:20px;height:20px}
+  .user-btn .uavatar .ui-icon{width:15px;height:15px}
+  .icon-tile{
+    width:44px;height:44px;border:var(--stroke);border-radius:var(--radius-md);
+    background:var(--accent2);display:grid;place-items:center;box-shadow:var(--shadow-sm);flex:none;
+  }
+  .container{max-width:1200px;margin:0 auto;padding:28px 22px 40px}
+
+  .shop-hero{
+    position:relative;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 260px;
+    gap:28px;
+    align-items:end;
+    padding:32px;
+    border: var(--stroke);
+    border-radius:var(--radius);
+    background:
+      linear-gradient(90deg, rgba(255,252,245,.96), rgba(255,252,245,.92)),
+      var(--panel);
+    box-shadow:var(--shadow-lg);
+    margin-bottom: 24px;
+  }
+  .hero-kicker{
+    display:inline-flex;align-items:center;gap:8px;
+    width:max-content;
+    padding:7px 12px;
+    border:var(--stroke);
+    border-radius:999px;
+    background:#fff;
+    font-size:12px;
+    font-weight:900;
+    margin-bottom:14px;
+  }
+  .shop-hero h1{
+    margin:0 0 14px;
+    font-size:clamp(28px,4.6vw,48px);
+    font-family: var(--font-display);
+    color: var(--text);
+    line-height:1.05;
+    letter-spacing:0;
+  }
+  .shop-hero p{
+    margin:0;
+    color:var(--muted);
+    font-size:15px;
+    font-weight: 700;
+    line-height:1.8;
+    max-width: 680px;
+  }
+  .hero-wallet{
+    position:relative;
+    z-index:1;
+    border:var(--stroke);
+    border-radius:var(--radius);
+    background:var(--accent);
+    color:#fff;
+    padding:20px;
+    box-shadow:var(--shadow-sm);
+  }
+  .hero-wallet .label{display:flex;align-items:center;gap:8px;color:#a7b2c8;font-size:12px;font-weight:900}
+  .hero-wallet .amount{font-size:34px;font-weight:900;line-height:1.2;margin-top:8px;color:var(--accent2)}
+  .hero-wallet .caption{font-size:11px;font-weight:800;color:#cbd5e1;margin-top:6px}
+
+  .howto{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .earn-card{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:16px;
+    border:var(--stroke);
+    border-radius:var(--radius);
+    background:var(--panel);
+    box-shadow:var(--shadow-sm);
+    min-width:0;
+  }
+  .earn-card b{display:block;font-size:13px;margin-bottom:3px}
+  .earn-card span{display:block;color:var(--muted);font-size:12px;font-weight:700;line-height:1.55}
+
+  .card{
+    background: rgba(248,251,255,.96);
+    border: var(--stroke);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .section-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:20px;
+  }
+  .card h2{
+    margin:0 0 6px;
+    font-size: clamp(18px,2.2vw,24px);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family: var(--font-display);
+    font-weight:900;
+  }
+  .card .lead{
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 700;
+  }
+  .slot-area{
+    display:grid;
+    grid-template-columns: minmax(0,1.25fr) minmax(230px,.75fr);
+    gap:24px;
+    align-items:stretch;
+  }
+  .slot-bar{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+    margin:0 0 14px;
+  }
+  .slot{
+    min-height:110px;
+    align-content:start;
+    gap:8px;
+    padding:14px;
+    text-align:left;
+    background: var(--panel);
+    border: var(--stroke);
+    display:grid;
+    box-shadow:var(--shadow-sm);
+  }
+  .slot.used{
+    background: var(--accent);
+    color:#fff;
+  }
+  .slot.next{
+    background: var(--accent2);
+    color: var(--text);
+    font-weight:900;
+  }
+  .slot .slot-label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:900;
+  }
+  .slot .slot-num{
+    font-family:var(--font-body);
+    font-size:clamp(26px,4vw,42px);
+    font-weight:900;
+    line-height:1;
+  }
+  .slot .slot-note{
+    color:inherit;
+    opacity:.78;
+    font-size:11px;
+    font-weight:800;
+    line-height:1.45;
+  }
+  .slot-ledger{
+    border:var(--stroke);
+    background:var(--panel-2);
+    padding:12px 14px;
+    font-size:12px;
+    font-weight:800;
+    line-height:1.7;
+  }
+  .slot-ledger b{font-weight:900}
+  .slot-meta{
+    font-size: 13px;
+    color: var(--muted);
+    font-weight:800;
+  }
+  .slot-buy{
+    min-width: 0;
+    background: var(--panel);
+    color:var(--text);
+    border: var(--stroke);
+    padding: 20px;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+  }
+  .slot-buy .price{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .slot-buy .nxt{
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 10px;
+    font-weight: 800;
+    text-align:center;
+    line-height:1.5;
+  }
+  .buy-big{
+    padding:12px 24px;
+    font-size:14px;
+    color: #fff;
+    background: var(--pink);
+    width: 100%;
+  }
+  .buy-big:hover{background:#A8390C;color:#fff}
+  .img-filter{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:-4px 0 20px;
+  }
+  .fchip{
+    padding:9px 14px;
+    background: #fff;
+    font-size: 13px;
+    color: var(--text);
+    min-height:38px;
+  }
+  .fchip.active{
+    background: var(--accent2);
+  }
+  .img-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+  }
+  .img-item{
+    border: var(--stroke);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background: var(--panel);
+    transition: transform .12s ease, box-shadow .12s ease;
+    position:relative;
+    box-shadow:var(--shadow-sm);
+  }
+  .img-item:hover{
+    transform: translateY(-3px);
+  }
+  .img-item .pic{
+    aspect-ratio:1;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    background:
+      linear-gradient(135deg, rgba(27,58,92,.10), rgba(201,166,70,.12)),
+      repeating-conic-gradient(#edf2ff 0% 25%, #fff 0% 50%) 50%/18px 18px;
+    border-bottom: var(--stroke);
+    padding:12px;
+  }
+  .img-item .pic img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+  }
+  .img-item .ib{
+    padding:14px;
+  }
+  .img-item .inm{
+    font-size:12.5px;
+    font-weight:900;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .img-item .icat{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;
+    font-weight:900;
+    color: var(--muted);
+    margin-top:6px;
+  }
+  .img-item .ibtn{
+    width:100%;
+    margin-top:12px;
+    padding:9px;
+    font-size:12px;
+    color: var(--text);
+    background: var(--accent2);
+  }
+  .img-item .ibtn.owned{
+    background: var(--good);
+    color: #fff;
+    pointer-events:none;
+    box-shadow:none;
+    transform: none;
+  }
+  .owned-badge{
+    position:absolute;
+    top:8px;
+    right:8px;
+    z-index:2;
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:10.5px;
+    font-weight:900;
+    color: #fff;
+    background: var(--good);
+    border: var(--stroke);
+    border-radius:999px;
+    padding:3px 9px;
+    box-shadow:0 3px 0 rgba(16,21,34,.2);
+  }
+  .img-empty{
+    font-size: 13px;
+    color: var(--muted);
+    line-height:1.9;
+    background: #fff;
+    border: 2px dashed var(--line);
+    border-radius:var(--radius);
+    padding: 20px;
+    grid-column: 1/-1;
+    text-align: center;
+    font-weight: 700;
+  }
+  .img-empty code{
+    background: var(--panel);
+    border: var(--stroke);
+    border-radius:0;
+    padding: 2px 8px;
+    font-size:11px;
+  }
+
+  .misc-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .misc{
+    border: var(--stroke);
+    border-radius:var(--radius);
+    padding:18px;
+    background: var(--panel);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition: transform .12s ease, box-shadow .12s ease;
+    box-shadow:var(--shadow-sm);
+  }
+  .misc:hover{
+    transform: translateY(-3px);
+  }
+  .misc .mi{
+    width:46px;height:46px;border:var(--stroke);border-radius:var(--radius-md);
+    background:var(--panel-2);
+    display:grid;place-items:center;
+    box-shadow:var(--shadow-sm);
+  }
+  .misc .mn{
+    font-size:15px;
+    font-weight:900;
+  }
+  .misc .md{
+    font-size:12px;
+    color: var(--muted);
+    line-height:1.6;
+    flex:1;
+    font-weight: 700;
+  }
+  .misc .mbtn{
+    padding: 10px;
+    font-size: 12px;
+    color: #fff;
+    background: var(--pink);
+    width: 100%;
+  }
+  .misc .mbtn.owned{
+    background: var(--good);
+    color: #fff;
+    pointer-events:none;
+    box-shadow:none;
+    transform: none;
+  }
+
+  .toast{
+    position:fixed;
+    right:24px;
+    bottom:24px;
+    min-width:280px;
+    max-width:420px;
+    z-index:60;
+    padding: 16px 20px;
+    border-radius:var(--radius);
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:var(--shadow);
+    transform: translateY(16px);
+    opacity:0;
+    pointer-events:none;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+  }
+  .toast.show{
+    transform: translateY(0);
+    opacity:1;
+    pointer-events: auto;
+  }
+  .toast.err{
+    background: #fee2e2;
+  }
+  .toast strong {
+    font-size: 14px;
+  }
+  .toast .sub{
+    display:block;
+    color: var(--muted);
+    font-size:12.5px;
+    margin-top: 4px;
+    line-height:1.5;
+    font-weight: 700;
+  }
+
+  @media(max-width:760px){
+    .container{padding:18px 14px 30px}
+    .shop-hero{grid-template-columns:1fr;padding:22px}
+    .hero-wallet{max-width:none}
+    .howto{grid-template-columns:1fr}
+    .section-head{display:block}
+    .slot-area{grid-template-columns:1fr}
+    .slot-bar{grid-template-columns:1fr}
+    .img-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+  }
+  .sso-btn {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px 18px;
+    border-radius:var(--radius-md);
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    background: var(--panel);
+    border: var(--stroke);
+    box-shadow:var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+  .sso-btn:hover {
+    transform: translateY(-2px);
+  }
+  .sso-btn:active {
+    transform: translateY(1px);
+  }
+  .sso-btn.google { background: #fff; color: var(--text); }
+  .sso-btn.school { background: var(--warn); color: var(--text); }
+  .sso-btn.guest { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-information" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM3.5 12C3.5 7.3 7.3 3.5 12 3.5C16.7 3.5 20.5 7.3 20.5 12C20.5 16.7 16.7 20.5 12 20.5C7.3 20.5 3.5 16.7 3.5 12ZM11.25 15.5V11H12.75V15.5H11.25ZM11.25 9.5V8H12.75V9.5H11.25Z" fill="currentColor"/></symbol>
+</svg>
+
+<div class="app-shell">
+  <!-- ============ 左サイドバー ============ -->  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" onclick="location.href='index.html'">
+        <img class="logo-mark" src="img/logo_shikiai.svg" alt="じさくや" />
+        <span>じさくや</span>
+      </div>
+      <button class="sidebar-menu-btn" id="sidebarMenuBtn" type="button" aria-label="メニュー開閉"><img class="ui-icon" src="icon/svg/menu_line.svg" alt="" /></button>
+    </div>
+
+    <div class="sidebar-body" id="sidebarBody">
+
+
+    <a class="sidebar-coin" id="coinChip" href="market.html" title="両: 作品の閲覧やミッション達成で獲得できます"><img class="ui-icon" src="icon/svg/money_fill.svg" alt="" /> <span id="coinVal">0</span> 両</a>
+      
+      <nav class="sidebar-nav">
+        <a class="side-link" href="index.html"><img class="ui-icon" src="icon/svg/house_line.svg" alt="" />ホーム</a>
+        <a class="side-link" href="index.html#quest"><img class="ui-icon" src="icon/svg/mailing_line.svg" alt="" />ミッション</a>
+        <a class="side-link" href="corder.html"><img class="ui-icon" src="icon/svg/application_line.svg" alt="" />じさくや コーダー</a>
+        <a class="side-link" href="knowledge.html" onclick="if(!DB.getCurrentUid()){ toast('ログインが必要です','ナレッジベースを見るにはログインしてください。', true); return false; }"><img class="ui-icon" src="icon/svg/documents_line.svg" alt="" />ナレッジベース</a>
+        <a class="side-link" href="knowledge_history.html"><img class="ui-icon" src="icon/svg/history_line.svg" alt="" />学習履歴</a>
+        <a class="side-link active" href="market.html"><img class="ui-icon" src="icon/svg/money_line.svg" alt="" />マーケット</a>
+        <a class="side-link side-link-classroom" href="user_admin.html"><svg class="ic"><use href="#i-information"></use></svg>教室での利用はこちら</a>
+        <a class="side-link" href="userpage.html"><img class="ui-icon" src="icon/svg/me_line.svg" alt="" />マイページ</a>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <nav class="sidebar-legal" aria-label="サイト情報">
+        <a href="about.html">このサイトについて</a>
+        <a href="terms.html">利用規約</a>
+      </nav>
+      
+      
+    <div class="sidebar-account" style="border-top:1.5px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:0 10px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.04em;">ACCOUNT</div>
+
+      <!-- 未ログイン時 -->
+      <button class="btn-login" id="btnLogin" type="button" onclick="loginFromHeader()" style="width:calc(100% - 20px);margin:0 10px;">ログイン</button>
+
+      <!-- ログイン時 -->
+      <div class="user-menu" id="userMenu" style="display:none;margin:0 10px;">
+        <button class="user-btn" id="userBtn" type="button" style="width:100%;justify-content:flex-start;border:1.5px solid var(--line);">
+          <span class="uavatar"><img class="ui-icon" src="icon/svg/me_fill.svg" alt="" /></span><span id="userBtnNick">未ログイン</span><span class="caret" style="margin-left:auto;">▼</span>
+        </button>
+        <div class="user-drop" id="userDrop">
+          <div class="ud-head">ログイン中<b id="udNick">未ログイン</b></div>
+          <a class="ud-item" href="userpage.html">マイページ</a>
+          <button class="ud-item" id="udLogin" type="button" onclick="loginFromHeader()">ログイン</button>
+          <button class="ud-item" id="udLogout" type="button" onclick="logoutFromHeader()">ログアウト</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ メインエリア ============ -->
+  <div class="main-area">
+<div class="container">
+  <div class="shop-hero">
+    <div>
+      <div class="hero-kicker"><img class="ui-icon" src="icon/svg/money_fill.svg" alt="" /> YOROZUYA</div>
+      <h1>よろずやマーケット</h1>
+      <p>作品づくりで集めた両を、公開スロットや制作素材、プロフィール演出アイテムと交換できます。</p>
+    </div>
+    <div class="hero-wallet" aria-label="所持両">
+      <div class="label"><img class="ui-icon" src="icon/svg/bank_account_fill.svg" alt="" /> CURRENT BALANCE</div>
+      <div class="amount"><span id="heroCoinVal">0</span> 両</div>
+      <div class="caption">購入後は残高と所持アイテムに反映されます</div>
+    </div>
+  </div>
+
+  <div class="howto">
+    <div class="earn-card"><span class="icon-tile"><img class="ui-icon lg" src="icon/svg/work_fill.svg" alt="" /></span><div><b>作品の閲覧</b><span>公開した作品が見られるほど、次の制作に使える両が増えます。</span></div></div>
+    <div class="earn-card"><span class="icon-tile"><img class="ui-icon lg" src="icon/svg/mailing_fill.svg" alt="" /></span><div><b>ミッション達成</b><span>課題やチャレンジをクリアして、マーケット用の両を集めます。</span></div></div>
+    <div class="earn-card"><span class="icon-tile"><img class="ui-icon lg" src="icon/svg/complete_fill.svg" alt="" /></span><div><b>リアクション</b><span>作品への反応も評価として加算されます。集めた両は下の商品と交換できます。</span></div></div>
+  </div>
+
+  <!-- ============ 作品の枠 ============ -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <h2><span class="icon-tile"><img class="ui-icon lg" src="icon/svg/add_fill.svg" alt="" /></span>公開席の手配</h2>
+        <p class="lead">作品を並べるための公開席を追加します。現在の利用数と空き状況を確認してから交換できます。</p>
+      </div>
+    </div>
+    <div class="slot-area">
+      <div>
+        <div class="slot-bar" id="slotBar"></div>
+        <div class="slot-meta" id="slotMeta"></div>
+      </div>
+      <div class="slot-buy">
+        <div class="price" id="slotPrice"></div>
+        <button class="buy-big" id="slotBuyBtn" onclick="buySlot()"><img class="ui-icon" src="icon/svg/add_fill.svg" alt="" />スロットを追加</button>
+        <div class="nxt" id="slotNext"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 画像ショップ ============ -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <h2><span class="icon-tile"><img class="ui-icon lg" src="icon/svg/application_fill.svg" alt="" /></span>制作素材ライブラリ</h2>
+        <p class="lead">交換した画像は、作品制作画面の使用できる画像素材に追加され、AIへの指示に利用できます。</p>
+      </div>
+    </div>
+    <div class="img-filter" id="imgFilter"></div>
+    <div class="img-grid" id="imgGrid"></div>
+  </div>
+
+  <!-- ============ そのほか ============ -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <h2><span class="icon-tile"><img class="ui-icon lg" src="icon/svg/luggage_fill.svg" alt="" /></span>サポートアイテム</h2>
+        <p class="lead">プロフィールや作品ページの見え方を変える、表現まわりの追加アイテムです。</p>
+      </div>
+    </div>
+    <div class="misc-grid" id="miscGrid"></div>
+  </div>
+</div>
+  </div><!-- /.main-area -->
+</div><!-- /.app-shell -->
+
+<div class="toast" id="toastEl"><strong id="toastTitle"></strong><span class="sub" id="toastBody"></span></div>
+
+<!-- ===== ログインモーダル ===== -->
+<div class="modal" id="loginModal">
+  <div class="modal-card" style="text-align: center; position: relative;">
+    <button type="button" onclick="closeLoginModal()" aria-label="閉じる" style="position: absolute; top: 12px; right: 12px; background: none; border: none; cursor: pointer; color: var(--text); font-weight: bold; line-height: 1; box-shadow:none;"><img class="ui-icon" src="icon/svg/attention_line.svg" alt="" /></button>
+    <h3><img class="ui-icon" src="icon/svg/authentication_fill.svg" alt="" /> アカウント確認</h3>
+    <p>購入するにはログインが必要です。ログイン後、残高と所持アイテムを保存します。</p>
+    <div style="margin: 24px 0 16px;">
+      <button class="sso-btn google" type="button" onclick="dummyLogin('google')">
+        <img class="ui-icon" src="icon/svg/authentication_line.svg" alt="" /> Googleでログイン
+      </button>
+    </div>
+    <div style="margin-top: 12px;">
+      <button class="ghost" type="button" onclick="closeLoginModal()" style="padding: 8px 16px; font-size: 13px; font-weight: bold;">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script src="./firebase-config.js"></script>
+<script type="module" src="./firebase-auth.js?v=1.0.5"></script>
+<script>
+/* =====================================================================
+   market.html ― 両ショップ
+   ---------------------------------------------------------------------
+   接続ポイント一覧(本番接続時にここを変える)
+
+   【接続①】所持両の取得
+     ↓ ログイン済みユーザーは FirebaseAuthBridge のプロフィールを優先する。
+       未ログイン時はデモ状態を使う。
+
+   【接続②】購入処理
+     ↓ ログイン済みユーザーは /api/purchaseSlot または /api/purchaseShopItem を呼ぶ。
+       成功レスポンスで残高・所持品を更新する。
+
+   【接続③】画像一覧の読み込み
+     ↓ corder.html と同じしくみ。img/manifest.json があればそれを読む。
+       基本データがなければ下の IMG_FILES を実ファイル名に書きかえる。
+       本番では GET /api/shop/images(価格・カテゴリ付き)に置きかえる。
+
+   【接続④】購入済み画像を corder.html に反映
+     ↓ 本番: corder.html の loadImageList() を GET /api/me/images(購入済み
+       一覧)に変更すれば、買った画像だけが「つかえる画像そざい」に並ぶ。
+       (デモ間ではページをまたぐ共有はしていない)
+
+   【接続⑤】各ページの両チップからこのページへ
+     ↓ index.html / userpage.html の <span class="sidebar-coin" ...> を
+       <a class="sidebar-coin" href="market.html" ...> に変えるだけ(中身は同じ)。
+
+   【接続⑥】作品の枠の現在値
+     ↓ DEMO_STATE.slotsMax / slotsUsed を GET /api/me で初期化。
+       userpage.html の me.slotsMax と同じ値をサーバから受け取る。
+   ===================================================================== */
+
+/* ---------- LocalStorage データベース連携 ---------- */
+const DB_PREFIX = 'otq:';
+const DB = {
+  getCurrentUid() {
+    return localStorage.getItem(DB_PREFIX + 'current_uid') || null;
+  },
+  setCurrentUid(uid) {
+    if (uid) {
+      localStorage.setItem(DB_PREFIX + 'current_uid', uid);
+    } else {
+      localStorage.removeItem(DB_PREFIX + 'current_uid');
+    }
+  },
+  resolveKey(key) {
+    const isIsolated = ['user', 'favorites', 'owned_misc', 'liked_works', 'reacted_works', 'played_works'].includes(key);
+    if (isIsolated) {
+      const uid = this.getCurrentUid();
+      return uid ? `${key}:${uid}` : `${key}:guest`;
+    }
+    return key;
+  },
+  get(key, def) {
+    try {
+      const resolved = this.resolveKey(key);
+      const v = localStorage.getItem(DB_PREFIX + resolved);
+      return v ? JSON.parse(v) : def;
+    } catch(e) { return def; }
+  },
+  set(key, val) {
+    try {
+      const resolved = this.resolveKey(key);
+      localStorage.setItem(DB_PREFIX + resolved, JSON.stringify(val));
+    } catch(e) {}
+  }
+};
+
+/* ---------- デモ状態 ---------- */
+let DEMO_STATE = {
+  coins: 0,
+  slotsMax: 2,
+  slotsUsed: 0,
+  ownedImages: new Set(['ノートパソコン.png']),
+  ownedMisc: new Set(),
+};
+const SLOT_PRICE = {3:50, 4:100, 5:200, 6:300, 7:400, 8:500};  // 仕様: 段階的に値上がり
+const SLOT_LIMIT = 8;                                    // 通学で買える最大(以降はランクアップ)
+
+/* ---------- 画像リスト(【接続③】) ----------
+   img/manifest.json … ["neko.png","sora.png",...] を置けば自動で読む。
+   なければ下の IMG_FILES を実ファイル名に書きかえる。
+   価格とカテゴリはファイル名から自動割当(デモ)。本番はAPIから受け取る。 */
+const IMG_DIR = 'img/';
+const IMG_FILES = [
+  "103_ワーニング.png",
+  "106_カメラアプリ.png",
+  "111_画面透過パソコン.png",
+  "112_笑顔のパソコン.png",
+  "113_画面透過スマホ.png",
+  "123_錠前.png",
+  "124_鍵.png",
+  "125_どくろの鍵.png",
+  "126_サーバー.png",
+  "137_指紋認証.png",
+  "141_パソコン悲しい顔.png",
+  "142_USBメモリー.png",
+  "149_まるちゃん(ふてくされ).png",
+  "16_まるちゃん(悲).png",
+  "53-1_チョコレート.png",
+  "53-2_チョコレート.png",
+  "53-3_チョコレート.png",
+  "53-4_チョコレート.png",
+  "53-5_チョコレート.png",
+  "53-6_チョコレート.png",
+  "9-3_タブレットを使った発表_提出.png",
+  "ノートパソコン.png",
+  "既読レンガ.png"
+];
+const IMG_CATS = [
+  {key:'icon', label:'アイコン', price:5},
+  {key:'chara', label:'キャラ',  price:20},
+  {key:'bg',   label:'背景',     price:20},
+  {key:'prem', label:'プレミアム', price:50},
+];
+
+/* ---------- そのほかのアイテム(デモ) ---------- */
+const MISC_ITEMS = [
+  {id:'bg_rainbow', icon:'background', name:'背景：彩雲',     desc:'マイページと作品ページの背景に、明るいグラデーション演出を追加します。', price:40},
+  {id:'bg_space',   icon:'background', name:'背景：星空',     desc:'マイページと作品ページに、深い夜空を思わせる背景を設定できます。', price:30},
+  {id:'bg_ocean',   icon:'background', name:'背景：海',       desc:'プロフィールまわりを、青く広がる水面のイメージに切り替えます。', price:30},
+  {id:'bg_forest',  icon:'background', name:'背景：森',       desc:'作品ページの印象を、落ち着いたグリーン系の背景に変更します。', price:30},
+  {id:'bg_sunset',  icon:'background', name:'背景：夕焼け',   desc:'あたたかい夕景カラーで、プロフィール表示に変化をつけます。', price:30},
+  {id:'bg_cherry',  icon:'background', name:'背景：桜',       desc:'やわらかな桜色の背景で、ページ全体を軽い印象に整えます。', price:30}
+];
+
+/* ---------- ユーティリティ ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const jsArg=s=>JSON.stringify(String(s ?? '')).replace(/</g,'\\u003c').replace(/"/g,'&quot;');
+const num=n=>n.toLocaleString('ja-JP');
+const iconPath=name=>`icon/svg/${name}_fill.svg`;
+const icon=(name, cls='ui-icon')=>`<img class="${cls}" src="${iconPath(name)}" alt="" />`;
+const coinLabel=amount=>`${icon('money')} ${num(amount)} 両`;
+const kindIconName=kind=>kind === 'fam' ? 'specialist' : kind === 'background' ? 'application' : 'luggage';
+let toastTimer;
+function toast(t,b,err=false){
+  $('toastTitle').textContent=t;$('toastBody').textContent=b;
+  $('toastEl').classList.toggle('err',err);
+  $('toastEl').classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toastEl').classList.remove('show'),3200);
+}
+function setCoins(v){
+  DEMO_STATE.coins=v;
+  const savedUser = DB.get('user', {});
+  savedUser.coins = v;
+  DB.set('user', savedUser);
+  $('coinVal').textContent=num(v);
+  if ($('heroCoinVal')) $('heroCoinVal').textContent=num(v);
+  const c=$('coinChip');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');
+}
+
+/* ---------- 購入処理(【接続②】) ---------- */
+async function purchase(itemType,itemId,price,onSuccess){
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    toast('購入にはログインが必要です', 'アカウント確認後に、残高と所持アイテムを保存できます。', true);
+    const modal = $('loginModal');
+    if (modal) modal.classList.add('open');
+    return false;
+  }
+  if(DEMO_STATE.coins<price){
+    toast('両が足りません',`あと ${num(price-DEMO_STATE.coins)} 両必要です。作品公開やミッションで残高を増やしてください。`,true);
+    return false;
+  }
+
+  if (window.FirebaseAuthBridge?.isConfigured && (itemType === 'slot' || itemType === 'misc' || itemType === 'image')) {
+    try {
+      const endpoint = itemType === 'slot' ? '/api/purchaseSlot' : '/api/purchaseShopItem';
+      const body = itemType === 'slot' ? {} : { itemKey: itemType === 'image' ? `image:${itemId}` : itemId };
+      const res = await window.FirebaseAuthBridge.authFetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        toast('購入を完了できませんでした', data?.message || '時間をおいてもう一度お試しください。', true);
+        return false;
+      }
+      setCoins(data.coins);
+      if (itemType === 'slot' && data.slotsMax) {
+        DEMO_STATE.slotsMax = data.slotsMax;
+        const savedUser = DB.get('user', {});
+        savedUser.slotsMax = data.slotsMax;
+        DB.set('user', savedUser);
+      }
+      onSuccess && onSuccess(data);
+      if (window.AchievementBridge) window.AchievementBridge.unlockAchievement('first_buy');
+      return true;
+    } catch (error) {
+      console.error('purchase API failed', error);
+      toast('通信エラー', '購入処理を完了できませんでした。少し待ってから再度お試しください。', true);
+      return false;
+    }
+  }
+
+  setCoins(DEMO_STATE.coins-price);   // ↑接続後はこの行を削除(サーバ残高を使う)
+  onSuccess&&onSuccess();
+
+  // 実績解除チェック
+  if (window.AchievementBridge) {
+    window.AchievementBridge.unlockAchievement('first_buy');
+  }
+  return true;
+}
+
+/* ---------- 作品の枠 ---------- */
+function renderSlots(){
+  const {slotsMax,slotsUsed}=DEMO_STATE;
+  const next=slotsMax+1, price=SLOT_PRICE[next];
+  const remain=Math.max(0,slotsMax-slotsUsed);
+  $('slotBar').innerHTML=
+    `<div class="slot used">
+      <span class="slot-label">${icon('work')} 公開中</span>
+      <span class="slot-num">${num(slotsUsed)}</span>
+      <span class="slot-note">いま作品が入っている席</span>
+    </div>
+    <div class="slot">
+      <span class="slot-label">${icon('documents')} 空き席</span>
+      <span class="slot-num">${num(remain)}</span>
+      <span class="slot-note">すぐに使える公開スペース</span>
+    </div>
+    <div class="slot next">
+      <span class="slot-label">${icon('add')} 次の手配</span>
+      <span class="slot-num">${price?'+1':'MAX'}</span>
+      <span class="slot-note">${price?`${num(next)} 席目を追加できます`:'両で追加できる上限です'}</span>
+    </div>`;
+  $('slotMeta').innerHTML=`<div class="slot-ledger"><b>現在の公開席:</b> ${num(slotsMax)} 席 / <b>使用中:</b> ${num(slotsUsed)} 席 / <b>空き:</b> ${num(remain)} 席</div>`;
+  if(price){
+    $('slotPrice').innerHTML=coinLabel(price);
+    $('slotBuyBtn').disabled=false;
+    $('slotNext').textContent=SLOT_PRICE[next+1]?`次回の ${next+1} 枠目は ${num(SLOT_PRICE[next+1])} 両です。`:'両で追加できる最終スロットです。';
+  }else{
+    $('slotPrice').textContent='MAX';
+    $('slotBuyBtn').disabled=true;
+    $('slotNext').textContent='これ以上の追加はランクアップで解放されます。';
+  }
+}
+async function buySlot(){
+  const next=DEMO_STATE.slotsMax+1, price=SLOT_PRICE[next];
+  if(!price)return;
+  if(!confirm(`公開スロットを ${DEMO_STATE.slotsMax} 枠から ${next} 枠へ拡張します。\n必要な両: ${price}\n購入しますか？`))return;
+  const ok=await purchase('slot', String(next), price, ()=>{
+    DEMO_STATE.slotsMax=next;
+    const savedUser = DB.get('user', {});
+    savedUser.slotsMax = next;
+    DB.set('user', savedUser);
+    renderSlots();
+    toast('スロットを追加しました',`公開できる作品数が ${next} 枠になりました。`);
+  });
+}
+
+/* ---------- 画像ショップ ---------- */
+let imgList=[];        // {file, cat, price}
+let curCat='';         // フィルタ
+
+let activeMiscItems = [...MISC_ITEMS];
+
+function normalizeShopItem(item){
+  if (!item || item.enabled === false) return null;
+  const id = String(item.id || item.key || '').trim();
+  if (!id || id === 'slot') return null;
+  const rawCategory = String(item.category || item.type || '').toLowerCase();
+  const isFam = id.startsWith('fam_') || rawCategory === 'fam' || rawCategory.includes('使い魔');
+  const isBg = id.startsWith('bg_') || rawCategory === 'background' || rawCategory.includes('背景');
+  return {
+    id,
+    icon: item.icon || (isFam ? 'specialist' : isBg ? 'application' : 'luggage'),
+    name: item.name || id,
+    desc: item.desc || item.description || (isFam ? 'プロフィールで選べる仲間を追加します。' : isBg ? 'マイページの背景として設定できます。' : '制作まわりを広げるショップアイテムです。'),
+    price: Number(item.price || 0),
+    repeatable: item.repeatable === true,
+    kind: isFam ? 'fam' : isBg ? 'background' : 'misc'
+  };
+}
+
+async function loadShopItems() {
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    try {
+      const dbItems = await window.FirebaseAuthBridge.getFirestoreDocs('shop_items');
+      if (dbItems && dbItems.length > 0) {
+        activeMiscItems = dbItems.map(normalizeShopItem).filter(Boolean);
+      }
+    } catch(e) {
+      console.warn("Failed to load shop items from Firestore:", e);
+    }
+  }
+}
+
+function catOf(file,i){
+  let h=0;for(const c of file)h=(h*31+c.charCodeAt(0))>>>0;
+  return IMG_CATS[(h+i)%IMG_CATS.length];
+}
+
+function normalizeImageItem(img, i){
+  if (!img || img.enabled === false) return null;
+  const file = img.fileName || img.name || img.id;
+  if (!file) return null;
+  const cat = IMG_CATS.find(c => c.key === img.category) || catOf(file, i);
+  const url = img.fileUrl || img.url || img.path || (IMG_DIR + file);
+  return {
+    file,
+    url,
+    key: cat.key,
+    label: cat.label,
+    price: Number(img.price || cat.price)
+  };
+}
+
+async function loadImages(){
+  let list = [];
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    try {
+      const dbImages = await window.FirebaseAuthBridge.getFirestoreDocs('images');
+      if (dbImages && dbImages.length > 0) {
+        list = dbImages.map(normalizeImageItem).filter(Boolean);
+      }
+    } catch(e) {
+      console.warn("Failed to load images from Firestore:", e);
+    }
+  }
+
+  if (list.length === 0) {
+    let files = IMG_FILES;
+    try {
+      const res = await fetch(IMG_DIR+'manifest.json',{cache:'no-store'});
+      if(res.ok){
+        const data = await res.json();
+        if(Array.isArray(data)&&data.length) files = data;
+      }
+    } catch(e) {}
+    list = files.map((f,i) => {
+      const cat = catOf(f,i);
+      return {
+        file: f,
+        url: IMG_DIR + f,
+        key: cat.key,
+        label: cat.label,
+        price: cat.price
+      };
+    });
+  }
+
+  imgList = list;
+  renderImgFilter();
+  renderImgGrid();
+}
+
+function renderImgFilter(){
+  $('imgFilter').innerHTML=
+    `<button class="fchip ${curCat===''?'active':''}" onclick="setCat('')">すべて</button>`+
+    IMG_CATS.map(c=>`<button class="fchip ${curCat===c.key?'active':''}" onclick="setCat('${c.key}')">${c.label} ${coinLabel(c.price)}</button>`).join('');
+}
+
+function setCat(k){curCat=k;renderImgFilter();renderImgGrid();}
+
+function renderImgGrid(){
+  const grid=$('imgGrid');
+  const list=imgList.filter(it=>!curCat||it.key===curCat);
+  if(!list.length){
+    grid.innerHTML=`<div class="img-empty">画像が見つかりませんでした。</div>`;
+    return;
+  }
+  grid.innerHTML='';
+  list.forEach(it=>{
+    const owned=DEMO_STATE.ownedImages.has(it.file);
+    const cell=document.createElement('div');
+    cell.className='img-item';
+    cell.innerHTML=`
+      ${owned?`<span class="owned-badge">${icon('complete')} 所持中</span>`:''}
+      <div class="pic"><img src="${it.url}" alt="${esc(it.file)}" loading="lazy"/></div>
+      <div class="ib">
+        <div class="inm" title="${esc(it.file)}">${esc(it.file)}</div>
+        <div class="icat">${icon('application')} ${it.label}</div>
+        <button class="ibtn ${owned?'owned':''}">${owned?`${icon('complete')} 交換済み`:`${coinLabel(it.price)}で交換`}</button>
+      </div>`;
+    const img=cell.querySelector('img');
+    img.onerror=()=>cell.remove();
+    if(!owned){
+      cell.querySelector('.ibtn').onclick=async ()=>{
+        if(!confirm(`「${it.file}」を ${it.price} 両で交換します。\n交換後は制作画面の画像素材として利用できます。`))return;
+        await purchase('image', it.file, it.price, (data)=>{
+          if (Array.isArray(data?.ownedImages)) {
+            DEMO_STATE.ownedImages = new Set(data.ownedImages);
+          } else {
+            DEMO_STATE.ownedImages.add(it.file);
+          }
+          const savedUser = DB.get('user', {});
+          savedUser.ownedImages = [...DEMO_STATE.ownedImages];
+          DB.set('user', savedUser);
+          renderImgGrid();
+          toast('素材を交換しました',`「${it.file}」が制作素材に追加されました。`);
+        });
+      };
+    }
+    grid.appendChild(cell);
+  });
+}
+
+/* ---------- そのほか ---------- */
+function renderMisc(){
+  $('miscGrid').innerHTML=activeMiscItems.map(it=>{
+    let isOwned = false;
+    if (it.id.startsWith('fam_')) {
+      const famKey = it.id.replace('fam_', '');
+      isOwned = DEMO_STATE.ownedFamTypes && DEMO_STATE.ownedFamTypes.has(famKey);
+    } else if (it.id.startsWith('bg_')) {
+      isOwned = DEMO_STATE.ownedBgImages && DEMO_STATE.ownedBgImages.has(`${it.id}.png`);
+    } else {
+      isOwned = DEMO_STATE.ownedMisc.has(it.id) && !it.repeatable;
+    }
+    return `<div class="misc">
+      <span class="mi">${icon(kindIconName(it.kind || 'misc'), 'ui-icon lg')}</span>
+      <span class="mn">${esc(it.name)}</span>
+      <span class="md">${esc(it.desc)}</span>
+      <button class="mbtn ${isOwned?'owned':''}" onclick="buyMisc(${jsArg(it.id)})" ${isOwned?'disabled':''}>
+        ${isOwned?`${icon('complete')} 交換済み`:`${coinLabel(it.price)}で交換`}</button>
+    </div>`;
+  }).join('');
+}
+
+async function buyMisc(id){
+  const it=activeMiscItems.find(x=>x.id===id);if(!it)return;
+  let isOwned = false;
+  if (id.startsWith('fam_')) {
+    const famKey = id.replace('fam_', '');
+    isOwned = DEMO_STATE.ownedFamTypes && DEMO_STATE.ownedFamTypes.has(famKey);
+  } else if (id.startsWith('bg_')) {
+    isOwned = DEMO_STATE.ownedBgImages && DEMO_STATE.ownedBgImages.has(`${id}.png`);
+  } else {
+    isOwned = DEMO_STATE.ownedMisc.has(id) && !it.repeatable;
+  }
+  if(isOwned) return;
+  if(!confirm(`「${it.name}」を ${it.price} 両で交換しますか？`))return;
+  await purchase('misc', id, it.price, (data)=>{
+    if (Array.isArray(data?.ownedFamTypes)) DEMO_STATE.ownedFamTypes = new Set(data.ownedFamTypes);
+    if (Array.isArray(data?.ownedMiscItems)) {
+      DEMO_STATE.ownedMisc = new Set(data.ownedMiscItems);
+      DB.set('owned_misc', data.ownedMiscItems);
+      const savedUser = DB.get('user', {});
+      savedUser.ownedMiscItems = data.ownedMiscItems;
+      DB.set('user', savedUser);
+    }
+    if (Array.isArray(data?.ownedBgImages)) {
+      const savedUser = DB.get('user', {});
+      savedUser.ownedBgImages = data.ownedBgImages;
+      DB.set('user', savedUser);
+      DEMO_STATE.ownedBgImages = new Set(data.ownedBgImages);
+    }
+    if (id.startsWith('fam_')) {
+      const famKey = id.replace('fam_', '');
+      if (!DEMO_STATE.ownedFamTypes) DEMO_STATE.ownedFamTypes = new Set(['tora', 'robo', 'fairy']);
+      DEMO_STATE.ownedFamTypes.add(famKey);
+      const savedUser = DB.get('user', {});
+      savedUser.ownedFamTypes = [...DEMO_STATE.ownedFamTypes];
+      DB.set('user', savedUser);
+      renderMisc();
+      toast('仲間アイテムを追加しました',`「${it.name}」がマイページで選べるようになりました。`);
+    } else if (id.startsWith('bg_')) {
+      const bgImgFile = id + '.png';
+      const savedUser = DB.get('user', {});
+      if (!savedUser.ownedBgImages) savedUser.ownedBgImages = ['bg_stars.png'];
+      if (!savedUser.ownedBgImages.includes(bgImgFile)) {
+        savedUser.ownedBgImages.push(bgImgFile);
+      }
+      DEMO_STATE.ownedBgImages = new Set(savedUser.ownedBgImages);
+      DB.set('user', savedUser);
+      if(!it.repeatable)DEMO_STATE.ownedMisc.add(id);
+      DB.set('owned_misc', [...DEMO_STATE.ownedMisc]);
+      renderMisc();
+      toast('背景アイテムを追加しました', `「${it.name}」をプロフィール編集から設定できます。`);
+    } else {
+      if(!it.repeatable)DEMO_STATE.ownedMisc.add(id);
+      const savedUser = DB.get('user', {});
+      savedUser.ownedMiscItems = [...DEMO_STATE.ownedMisc];
+      DB.set('user', savedUser);
+      DB.set('owned_misc', [...DEMO_STATE.ownedMisc]);
+      renderMisc();
+      toast('アイテムを交換しました',`「${it.name}」が利用可能になりました。`);
+    }
+  });
+}
+
+/* ================= ダミーログイン処理 ================= */
+function checkLogin() {
+  const uid = DB.getCurrentUid();
+  if (!uid) {
+    const modal = $('loginModal');
+    if (modal) modal.classList.add('open');
+    return false;
+  }
+  return true;
+}
+function closeLoginModal() {
+  const modal = $('loginModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function dummyLogin(provider) {
+  if (provider === 'google' && window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.loginWithGoogle()
+      .then(() => {
+        const userObj = DB.get('user', null);
+        const loginModal = $('loginModal');
+        if (loginModal) loginModal.classList.remove('open');
+        toast('ログインしました', `${userObj?.nickname || 'Googleユーザー'} さんとして接続しました。`);
+        if (window.AchievementBridge) {
+          window.AchievementBridge.unlockAchievement('first_login');
+        }
+        initShop();
+      })
+      .catch((error) => {
+        console.error('Firebase Google login failed', error);
+        const detail = firebaseErrorDetail(error);
+        localStorage.setItem('otq:last_firebase_login_error', detail);
+        toast('ログインできませんでした', detail);
+        alert(`Firebaseログインエラー:\n${detail}`);
+      });
+    return;
+  }
+
+  let uid = '';
+  if (provider === 'google') uid = 'google_user_' + Math.floor(100 + Math.random() * 900);
+  else if (provider === 'school') uid = 'school_user_' + Math.floor(100 + Math.random() * 900);
+  else return; // ゲストログインは廃止
+
+  DB.setCurrentUid(uid);
+
+  let userObj = DB.get('user', null);
+  if (!userObj) {
+    userObj = getSeedUserForUid(uid);
+    DB.set('user', userObj);
+  }
+
+  const loginModal = $('loginModal');
+  if (loginModal) loginModal.classList.remove('open');
+  toast('ログインしました', `アカウント（${userObj.nickname}）で接続しました。`);
+  if (window.AchievementBridge) {
+    window.AchievementBridge.unlockAchievement('first_login');
+  }
+  initShop();
+}
+
+function updateHeaderAuth() {
+  const uid = DB.getCurrentUid();
+  const signedIn = Boolean(uid);
+  const savedUser = DB.get('user', {});
+  const nick = signedIn ? (savedUser.nickname || uid) : '未ログイン';
+  if ($('userBtnNick')) $('userBtnNick').textContent = nick;
+  if ($('udNick')) $('udNick').textContent = nick;
+  if ($('udLogin')) $('udLogin').style.display = signedIn ? 'none' : 'flex';
+  if ($('udLogout')) $('udLogout').style.display = signedIn ? 'flex' : 'none';
+  if ($('btnLogin')) $('btnLogin').style.display = signedIn ? 'none' : 'inline-flex';
+  if ($('userMenu')) $('userMenu').style.display = signedIn ? 'flex' : 'none';
+  if ($('coinChip')) $('coinChip').style.display = signedIn ? 'flex' : 'none';
+}
+
+function loginFromHeader() {
+  $('userDrop').classList.remove('open');
+  if (!window.FirebaseAuthBridge) {
+    toast('Firebaseを読み込めませんでした', 'Firebase SDKの読み込みを確認してください。', true);
+    return;
+  }
+
+  if (window.FirebaseAuthBridge.isConfigured) {
+    window.FirebaseAuthBridge.loginWithGoogle()
+      .then(() => {
+        initShop();
+        if (window.AchievementBridge) {
+          window.AchievementBridge.unlockAchievement('first_login');
+        }
+        toast('ログインしました', 'アカウント接続が有効になりました。');
+      })
+      .catch((error) => {
+        console.error('Firebase Google login failed', error);
+        const detail = firebaseErrorDetail(error);
+        toast('ログインできませんでした', detail, true);
+        alert(`Firebaseログインエラー:\n${detail}`);
+      });
+    return;
+  }
+  toast('Firebase設定が未完了です', 'firebase-config.jsの設定を確認してください。', true);
+}
+
+function logoutFromHeader() {
+  $('userDrop').classList.remove('open');
+  const finish = () => {
+    DB.setCurrentUid(null);
+    initShop();
+    toast('ログアウトしました', 'ログインボタンから再度接続できます。');
+  };
+
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    window.FirebaseAuthBridge.logout()
+      .then(finish)
+      .catch((error) => {
+        console.error('Firebase logout failed', error);
+        toast('ログアウトできませんでした', '少し時間をおいてもう一度試してください。', true);
+      });
+    return;
+  }
+  finish();
+}
+
+// ユーザーメニュー開閉のイベントリスナー
+const userBtn = $('userBtn');
+const userDrop = $('userDrop');
+if (userBtn && userDrop) {
+  userBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    userDrop.classList.toggle('open');
+    if ($('createDrop')) $('createDrop').classList.remove('open');
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#userMenu')) {
+      userDrop.classList.remove('open');
+    }
+    if (!e.target.closest('#createMenu') && $('createDrop')) {
+      $('createDrop').classList.remove('open');
+    }
+  });
+}
+
+// 創作ドロップダウンメニュー開閉のイベントリスナー
+const createBtn = $('createBtn');
+const createDrop = $('createDrop');
+if (createBtn && createDrop) {
+  createBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    createDrop.classList.toggle('open');
+    if (userDrop) userDrop.classList.remove('open');
+  });
+}
+
+function firebaseErrorDetail(error) {
+  if (!error) return 'Firebase error: empty error object';
+  const parts = [];
+  if (error.code) parts.push(`code=${error.code}`);
+  if (error.message) parts.push(`message=${error.message}`);
+  if (error.customData) {
+    try { parts.push(`customData=${JSON.stringify(error.customData)}`); } catch(e) {}
+  }
+  return parts.join('\n') || String(error);
+}
+
+function getSeedUserForUid(uid) {
+  if (uid.startsWith('google_user')) {
+    return {
+      nickname: 'Googleたろう_' + uid.split('_')[2],
+      bio: 'Google SSOからやってきました！',
+      avatarColor: '#10b981',
+      coins: 300,
+      slotsMax: 2,
+      famType: 'robo',
+      ownedFamTypes: ['tora', 'robo', 'fairy'],
+      ownedMiscItems: [],
+      ownedBgImages: ['bg_stars.png'],
+      hobbies: ['AI', 'Google', 'プログラミング'],
+      ownedImages: ['ノートパソコン.png']
+    };
+  }
+  if (uid.startsWith('school_user')) {
+    return {
+      nickname: '生徒_' + uid.split('_')[2],
+      bio: '学校アカウントでログイン中',
+      avatarColor: '#f59e0b',
+      coins: 150,
+      slotsMax: 2,
+      famType: 'fairy',
+      ownedFamTypes: ['tora', 'robo', 'fairy'],
+      ownedMiscItems: [],
+      ownedBgImages: ['bg_stars.png'],
+      hobbies: ['学校', '勉強', 'クイズ'],
+      ownedImages: ['ノートパソコン.png']
+    };
+  }
+  return {
+    nickname: 'ゲストさん',
+    bio: 'ゲストとしてお試し中！',
+    avatarColor: '#8b5cf6',
+    coins: 100,
+    slotsMax: 2,
+    famType: 'tora',
+    ownedFamTypes: ['tora', 'robo', 'fairy'],
+    ownedMiscItems: [],
+    ownedBgImages: ['bg_stars.png'],
+    hobbies: ['ゲスト', 'おためし'],
+    ownedImages: ['ノートパソコン.png']
+  };
+}
+
+async function initShop() {
+  // ゲスト状態でも商品を表示できるように checkLogin() を外す
+
+  // システム設定を読み込み、ショップが無効ならメッセージ表示
+  let showShop = true;
+  if (window.FirebaseAuthBridge?.isConfigured) {
+    try {
+      const settingDoc = await window.FirebaseAuthBridge.getFirestoreDocs('system_settings');
+      const homepageSetting = settingDoc.find(s => s.id === 'homepage');
+      if (homepageSetting && homepageSetting.showShop === false) {
+        showShop = false;
+      }
+    } catch (e) {
+      console.warn("Failed to check showShop config from Firestore:", e);
+    }
+  }
+
+  if (!showShop) {
+    document.querySelector('.container').innerHTML = `
+      <div class="card" style="text-align:center; padding: 60px 20px;">
+        <h2 style="font-family: var(--font-display); font-size: 24px; color: var(--good); justify-content: center;">${icon('attention', 'ui-icon lg')} マーケットは現在休止中です</h2>
+        <p style="font-size:14px; font-weight:700; margin-top:16px;">運営設定により、一時的に交換機能が停止されています。時間をおいてから再度アクセスしてください。</p>
+        <a class="nav-btn" href="index.html" style="margin-top:20px; display:inline-flex;">${icon('house')}ホームへ戻る</a>
+      </div>
+    `;
+    const chip = $('coinChip');
+    if (chip) chip.style.display = 'none';
+    return;
+  }
+
+  const savedUser = DB.get('user', { coins: 240, slotsMax: 2, ownedImages: ["ノートパソコン.png"], ownedFamTypes: ['tora', 'robo', 'fairy'] });
+  let userUpdated = false;
+  if (typeof savedUser.slotsMax === 'undefined') {
+    savedUser.slotsMax = 2;
+    userUpdated = true;
+  }
+  if (typeof savedUser.coins === 'undefined') {
+    savedUser.coins = 240;
+    userUpdated = true;
+  }
+  if (!savedUser.ownedFamTypes) {
+    savedUser.ownedFamTypes = ['tora', 'robo', 'fairy'];
+    userUpdated = true;
+  }
+  if (!Array.isArray(savedUser.ownedMiscItems)) {
+    savedUser.ownedMiscItems = DB.get('owned_misc', []);
+    userUpdated = true;
+  }
+  if (!Array.isArray(savedUser.ownedBgImages)) {
+    savedUser.ownedBgImages = ['bg_stars.png'];
+    userUpdated = true;
+  }
+  if (userUpdated) {
+    DB.set('user', savedUser);
+  }
+  const worksList = DB.get('works', []);
+  const myWorksCount = worksList.filter(w => w.authorUid === DB.getCurrentUid() || (w.authorNickname === savedUser.nickname && !w.authorUid)).length;
+
+  DEMO_STATE = {
+    coins: savedUser.coins,
+    slotsMax: savedUser.slotsMax,
+    slotsUsed: myWorksCount,
+    ownedImages: new Set(savedUser.ownedImages || ['ノートパソコン.png']),
+    ownedMisc: new Set(savedUser.ownedMiscItems || DB.get('owned_misc', [])),
+    ownedFamTypes: new Set(savedUser.ownedFamTypes || ['tora', 'robo', 'fairy']),
+    ownedBgImages: new Set(savedUser.ownedBgImages || ['bg_stars.png']),
+  };
+
+  setCoins(DEMO_STATE.coins);
+  updateHeaderAuth();
+  renderSlots();
+  
+  await loadShopItems();
+  renderMisc();
+  await loadImages();
+}
+
+window.addEventListener('vibecoding-auth-change', () => {
+  initShop();
+});
+
+window.addEventListener('vibecoding-achievement-unlocked', (e) => {
+  if (e.detail && typeof e.detail.coins !== 'undefined') {
+    DEMO_STATE.coins = e.detail.coins;
+    setCoins(e.detail.coins);
+  }
+});
+
+window.addEventListener('vibecoding-achievement-modal-closed', () => {
+  initShop();
+});
+
+/* ---------- 初期化 ---------- */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLoginModal();
+});
+setTimeout(() => {
+  initShop();
+}, 200);
+</script>
+<script src="sidebar-toggle.js?v=1.0.1"></script>
+</body>
+</html>

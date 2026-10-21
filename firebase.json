@@ -1,0 +1,295 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/generate",
+        "function": {
+          "functionId": "generate",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/refine",
+        "function": {
+          "functionId": "refine",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/commentSource",
+        "function": {
+          "functionId": "commentSource",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/reviewCode",
+        "function": {
+          "functionId": "reviewCode",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/generatePro",
+        "function": {
+          "functionId": "generatePro",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/refinePro",
+        "function": {
+          "functionId": "refinePro",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/save",
+        "function": {
+          "functionId": "save",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/myWorks",
+        "function": {
+          "functionId": "myWorks",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/works",
+        "function": {
+          "functionId": "listWorks",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/works/:id/play",
+        "function": {
+          "functionId": "playWork",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/works/:id/like",
+        "function": {
+          "functionId": "likeWork",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/works/:id/react",
+        "function": {
+          "functionId": "react",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/checkText",
+        "function": {
+          "functionId": "checkText",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/classifyTags",
+        "function": {
+          "functionId": "classifyTags",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/censorHobby",
+        "function": {
+          "functionId": "censorHobby",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/generateQuest",
+        "function": {
+          "functionId": "generateQuest",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/verifyQuest",
+        "function": {
+          "functionId": "verifyQuest",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/loginWithPassword",
+        "function": {
+          "functionId": "loginWithPassword",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/billing/createCheckoutSession",
+        "function": {
+          "functionId": "createCheckoutSession",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/billing/claimCheckoutSession",
+        "function": {
+          "functionId": "claimCheckoutSession",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/billing/stripeWebhook",
+        "function": {
+          "functionId": "stripeWebhook",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/createStudent",
+        "function": {
+          "functionId": "createStudent",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/loginClassroomManager",
+        "function": {
+          "functionId": "loginClassroomManager",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/resendLoginCodes",
+        "function": {
+          "functionId": "resendLoginCodes",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/issueManualClassroomTicket",
+        "function": {
+          "functionId": "issueManualClassroomTicket",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/cancelClassroomTicket",
+        "function": {
+          "functionId": "cancelClassroomTicket",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/deleteClassroomTicketBundle",
+        "function": {
+          "functionId": "deleteClassroomTicketBundle",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/bulkCreateStudents",
+        "function": {
+          "functionId": "bulkCreateStudents",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/transferStudent",
+        "function": {
+          "functionId": "transferStudent",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/updateOrganizationContract",
+        "function": {
+          "functionId": "updateOrganizationContract",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/listStudents",
+        "function": {
+          "functionId": "listStudents",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/admin/resetStudentPassword",
+        "function": {
+          "functionId": "resetStudentPassword",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/unlockAchievement",
+        "function": {
+          "functionId": "unlockAchievement",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/purchaseSlot",
+        "function": {
+          "functionId": "purchaseSlot",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/purchaseShopItem",
+        "function": {
+          "functionId": "purchaseShopItem",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "/api/health",
+        "function": "apiHealth"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": {
+    "codebase": "default",
+    "source": "functions",
+    "runtime": "nodejs22"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  }
+}

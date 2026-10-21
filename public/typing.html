@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>打鍵や | タイピング実践 | じさくや</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     打鍵や — 産出型タイピング実践 (じさくや)
+     設計書: 打鍵や_設計書.md Draft 1 準拠
+     単体プロトタイプ: FirebaseAuthBridge があれば実APIを使用、
+     なければモック応答で動作します。
+     ========================================================= */
+  :root{
+    /* --- じさくや・江戸の伝統色 (corder.html と共通トークン) --- */
+    --bg: #F4EDE0;         /* 生成り・和紙色 */
+    --panel: #FFFCF5;      /* カード背景 */
+    --line: #2A2620;       /* 墨色 */
+    --text: #22201C;       /* 本文テキスト */
+    --muted: #6B5C4B;      /* サブテキスト */
+
+    --accent: #1B3A5C;     /* 藍色 */
+    --accent2: #C9A646;    /* 金 */
+    --pink: #C1440E;       /* 朱色 */
+    --bad: #A6321B;        /* 濃い朱 */
+
+    --pop-blue-soft: #E7ECE3;
+    --pop-mint-soft: #F3EAD3;
+    --pop-pink-soft: #F1DDD2;
+
+    --radius: 0;
+    --stroke: 1.5px solid var(--line);
+    --font-display: 'Yuji Syuku', 'Shippori Mincho', serif;
+    --font-body: 'Noto Sans JP', system-ui, sans-serif;
+    --input-font-size: 16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family: var(--font-body);
+    color: var(--text);
+    background:
+      radial-gradient(800px 420px at 8% -10%, rgba(184,230,168,.15), transparent 60%),
+      radial-gradient(800px 420px at 95% -10%, rgba(90,187,111,.15), transparent 60%),
+      var(--bg);
+  }
+  button{
+    font-family: var(--font-body);
+    border: var(--stroke);
+    border-radius:0;
+    font-weight:800;
+    cursor:pointer;
+    color: var(--text);
+    background: var(--panel);
+    transition: transform .1s ease, background-color .15s ease;
+  }
+  button:active{transform:translate(1px,1px)}
+  button:disabled{
+    background:#E2E8F0;color:var(--muted);cursor:not-allowed;border-color:#cbd5e1;transform:none;
+  }
+  button:focus-visible, a:focus-visible, textarea:focus-visible{
+    outline:3px solid var(--accent2); outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{animation:none!important;transition:none!important}
+  }
+
+  /* ---------- App shell ---------- */
+  .app-shell{display:flex;height:100vh;overflow:hidden}
+  .sidebar{
+    width:200px;flex:none;display:flex;flex-direction:column;gap:14px;
+    padding:16px 12px;border-right:var(--stroke);background:var(--panel);
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;font-family:var(--font-display)}
+  .logo-mark{
+    width:36px;height:36px;border:var(--stroke);display:grid;place-items:center;
+    background:var(--pop-mint-soft);font-size:19px;
+  }
+  .sidebar-nav{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .sidebar-nav a{
+    display:block;padding:10px 12px;text-decoration:none;color:var(--text);
+    font-size:13.5px;font-weight:800;border:1.5px solid transparent;
+  }
+  .sidebar-nav a:hover{background:var(--pop-blue-soft)}
+  .sidebar-nav a.active{border:var(--stroke);background:var(--accent2)}
+  .sidebar-note{
+    margin-top:auto;font-size:11px;color:var(--muted);line-height:1.7;font-weight:700;
+    border-top:1.5px dashed var(--line);padding-top:10px;
+  }
+
+  .main-area{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+  .wrap{
+    flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;
+    padding:14px;overflow:hidden;
+  }
+
+  /* ---------- 共通パネル ---------- */
+  .panel{background:var(--panel);border:var(--stroke);overflow:hidden;display:flex;flex-direction:column}
+  .panel-hd{
+    padding:11px 16px;border-bottom:var(--stroke);
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .panel-hd h1,.panel-hd h2{margin:0;font-size:16px;font-family:var(--font-display);font-weight:600;display:flex;align-items:center;gap:8px}
+
+  /* ---------- ヘッダーカラム(課題パネル) ---------- */
+  .kadai-panel{flex:none;max-height:34vh}
+  .inst-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 12px;border:1.5px solid var(--pink);color:var(--pink);
+    background:var(--panel);font-size:13px;font-weight:900;letter-spacing:.04em;
+  }
+  .inst-detail{font-size:12.5px;color:var(--muted);font-weight:800}
+  .hd-spacer{flex:1}
+  .meta-chip{
+    display:inline-flex;align-items:baseline;gap:5px;
+    font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;
+  }
+  .meta-chip .cur{font-size:17px}
+  .meta-chip .goal{color:var(--muted);font-size:12px;font-weight:800}
+  .save-ind{
+    font-size:11.5px;color:var(--muted);font-weight:800;min-width:5.5em;text-align:right;
+    transition:color .2s ease;
+  }
+  .save-ind.saving{color:var(--accent)}
+  .kadai-body{
+    padding:14px 18px;overflow-y:auto;line-height:2;font-size:14.5px;font-weight:500;
+    user-select:none;-webkit-user-select:none;-moz-user-select:none;
+  }
+  .kadai-body p{margin:0 0 .8em}
+  .kadai-title{font-family:var(--font-display);font-size:16px;margin:0 0 .6em;font-weight:600}
+
+  .submit-btn{
+    padding:9px 20px;font-size:14px;background:var(--accent);color:#fff;min-width:9.5em;
+  }
+  .submit-btn.armed{background:var(--pink);animation:arm-blink 1s ease-in-out infinite}
+  @keyframes arm-blink{50%{opacity:.75}}
+  .submit-hint{font-size:11px;color:var(--muted);font-weight:800}
+
+  /* ---------- Builder grid ---------- */
+  .builder{
+    flex:1;min-height:0;display:grid;gap:14px;
+    grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);
+    align-items:stretch;overflow:hidden;
+  }
+  .left-col,.right-col{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+
+  /* ---------- 左: 入力領域 ---------- */
+  .editor-panel{flex:1;min-height:0}
+  .editor-hd small{color:var(--muted);font-weight:800;font-size:11.5px}
+  .font-size-tools{display:flex;align-items:center;gap:4px;margin-left:auto}
+  .font-size-label{font-size:10.5px;font-weight:900;color:var(--muted)}
+  .font-size-toggle{padding:4px 9px;font-size:11px;background:var(--panel)}
+  .font-size-toggle.active{background:var(--accent2)}
+  .editor-bd{flex:1;min-height:0;display:flex;flex-direction:column;padding:12px}
+  #inputArea{
+    flex:1;min-height:0;width:100%;resize:none;
+    border:var(--stroke);background:var(--panel);color:var(--text);
+    padding:16px 18px;font:inherit;font-size:var(--input-font-size);font-weight:500;
+    line-height:1.9;outline:none;
+    transition:background-color .15s ease;
+  }
+  #inputArea:focus{background:var(--pop-blue-soft)}
+  #inputArea[readonly]{background:var(--pop-mint-soft);color:var(--muted)}
+  .editor-ft{
+    display:flex;align-items:center;gap:10px;padding:8px 4px 0;
+    font-size:11px;color:var(--muted);font-weight:800;
+  }
+
+  /* ---------- 右: アドバイスチャット ---------- */
+  .chat-panel{flex:1;min-height:0}
+  .chat-log{
+    flex:1;min-height:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 34px, rgba(42,38,32,.035) 34px 35px),
+      var(--pop-mint-soft);
+  }
+  .msg{display:flex;gap:9px;align-items:flex-start;max-width:100%}
+  .msg .avatar{
+    width:38px;height:38px;flex:none;border:var(--stroke);background:var(--panel);
+    display:grid;place-items:center;font-size:21px;
+  }
+  .msg .bubble{
+    position:relative;background:var(--panel);border:var(--stroke);
+    padding:9px 13px;font-size:13.5px;line-height:1.75;font-weight:700;
+    max-width:calc(100% - 60px);
+  }
+  .msg .bubble::before{ /* 角丸ゼロ世界の「しっぽ」 */
+    content:"";position:absolute;left:-8px;top:12px;
+    width:12px;height:12px;background:var(--panel);
+    border-left:var(--stroke);border-bottom:var(--stroke);
+    transform:rotate(45deg);
+  }
+  .msg.thinking .bubble{color:var(--muted)}
+  .sysmsg{
+    align-self:center;text-align:center;font-size:11.5px;color:var(--muted);
+    font-weight:800;line-height:1.6;max-width:90%;
+    border-bottom:1.5px dashed var(--line);padding:0 6px 3px;
+  }
+  .chat-ft{
+    flex:none;border-top:var(--stroke);padding:10px 12px;
+    display:flex;flex-direction:column;gap:6px;background:var(--panel);
+  }
+  .advice-btn{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:11px 16px;font-size:14.5px;background:var(--accent2);width:100%;
+  }
+  .advice-btn:disabled{background:#E2E8F0}
+  .advice-btn.done{background:var(--pop-pink-soft);color:var(--text);border-color:var(--line)}
+  .cd-ring{ /* クールダウンリング(シグネチャ) */
+    width:22px;height:22px;flex:none;border-radius:999px;display:none;
+    background:conic-gradient(var(--accent) calc(var(--p,0)*1%), rgba(42,38,32,.15) 0);
+    border:1.5px solid var(--line);
+    position:relative;
+  }
+  .cd-ring::after{
+    content:"";position:absolute;inset:4px;border-radius:999px;background:#E2E8F0;
+  }
+  .advice-btn.cooling .cd-ring{display:block}
+  .advice-meta{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;color:var(--muted);font-weight:800;
+  }
+  .restart-btn{
+    background:transparent;border:none;color:var(--muted);font-size:11px;
+    text-decoration:underline;padding:2px 4px;font-weight:800;
+  }
+  .restart-btn.armed{color:var(--bad)}
+
+  /* ---------- 結果パネル ---------- */
+  .result-panel{flex:1;min-height:0;display:none}
+  .result-bd{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+  .result-lead{font-size:13px;font-weight:800;line-height:1.8;margin:0}
+  .stat-row{display:flex;flex-direction:column;gap:4px}
+  .stat-row .lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:900}
+  .stat-row .lbl b{font-variant-numeric:tabular-nums;font-size:14px}
+  .stat-row .lbl small{color:var(--muted);font-weight:800}
+  .stat-bar{height:12px;border:var(--stroke);background:var(--panel);overflow:hidden}
+  .stat-bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .6s ease}
+  .stat-bar.gold i{background:var(--accent2)}
+  .stat-note{font-size:11px;color:var(--muted);font-weight:700;line-height:1.6}
+  .review-box{
+    border:var(--stroke);background:var(--pop-mint-soft);padding:12px 14px;
+    font-size:13px;font-weight:700;line-height:1.8;display:none;
+  }
+  .review-box .who{font-family:var(--font-display);font-size:12px;display:block;margin-bottom:4px;font-weight:600}
+  .result-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .result-actions .primary{background:var(--accent);color:#fff;padding:10px 18px;font-size:13.5px;flex:1}
+  .result-actions .ghost{padding:10px 18px;font-size:13.5px;flex:1}
+
+  /* ---------- トースト(システム通知の控え) ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translate(-50%,8px);
+    background:var(--line);color:#FFFCF5;font-size:12.5px;font-weight:800;
+    padding:10px 18px;opacity:0;pointer-events:none;transition:.2s ease;z-index:90;
+    max-width:min(92vw,480px);text-align:center;line-height:1.6;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- モバイル ---------- */
+  .fam-fab{display:none}
+  @media (max-width: 860px){
+    .sidebar{display:none}
+    .wrap{padding:10px}
+    .kadai-panel{max-height:32vh}
+    .builder{grid-template-columns:1fr;grid-template-rows:1fr}
+    .right-col{
+      position:fixed;left:0;right:0;bottom:0;top:auto;z-index:60;
+      height:min(72vh,560px);transform:translateY(105%);transition:transform .25s ease;
+      border-top:var(--stroke);box-shadow:0 -4px 0 rgba(42,38,32,.08);
+    }
+    .right-col.open{transform:translateY(0)}
+    .right-col .panel{height:100%}
+    .fam-fab{
+      display:grid;place-items:center;position:fixed;right:14px;bottom:14px;z-index:59;
+      width:56px;height:56px;font-size:27px;background:var(--accent2);
+    }
+    .fam-fab .badge{
+      position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 4px;
+      background:var(--pink);color:#fff;font-size:11px;font-weight:900;
+      display:none;place-items:center;border:1.5px solid var(--line);
+    }
+    .fam-fab .badge.show{display:grid}
+    .chat-close{display:inline-grid!important}
+  }
+  .chat-close{
+    display:none;place-items:center;width:30px;height:30px;padding:0;font-size:15px;margin-left:auto;
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-mark">⌨</span>じさくや</div>
+    <nav class="sidebar-nav" aria-label="メインメニュー">
+      <a href="corder.html">🛠 つくる</a>
+      <a href="#" class="active" aria-current="page">⌨ 打鍵や</a>
+      <a href="#">🖼 ギャラリー</a>
+    </nav>
+    <div class="sidebar-note">
+      打鍵や(プロトタイプ)<br>
+      考えたことを、じぶんの指で文章にする練習だよ。
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="wrap">
+
+      <!-- ===== ヘッダーカラム: 課題パネル ===== -->
+      <section class="panel kadai-panel" aria-label="課題">
+        <div class="panel-hd">
+          <span class="inst-badge" id="instBadge">要約して</span>
+          <span class="inst-detail" id="instDetail"></span>
+          <span class="hd-spacer"></span>
+          <span class="meta-chip" aria-live="polite">
+            <span class="cur" id="charCur">0</span>
+            <span class="goal" id="charGoal">/ 100〜150字</span>
+          </span>
+          <span class="save-ind" id="saveInd" aria-live="polite"></span>
+          <button class="submit-btn" id="submitBtn" disabled>できあがり</button>
+        </div>
+        <div class="kadai-body" id="kadaiBody"></div>
+      </section>
+
+      <!-- ===== 左右カラム ===== -->
+      <div class="builder">
+
+        <!-- 左: 入力領域 -->
+        <div class="left-col">
+          <section class="panel editor-panel" aria-label="入力領域">
+            <div class="panel-hd editor-hd">
+              <h2>✍ ここに書こう</h2>
+              <small>貼り付けはできないよ</small>
+              <div class="font-size-tools" role="group" aria-label="文字の大きさ">
+                <span class="font-size-label">文字</span>
+                <button class="font-size-toggle" data-fs="14px">小</button>
+                <button class="font-size-toggle active" data-fs="16px">中</button>
+                <button class="font-size-toggle" data-fs="19px">大</button>
+              </div>
+            </div>
+            <div class="editor-bd">
+              <textarea id="inputArea"
+                spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+                placeholder="課題文を読んだら、思いついたことから打ってみよう。とちゅうで消えたりしないから、安心してね。"
+                aria-label="作文の入力欄"></textarea>
+              <div class="editor-ft">
+                <span id="lockNote" style="display:none">✅ 提出ずみ(入力はロックされています)</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- 右: アドバイスチャット / 結果 -->
+        <div class="right-col" id="rightCol">
+
+          <section class="panel chat-panel" id="chatPanel" aria-label="アドバイス">
+            <div class="panel-hd">
+              <h2>💬 アドバイス</h2>
+              <button class="chat-close" id="chatCloseBtn" aria-label="チャットを閉じる">✕</button>
+            </div>
+            <div class="chat-log" id="chatLog" aria-live="polite"></div>
+            <div class="chat-ft">
+              <button class="advice-btn" id="adviceBtn">
+                <span class="cd-ring" id="cdRing" aria-hidden="true"></span>
+                <span id="adviceBtnLabel">アドバイスをもらう</span>
+              </button>
+              <div class="advice-meta">
+                <span id="adviceLeft"></span>
+                <button class="restart-btn" id="restartBtn">はじめからやりなおす</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel result-panel" id="resultPanel" aria-label="結果">
+            <div class="panel-hd"><h2>🎉 できあがり!</h2></div>
+            <div class="result-bd">
+              <p class="result-lead" id="resultLead"></p>
+              <div id="statList"></div>
+              <div class="review-box" id="reviewBox">
+                <span class="who" id="reviewWho">先生ギツネの講評</span>
+                <span id="reviewText"></span>
+              </div>
+              <div class="result-actions">
+                <button class="ghost" id="reviewBtn">🦊 講評をきく</button>
+                <button class="primary" id="retryBtn">もういちど</button>
+              </div>
+              <p class="stat-note">※ かかった時間は記録していますが、速さくらべのためのものではないので表示していません。じっくり考えるのも大事な力です。</p>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fam-fab" id="famFab" aria-label="アドバイスを開く">🦊<span class="badge" id="fabBadge">!</span></button>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   0. 課題定義(いったん固定 / 設計書 §3)
+   ========================================================= */
+const KADAI = {
+  id: 'k001',
+  title: '朝読書はひつよう?',
+  instruction: {
+    type: 'summary',
+    label: '要約して',
+    detail: 'この文章を100〜150字で要約しよう',
+  },
+  body: [
+    '多くの小学校や中学校では、授業が始まる前の10分間に「朝読書」の時間が設けられている。生徒はそれぞれ自分の好きな本を持ってきて、教室で静かに読む。感想文を書く必要はなく、テストもない。ただ読むだけの時間だ。',
+    'この取り組みには、いくつかのねらいがあるとされる。第一に、読書の習慣を身につけることだ。家で本を読む時間がとれない子どもでも、学校で毎日10分読めば、1年間ではかなりの量になる。第二に、心を落ち着けて1時間目の授業に入れるようにすることだ。朝の教室は、登校直後でざわざわしていることが多い。全員が静かに本へ向かう時間があると、教室全体が落ち着くという先生の声もある。',
+    'いっぽうで、朝読書には反対の意見もある。「読みたくない本を無理に読まされても、読書が嫌いになるだけだ」という声や、「その10分をドリルや小テストにあてたほうが学力が上がる」という考え方だ。また、マンガや雑誌は認めないなどのルールが厳しすぎて、かえって本から遠ざかってしまうという指摘もある。',
+    'つまり朝読書は、「読む習慣づくり」と「心の落ち着き」という良さが期待される一方、「読書ぎらいを増やすかもしれない」という心配もある取り組みなのである。',
+  ],
+  minChars: 80,
+  targetRange: [100, 150],
+  adviceMax: 8,
+  adviceCooldownSec: 25,
+};
+
+const API = {
+  advice: '/api/typing/advice',
+  review: '/api/typing/review',
+};
+
+/* =========================================================
+   1. ユーティリティ / 保存層
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const els = {
+  kadaiBody: $('kadaiBody'), instBadge: $('instBadge'), instDetail: $('instDetail'),
+  charCur: $('charCur'), charGoal: $('charGoal'), saveInd: $('saveInd'),
+  submitBtn: $('submitBtn'), input: $('inputArea'), lockNote: $('lockNote'),
+  chatLog: $('chatLog'), adviceBtn: $('adviceBtn'), adviceBtnLabel: $('adviceBtnLabel'),
+  cdRing: $('cdRing'), adviceLeft: $('adviceLeft'), restartBtn: $('restartBtn'),
+  chatPanel: $('chatPanel'), resultPanel: $('resultPanel'), resultLead: $('resultLead'),
+  statList: $('statList'), reviewBtn: $('reviewBtn'), reviewBox: $('reviewBox'),
+  reviewText: $('reviewText'), retryBtn: $('retryBtn'),
+  rightCol: $('rightCol'), famFab: $('famFab'), fabBadge: $('fabBadge'),
+  chatCloseBtn: $('chatCloseBtn'), toast: $('toast'),
+};
+
+function uid(){
+  return (window.FirebaseAuthBridge && window.FirebaseAuthBridge.currentUser
+    && window.FirebaseAuthBridge.currentUser.uid) || 'local';
+}
+const SAVE_KEY = () => `jisakuya_typing_session:${uid()}:${KADAI.id}`;
+
+const DB = {
+  get(key, fallback){
+    try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch(e){ return fallback; }
+  },
+  set(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); return true; }
+    catch(e){ return false; }
+  },
+  del(key){ try{ localStorage.removeItem(key); }catch(e){} },
+};
+
+let toastTimer = null;
+function showToast(text){
+  els.toast.textContent = text;
+  els.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> els.toast.classList.remove('show'), 3200);
+}
+
+/* =========================================================
+   2. 状態
+   ========================================================= */
+const state = {
+  status: 'writing',          // 'writing' | 'submitted'
+  metrics: {
+    keydowns: 0,
+    backspaces: 0,
+    activeMs: 0,
+    pauses: 0,                // 打鍵間隔 >10s の回数
+    maxPauseMs: 0,            // 60sクリップ後の最長ポーズ
+  },
+  advice: { count: 0, lastAt: 0, log: [] },  // log: {who:'fam'|'sys', text}
+  pasteRejects: 0,
+  reviewDone: false,
+  reviewText: '',
+  // 揮発(保存しない)
+  lastKeyAt: null,
+  composing: false,
+  busy: false,
+  submitArmedTimer: null,
+  restartArmedTimer: null,
+  cdTimer: null,
+  saveTimer: null,
+};
+
+/* =========================================================
+   3. チャット描画(ファミリア=先生ギツネ 🦊)
+   ========================================================= */
+function pushMsg(who, text, opts){
+  const o = opts || {};
+  if (who === 'sys'){
+    const el = document.createElement('div');
+    el.className = 'sysmsg';
+    el.textContent = text;
+    els.chatLog.appendChild(el);
+  } else {
+    const el = document.createElement('div');
+    el.className = 'msg' + (o.thinking ? ' thinking' : '');
+    el.innerHTML = '<div class="avatar" aria-hidden="true">🦊</div><div class="bubble"></div>';
+    el.querySelector('.bubble').textContent = text;
+    els.chatLog.appendChild(el);
+    if (o.thinking) return el; // 差し替え用に返す
+  }
+  els.chatLog.scrollTop = els.chatLog.scrollHeight;
+  if (!o.noLog) state.advice.log.push({ who, text });
+  if (!els.rightCol.classList.contains('open')
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width:860px)').matches){
+    els.fabBadge.classList.add('show');
+  }
+  return null;
+}
+function restoreChatLog(){
+  els.chatLog.innerHTML = '';
+  for (const m of state.advice.log){
+    // noLog: 復元時に二重登録しない
+    pushMsg(m.who, m.text, { noLog: true });
+  }
+  els.chatLog.scrollTop = els.chatLog.scrollHeight;
+}
+
+/* =========================================================
+   4. 実作業時間 activeMs(設計書 §7.5)
+   打鍵間隔を60秒でクリップして積算。タブ非表示でリセット。
+   ========================================================= */
+const CLIP_MS = 60000, PAUSE_MS = 10000;
+function tickActive(now){
+  if (state.lastKeyAt != null){
+    const gap = now - state.lastKeyAt;
+    const clipped = Math.min(gap, CLIP_MS);
+    state.metrics.activeMs += clipped;
+    if (gap > PAUSE_MS){
+      state.metrics.pauses++;
+      if (clipped > state.metrics.maxPauseMs) state.metrics.maxPauseMs = clipped;
+    }
+  }
+  state.lastKeyAt = now;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    state.lastKeyAt = null;   // 離席区間は算入しない
+    saveNow();
+  }
+});
+window.addEventListener('pagehide', saveNow);
+
+/* =========================================================
+   5. 自動保存(設計書 §7.5)
+   ========================================================= */
+function buildSavePayload(){
+  return {
+    v: 1,
+    kadaiId: KADAI.id,
+    text: els.input.value,
+    metrics: state.metrics,
+    advice: { count: state.advice.count, lastAt: state.advice.lastAt, log: state.advice.log.slice(-60) },
+    pasteRejects: state.pasteRejects,
+    status: state.status,
+    reviewDone: state.reviewDone,
+    reviewText: state.reviewText,
+    savedAt: Date.now(),
+  };
+}
+function saveNow(){
+  clearTimeout(state.saveTimer);
+  const ok = DB.set(SAVE_KEY(), buildSavePayload());
+  els.saveInd.classList.remove('saving');
+  els.saveInd.textContent = ok ? '💾 保存済み' : '⚠ 保存できません';
+}
+function scheduleSave(){
+  els.saveInd.classList.add('saving');
+  els.saveInd.textContent = '保存中…';
+  clearTimeout(state.saveTimer);
+  state.saveTimer = setTimeout(saveNow, 2000);   // debounce 2秒
+}
+function restoreSession(){
+  const d = DB.get(SAVE_KEY(), null);
+  if (!d || d.v !== 1 || d.kadaiId !== KADAI.id) return false;
+  els.input.value = d.text || '';
+  Object.assign(state.metrics, d.metrics || {});
+  state.advice.count = (d.advice && d.advice.count) || 0;
+  state.advice.lastAt = (d.advice && d.advice.lastAt) || 0;
+  state.advice.log = (d.advice && Array.isArray(d.advice.log)) ? d.advice.log : [];
+  state.pasteRejects = d.pasteRejects || 0;
+  state.status = d.status === 'submitted' ? 'submitted' : 'writing';
+  state.reviewDone = !!d.reviewDone;
+  state.reviewText = d.reviewText || '';
+  restoreChatLog();
+  return true;
+}
+
+/* =========================================================
+   6. コピペ不可(設計書 §4) — 多層防御
+   ========================================================= */
+const BLOCKED_INPUT_TYPES = new Set([
+  'insertFromPaste','insertFromPasteAsQuotation','insertFromDrop',
+  'insertFromYank','insertReplacementText',
+]);
+const BULK_INSERT_LIMIT = 20; // 非IMEの一括挿入しきい値
+
+function rejectPaste(){
+  state.pasteRejects++;
+  pushMsg('sys', 'いちどに貼り付けはできないよ。じぶんの指で打ってみよう!');
+  showToast('貼り付けはできません — じぶんの指で打ってみよう');
+  scheduleSave();
+}
+els.input.addEventListener('paste', e => { e.preventDefault(); rejectPaste(); });
+els.input.addEventListener('drop',  e => { e.preventDefault(); rejectPaste(); });
+els.input.addEventListener('dragover', e => e.preventDefault());
+els.input.addEventListener('contextmenu', e => e.preventDefault());
+els.input.addEventListener('compositionstart', () => { state.composing = true; });
+els.input.addEventListener('compositionend',   () => { state.composing = false; });
+els.input.addEventListener('beforeinput', e => {
+  if (state.status !== 'writing'){ e.preventDefault(); return; }
+  if (BLOCKED_INPUT_TYPES.has(e.inputType)){ e.preventDefault(); rejectPaste(); return; }
+  // 非IMEの大量一括挿入(スマホIMEのクリップボード候補など)
+  if (e.inputType === 'insertText' && !state.composing && !e.isComposing
+      && typeof e.data === 'string' && e.data.length > BULK_INSERT_LIMIT){
+    e.preventDefault(); rejectPaste();
+  }
+});
+// 課題文側: 選択不可(CSS)+コピー遮断
+els.kadaiBody.addEventListener('copy', e => e.preventDefault());
+els.kadaiBody.addEventListener('contextmenu', e => e.preventDefault());
+
+/* =========================================================
+   7. 入力・打鍵メトリクス
+   ========================================================= */
+function charCount(){ return els.input.value.replace(/\s/g, '').length; }
+function updateMeta(){
+  const n = charCount();
+  els.charCur.textContent = n;
+  const can = n >= KADAI.minChars && state.status === 'writing';
+  els.submitBtn.disabled = !can;
+  els.submitBtn.title = can ? '' : `あと${Math.max(0, KADAI.minChars - n)}字くらい書いたら提出できるよ`;
+}
+els.input.addEventListener('keydown', e => {
+  if (state.status !== 'writing') return;
+  tickActive(Date.now());
+  state.metrics.keydowns++;
+  if (e.key === 'Backspace' || e.key === 'Delete') state.metrics.backspaces++;
+});
+els.input.addEventListener('input', () => {
+  if (state.status !== 'writing') return;
+  updateMeta();
+  scheduleSave();
+});
+
+// 文字サイズ切替
+document.querySelectorAll('.font-size-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.font-size-toggle').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.documentElement.style.setProperty('--input-font-size', btn.dataset.fs);
+  });
+});
+
+/* =========================================================
+   8. AIアドバイス(設計書 §5, §6)
+   FirebaseAuthBridge があれば実API、なければモック。
+   ========================================================= */
+const MOCK_ADVICE = {
+  empty: [
+    'まだ白紙でも大丈夫。まず課題文を読んで「いちばん言いたいのはどの文かな?」と探してみよう。',
+    '書き出しに迷ったら、「朝読書とは何か」を一文で説明するところから始めてみよう。',
+  ],
+  early: [
+    '書き始められたね!この文章には「良い点」と「心配な点」の両方があるよ。両方入れられるかな?',
+    'いい調子。段落ごとに「いちばん大事な一文」に印をつけるつもりで読み直してみよう。',
+    '「つまり」で始まる段落は要約のヒントになることが多いよ。最後の段落をもう一度見てみて。',
+  ],
+  middle: [
+    'だいぶ書けてきたね。「例えば」の中身(細かい例)は思いきって削ると、字数内にまとまるよ。',
+    '「良さ」と「心配」がつながるように、「いっぽうで」などの言葉を入れてみるとどうかな?',
+    'ここまでの文を声に出さずに読み返してみよう。同じ言葉を2回使っていないかチェック!',
+  ],
+  reached: [
+    '目安の字数に届いたね!最後に、主語と文末(〜だ/〜です)がそろっているか見直してみよう。',
+    '仕上げの確認だよ。「誰が読んでも元の文章の内容がわかるか」を意識して読み返してみて。',
+    'いいところまで来てる。誤字がないか、最初の一文から指でなぞって確認してみよう。',
+  ],
+};
+function adviceStage(){
+  const n = charCount();
+  if (n === 0) return 'empty';
+  if (n < KADAI.minChars * 0.5) return 'early';
+  if (n < KADAI.targetRange[0]) return 'middle';
+  return 'reached';
+}
+function pickMock(stage){
+  const pool = MOCK_ADVICE[stage];
+  const used = new Set(state.advice.log.filter(m => m.who === 'fam').map(m => m.text));
+  const fresh = pool.filter(t => !used.has(t));
+  const list = fresh.length ? fresh : pool;
+  return list[Math.floor(Math.random() * list.length)];
+}
+async function fetchAdvice(){
+  const payload = {
+    kadaiId: KADAI.id,
+    instructionType: KADAI.instruction.type,
+    userText: els.input.value.slice(0, 2000),
+    activeSec: Math.round(state.metrics.activeMs / 1000),
+    adviceCount: state.advice.count + 1,
+    prevAdvices: state.advice.log.filter(m => m.who === 'fam').slice(-3).map(m => m.text),
+  };
+  if (window.FirebaseAuthBridge && window.FirebaseAuthBridge.authFetch){
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 15000);
+    try{
+      const res = await window.FirebaseAuthBridge.authFetch(API.advice, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+        signal: ctrl.signal,
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.ok) throw new Error((data && data.message) || 'アドバイスを取得できませんでした');
+      return data.advice;
+    } finally { clearTimeout(t); }
+  }
+  // ---- モック(単体プロトタイプ用) ----
+  await new Promise(r => setTimeout(r, 700 + Math.random() * 600));
+  return pickMock(adviceStage());
+}
+
+function cooldownRemainMs(){
+  const passed = Date.now() - (state.advice.lastAt || 0);
+  return Math.max(0, KADAI.adviceCooldownSec * 1000 - passed);
+}
+function renderAdviceUi(){
+  const left = KADAI.adviceMax - state.advice.count;
+  els.adviceLeft.textContent = left > 0 ? `のこり ${left}回` : 'アドバイスはつかいきったよ';
+  if (state.status !== 'writing'){
+    els.adviceBtn.disabled = true;
+    els.adviceBtn.classList.remove('cooling');
+    return;
+  }
+  if (left <= 0){
+    els.adviceBtn.disabled = true;
+    els.adviceBtn.classList.add('done');
+    els.adviceBtn.classList.remove('cooling');
+    els.adviceBtnLabel.textContent = 'じぶんの力で仕上げよう!';
+    return;
+  }
+  const remain = cooldownRemainMs();
+  if (state.busy){
+    els.adviceBtn.disabled = true;
+    els.adviceBtnLabel.textContent = '先生ギツネが考え中…';
+    els.adviceBtn.classList.remove('cooling');
+  } else if (remain > 0){
+    els.adviceBtn.disabled = true;
+    els.adviceBtn.classList.add('cooling');
+    const total = KADAI.adviceCooldownSec * 1000;
+    els.cdRing.style.setProperty('--p', Math.round((1 - remain / total) * 100));
+    els.adviceBtnLabel.textContent = `つぎのアドバイスまで ${Math.ceil(remain / 1000)}秒`;
+    clearTimeout(state.cdTimer);
+    state.cdTimer = setTimeout(renderAdviceUi, 250);
+  } else {
+    els.adviceBtn.disabled = false;
+    els.adviceBtn.classList.remove('cooling');
+    els.adviceBtnLabel.textContent = 'アドバイスをもらう';
+  }
+}
+async function requestAdvice(){
+  if (state.busy || state.status !== 'writing') return;
+  if (state.advice.count >= KADAI.adviceMax || cooldownRemainMs() > 0){ renderAdviceUi(); return; }
+  state.busy = true;
+  renderAdviceUi();
+  const thinkingEl = pushMsg('fam', '（きみの文章を読んでいるよ…）', { thinking: true, noLog: true });
+  try{
+    const advice = await fetchAdvice();
+    thinkingEl.remove();
+    state.advice.count++;
+    state.advice.lastAt = Date.now();
+    pushMsg('fam', advice);
+  } catch(err){
+    thinkingEl.remove();
+    pushMsg('sys', 'アドバイスがとどかなかったみたい。少し待ってもういちど押してね。');
+  } finally {
+    state.busy = false;
+    renderAdviceUi();
+    scheduleSave();
+  }
+}
+els.adviceBtn.addEventListener('click', requestAdvice);
+// カラム余白クリックでも発火(誤タップに配慮しログ領域は除く)
+els.chatPanel.addEventListener('click', e => {
+  if (e.target === els.chatPanel) requestAdvice();
+});
+
+/* =========================================================
+   9. 二段確認ヘルパー(confirm() 不使用 / プラットフォーム規約)
+   ========================================================= */
+function armTwoTap(btn, opts){
+  // opts: {armedLabel, normalLabel, armedClass, timerKey, onConfirm}
+  return () => {
+    if (btn.classList.contains(opts.armedClass || 'armed')){
+      clearTimeout(state[opts.timerKey]);
+      btn.classList.remove(opts.armedClass || 'armed');
+      btn.textContent = opts.normalLabel;
+      opts.onConfirm();
+      return;
+    }
+    btn.classList.add(opts.armedClass || 'armed');
+    btn.textContent = opts.armedLabel;
+    clearTimeout(state[opts.timerKey]);
+    state[opts.timerKey] = setTimeout(() => {
+      btn.classList.remove(opts.armedClass || 'armed');
+      btn.textContent = opts.normalLabel;
+    }, 5000);
+  };
+}
+
+/* =========================================================
+   10. 提出・結果(設計書 §7, §8)
+   ========================================================= */
+function fmtPause(ms){
+  if (ms >= CLIP_MS) return '60秒+';
+  return Math.round(ms / 1000) + '秒';
+}
+function computeResults(){
+  const n = charCount();
+  const min = Math.max(state.metrics.activeMs / 60000, 1/60);
+  const speed = n / min;                                   // 字/分
+  const bsRate = state.metrics.keydowns > 0
+    ? state.metrics.backspaces / state.metrics.keydowns : 0;
+  return { n, speed, bsRate };
+}
+function statRow(label, value, note, pct, gold){
+  return `
+    <div class="stat-row">
+      <div class="lbl"><span>${label}</span><b>${value}</b></div>
+      <div class="stat-bar${gold ? ' gold' : ''}"><i data-pct="${pct}"></i></div>
+      ${note ? `<small class="stat-note">${note}</small>` : ''}
+    </div>`;
+}
+function renderResults(){
+  const r = computeResults();
+  const [lo, hi] = KADAI.targetRange;
+  const inRange = r.n >= lo && r.n <= hi;
+  els.resultLead.textContent = inRange
+    ? 'おつかれさま!目安の字数にぴったりおさめられたよ。'
+    : 'おつかれさま!さいごまで書ききったのがいちばんえらい。';
+  els.statList.innerHTML =
+    statRow('書けた文字数', `${r.n}字`,
+      `目安は ${lo}〜${hi}字`, Math.min(100, r.n / hi * 100), inRange) +
+    statRow('考えながら打つ速さ', `${r.speed.toFixed(0)}字/分`,
+      '写すタイピングとちがって、考える時間もふくんだ速さだよ', Math.min(100, r.speed / 40 * 100)) +
+    statRow('打ちなおした割合', `${Math.round(r.bsRate * 100)}%`,
+      '消して直すのは「推敲(すいこう)」。多くても悪いことじゃないよ',
+      Math.min(100, r.bsRate * 200)) +
+    statRow('じっくり考えた回数', `${state.metrics.pauses}回`,
+      `いちばん長く考えた時間: ${fmtPause(state.metrics.maxPauseMs)}`,
+      Math.min(100, state.metrics.pauses * 12)) +
+    statRow('アドバイスをつかった回数', `${state.advice.count}回`,
+      `${KADAI.adviceMax}回まで つかえたよ`, state.advice.count / KADAI.adviceMax * 100, true);
+  requestAnimationFrame(() => {
+    els.statList.querySelectorAll('.stat-bar i').forEach(bar => {
+      bar.style.width = bar.dataset.pct + '%';
+    });
+  });
+  // 講評の復元
+  if (state.reviewDone && state.reviewText){
+    els.reviewText.textContent = state.reviewText;
+    els.reviewBox.style.display = 'block';
+    els.reviewBtn.style.display = 'none';
+  } else {
+    els.reviewBox.style.display = 'none';
+    els.reviewBtn.style.display = '';
+    els.reviewBtn.disabled = false;
+    els.reviewBtn.textContent = '🦊 講評をきく';
+  }
+}
+function enterSubmitted(){
+  state.status = 'submitted';
+  state.lastKeyAt = null;
+  els.input.readOnly = true;
+  els.lockNote.style.display = '';
+  els.submitBtn.disabled = true;
+  els.submitBtn.textContent = '提出ずみ';
+  els.chatPanel.style.display = 'none';
+  els.resultPanel.style.display = 'flex';
+  renderResults();
+  renderAdviceUi();
+}
+const onSubmit = armTwoTap(els.submitBtn, {
+  normalLabel: 'できあがり',
+  armedLabel: 'もういちど押すと提出',
+  timerKey: 'submitArmedTimer',
+  onConfirm(){
+    enterSubmitted();
+    saveNow();
+    showToast('提出しました 🎉');
+  },
+});
+els.submitBtn.addEventListener('click', onSubmit);
+
+/* ---- AI講評(1回だけ / 80字以内) ---- */
+async function fetchReview(){
+  const r = computeResults();
+  const payload = {
+    kadaiId: KADAI.id,
+    instructionType: KADAI.instruction.type,
+    userText: els.input.value.slice(0, 2000),
+    metrics: {
+      chars: r.n, speedPerMin: Math.round(r.speed),
+      bsRatePct: Math.round(r.bsRate * 100),
+      pauses: state.metrics.pauses, adviceCount: state.advice.count,
+    },
+  };
+  if (window.FirebaseAuthBridge && window.FirebaseAuthBridge.authFetch){
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 15000);
+    try{
+      const res = await window.FirebaseAuthBridge.authFetch(API.review, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload), signal: ctrl.signal,
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.ok) throw new Error((data && data.message) || '講評を取得できませんでした');
+      return data.review;
+    } finally { clearTimeout(t); }
+  }
+  await new Promise(r2 => setTimeout(r2, 900));
+  const good = r.bsRate > 0.08
+    ? '消して直しながら書けたのは、読み返せている証拠。'
+    : '最後まで手を止めずに書ききれたね。';
+  const next = r.n < KADAI.targetRange[0]
+    ? '次は「良さ」と「心配」を一文ずつ足してみよう。'
+    : '次は書いたあとに一度だけ読み返す習慣をつけよう。';
+  return good + next;
+}
+els.reviewBtn.addEventListener('click', async () => {
+  if (state.reviewDone) return;
+  els.reviewBtn.disabled = true;
+  els.reviewBtn.textContent = '先生ギツネが読んでいます…';
+  try{
+    const review = await fetchReview();
+    state.reviewDone = true;
+    state.reviewText = review;
+    renderResults();
+    saveNow();
+  } catch(err){
+    els.reviewBtn.disabled = false;
+    els.reviewBtn.textContent = '🦊 講評をきく';
+    showToast('講評がとどきませんでした。もういちど試してね');
+  }
+});
+
+/* ---- もういちど / はじめからやりなおす ---- */
+function resetSession(){
+  DB.del(SAVE_KEY());
+  location.reload();
+}
+els.retryBtn.addEventListener('click', resetSession);
+const onRestart = armTwoTap(els.restartBtn, {
+  normalLabel: 'はじめからやりなおす',
+  armedLabel: '書いた文も消えるよ。もういちど押してね',
+  timerKey: 'restartArmedTimer',
+  onConfirm: resetSession,
+});
+els.restartBtn.addEventListener('click', onRestart);
+
+/* =========================================================
+   11. モバイル: ボトムシート開閉
+   ========================================================= */
+els.famFab.addEventListener('click', () => {
+  els.rightCol.classList.add('open');
+  els.fabBadge.classList.remove('show');
+});
+els.chatCloseBtn.addEventListener('click', () => els.rightCol.classList.remove('open'));
+
+/* =========================================================
+   12. 初期化
+   ========================================================= */
+function renderKadai(){
+  els.instBadge.textContent = KADAI.instruction.label;
+  els.instDetail.textContent = KADAI.instruction.detail;
+  els.charGoal.textContent = `/ ${KADAI.targetRange[0]}〜${KADAI.targetRange[1]}字`;
+  const frag = document.createDocumentFragment();
+  const h = document.createElement('p');
+  h.className = 'kadai-title';
+  h.textContent = `「${KADAI.title}」`;
+  frag.appendChild(h);
+  for (const para of KADAI.body){
+    const p = document.createElement('p');
+    p.textContent = para;
+    frag.appendChild(p);
+  }
+  els.kadaiBody.appendChild(frag);
+}
+
+(function init(){
+  renderKadai();
+  const restored = restoreSession();
+  updateMeta();
+  if (state.status === 'submitted'){
+    enterSubmitted();
+  } else if (restored && (els.input.value.length > 0 || state.advice.log.length > 0)){
+    pushMsg('fam', 'おかえり!つづきからやろう。前回はここまで書けていたよ。');
+  } else {
+    pushMsg('fam', '課題を読んだら、まずは思いついたことから打ってみよう。困ったらこのボタンを押してね。');
+  }
+  renderAdviceUi();
+  saveNow();
+  els.input.focus();
+})();
+</script>
+</body>
+</html>
